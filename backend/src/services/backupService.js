@@ -157,7 +157,7 @@ function getConfig() {
   if (hexKey && Buffer.from(hexKey, 'hex').length !== AES_KEY_LENGTH) {
     throw new Error(
       `BACKUP_ENCRYPTION_KEY must be ${AES_KEY_LENGTH * 2} hex chars (${AES_KEY_LENGTH} bytes). ` +
-      `Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+        `Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
     );
   }
   return {
@@ -165,8 +165,12 @@ function getConfig() {
     s3Prefix: process.env.BACKUP_S3_PREFIX || 'sqlite-backups/',
     s3Region: process.env.BACKUP_S3_REGION || 'us-east-1',
     encryptionKeyHex: hexKey,
-    tempDir: process.env.BACKUP_TEMP_DIR || path.join(os.tmpdir(), 'db-backups'),
-    retentionCount: Math.max(1, parseInt(process.env.BACKUP_RETENTION_COUNT, 10) || 30),
+    tempDir:
+      process.env.BACKUP_TEMP_DIR || path.join(os.tmpdir(), 'db-backups'),
+    retentionCount: Math.max(
+      1,
+      parseInt(process.env.BACKUP_RETENTION_COUNT, 10) || 30
+    ),
   };
 }
 
@@ -175,7 +179,9 @@ function assertConfigComplete(cfg) {
   if (!cfg.s3Bucket) missing.push('BACKUP_S3_BUCKET');
   if (!cfg.encryptionKeyHex) missing.push('BACKUP_ENCRYPTION_KEY');
   if (missing.length) {
-    throw new Error(`Backup service misconfigured — missing env vars: ${missing.join(', ')}`);
+    throw new Error(
+      `Backup service misconfigured — missing env vars: ${missing.join(', ')}`
+    );
   }
 }
 
@@ -217,7 +223,9 @@ async function streamUploadToS3(s3Client, bucket, key, bodyStream, metadata) {
 }
 
 async function verifyS3Object(s3Client, bucket, key) {
-  const head = await s3Client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+  const head = await s3Client.send(
+    new HeadObjectCommand({ Bucket: bucket, Key: key })
+  );
   return { etag: head.ETag, contentLength: head.ContentLength };
 }
 
@@ -227,7 +235,11 @@ async function pruneOldBackups(s3Client, bucket, prefix, retentionCount) {
 
   do {
     const res = await s3Client.send(
-      new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix, ContinuationToken: token })
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: token,
+      })
     );
     objects.push(...(res.Contents || []));
     token = res.NextContinuationToken;
@@ -265,13 +277,21 @@ export async function runBackup() {
   const s3Key = buildS3Key(cfg.s3Prefix, timestamp);
   const encKey = parseEncryptionKey(cfg);
 
-  logger.info(JSON.stringify({ level: 'info', msg: 'backup:start', timestamp, s3Key }));
+  logger.info(
+    JSON.stringify({ level: 'info', msg: 'backup:start', timestamp, s3Key })
+  );
 
   try {
     await mkdir(cfg.tempDir, { recursive: true });
 
     // 1. Point-in-time snapshot — non-blocking in WAL mode
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:snapshot', file: snapshotFile }));
+    logger.info(
+      JSON.stringify({
+        level: 'info',
+        msg: 'backup:snapshot',
+        file: snapshotFile,
+      })
+    );
     await createDatabaseSnapshot(snapshotFile);
 
     // 2. tar.gz → AES-256-CBC encrypt → S3 multipart upload (fully stream-based)
@@ -287,7 +307,9 @@ export async function runBackup() {
     archiveStream.on('error', (err) => encryptTransform.destroy(err));
     archiveStream.pipe(encryptTransform);
 
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:upload:start', s3Key }));
+    logger.info(
+      JSON.stringify({ level: 'info', msg: 'backup:upload:start', s3Key })
+    );
     await streamUploadToS3(s3Client, cfg.s3Bucket, s3Key, encryptTransform, {
       'backup-timestamp': timestamp,
       'backup-algorithm': AES_ALGORITHM,
@@ -295,28 +317,56 @@ export async function runBackup() {
     });
 
     // 3. Verify the object landed in S3
-    const { etag, contentLength } = await verifyS3Object(s3Client, cfg.s3Bucket, s3Key);
+    const { etag, contentLength } = await verifyS3Object(
+      s3Client,
+      cfg.s3Bucket,
+      s3Key
+    );
     logger.info(
-      JSON.stringify({ level: 'info', msg: 'backup:verified', s3Key, etag, contentLength })
+      JSON.stringify({
+        level: 'info',
+        msg: 'backup:verified',
+        s3Key,
+        etag,
+        contentLength,
+      })
     );
 
     // 4. Prune backups older than the retention window
     const deleted = await pruneOldBackups(
-      s3Client, cfg.s3Bucket, cfg.s3Prefix, cfg.retentionCount
+      s3Client,
+      cfg.s3Bucket,
+      cfg.s3Prefix,
+      cfg.retentionCount
     );
     if (deleted > 0) {
-      logger.info(JSON.stringify({ level: 'info', msg: 'backup:pruned', count: deleted }));
+      logger.info(
+        JSON.stringify({ level: 'info', msg: 'backup:pruned', count: deleted })
+      );
     }
 
     const result = { success: true, s3Key, timestamp, etag, contentLength };
     _lastResult = { ...result, completedAt: new Date().toISOString() };
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:complete', ...result }));
+    logger.info(
+      JSON.stringify({ level: 'info', msg: 'backup:complete', ...result })
+    );
     return result;
   } catch (err) {
     const failure = { success: false, error: err.message, timestamp };
     _lastResult = { ...failure, completedAt: new Date().toISOString() };
-    logger.error(JSON.stringify({ level: 'error', msg: 'backup:failed', error: err.message, s3Key }));
-    alertManager.alert('backup_failed', { error: err.message, timestamp, s3Key });
+    logger.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'backup:failed',
+        error: err.message,
+        s3Key,
+      })
+    );
+    alertManager.alert('backup_failed', {
+      error: err.message,
+      timestamp,
+      s3Key,
+    });
     throw err;
   } finally {
     await unlink(snapshotFile).catch(() => {});
@@ -350,7 +400,12 @@ export async function restoreFromFile({ sourcePath, destDir }) {
   await pipeline(sourceStream, decryptTransform, createGunzip(), extractStream);
 
   logger.info(
-    JSON.stringify({ level: 'info', msg: 'restore:complete', sourcePath, destDir })
+    JSON.stringify({
+      level: 'info',
+      msg: 'restore:complete',
+      sourcePath,
+      destDir,
+    })
   );
   return { success: true, destDir };
 }
@@ -374,8 +429,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     }
     restoreFromFile({ sourcePath, destDir })
-      .then(() => { console.log(`Restore complete → ${destDir}`); process.exit(0); })
-      .catch((err) => { console.error('Restore failed:', err.message); process.exit(1); });
+      .then(() => {
+        console.log(`Restore complete → ${destDir}`);
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error('Restore failed:', err.message);
+        process.exit(1);
+      });
   } else {
     console.error('Unknown command. Available commands: restore');
     process.exit(1);

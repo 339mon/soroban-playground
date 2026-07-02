@@ -9,7 +9,9 @@ export const healthHandler = asyncHandler(async (req, res) => {
     const skipCache = req.query?.refresh === 'true';
     const deep = await healthService.performDeepHealthCheck({ skipCache });
     const httpStatus = healthService.getHttpStatusForHealth(deep.status);
-    return res.status(httpStatus).json({ success: httpStatus < 500, data: deep });
+    return res
+      .status(httpStatus)
+      .json({ success: httpStatus < 500, data: deep });
   } catch (error) {
     return res.status(503).json({
       success: false,
@@ -19,7 +21,9 @@ export const healthHandler = asyncHandler(async (req, res) => {
 });
 
 export const livenessHandler = asyncHandler(async (_req, res) => {
-  return res.status(200).json({ success: true, data: healthService.getLivenessPayload() });
+  return res
+    .status(200)
+    .json({ success: true, data: healthService.getLivenessPayload() });
 });
 
 router.get('/', healthHandler);

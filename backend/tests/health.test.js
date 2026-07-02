@@ -189,3 +189,4 @@ describe('Health Service', () => {
       expect(res.body.data.status).toBe('unhealthy');
     });
   });
+});

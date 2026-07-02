@@ -100,9 +100,10 @@ pub fn get_oracle_reading(
     oracle: &Address,
     parameter_key: &String,
 ) -> Option<OracleReading> {
-    env.storage()
-        .persistent()
-        .get(&DataKey::OracleReading(oracle.clone(), parameter_key.clone()))
+    env.storage().persistent().get(&DataKey::OracleReading(
+        oracle.clone(),
+        parameter_key.clone(),
+    ))
 }
 
 pub fn set_oracle_reading(
@@ -111,7 +112,8 @@ pub fn set_oracle_reading(
     parameter_key: &String,
     reading: &OracleReading,
 ) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::OracleReading(oracle.clone(), parameter_key.clone()), reading);
+    env.storage().persistent().set(
+        &DataKey::OracleReading(oracle.clone(), parameter_key.clone()),
+        reading,
+    );
 }

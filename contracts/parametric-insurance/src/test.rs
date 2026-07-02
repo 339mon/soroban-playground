@@ -1,14 +1,26 @@
 #![cfg(test)]
 
-use super::{types::{Error, PolicyStatus, TriggerDirection}, ParametricInsurance, ParametricInsuranceClient};
-use soroban_sdk::{testutils::{Address as _, Ledger}, Address, Env, String};
+use super::{
+    types::{Error, PolicyStatus, TriggerDirection},
+    ParametricInsurance, ParametricInsuranceClient,
+};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger},
+    Address, Env, String,
+};
 
 const PREMIUM: i128 = 10_000_000;
 const COVERAGE: i128 = 1_000_000_000;
 const TERM: u64 = 2_592_000; // 30 days
 const THRESHOLD: i128 = 50_0000000; // 50.0 scaled ×10^7
 
-fn setup() -> (Env, ParametricInsuranceClient<'static>, Address, Address, u32) {
+fn setup() -> (
+    Env,
+    ParametricInsuranceClient<'static>,
+    Address,
+    Address,
+    u32,
+) {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, ParametricInsurance);
@@ -142,8 +154,14 @@ fn test_submit_reading_unknown_oracle_fails() {
 #[test]
 fn test_submit_reading_stored_correctly() {
     let (env, client, _admin, oracle, _) = setup();
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &30_0000000i128);
-    let reading = client.get_reading(&oracle, &String::from_str(&env, "RAINFALL_MM")).unwrap();
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &30_0000000i128,
+    );
+    let reading = client
+        .get_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"))
+        .unwrap();
     assert_eq!(reading.value, 30_0000000);
 }
 
@@ -156,7 +174,11 @@ fn test_process_claim_trigger_met_pays_out() {
     let policy_id = client.buy_policy(&holder, &product_id);
 
     // Rainfall = 20mm, threshold = 50mm, direction = AtOrBelow → triggered
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &20_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &20_0000000i128,
+    );
 
     let payout = client.process_claim(&policy_id);
     assert_eq!(payout, COVERAGE);
@@ -174,7 +196,11 @@ fn test_process_claim_trigger_not_met_fails() {
     let policy_id = client.buy_policy(&holder, &product_id);
 
     // Rainfall = 80mm, threshold = 50mm, direction = AtOrBelow → not triggered
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &80_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &80_0000000i128,
+    );
 
     let result = client.try_process_claim(&policy_id);
     assert!(matches!(result, Err(Ok(Error::TriggerNotMet))));
@@ -195,7 +221,11 @@ fn test_process_claim_stale_oracle_data_fails() {
     let holder = Address::generate(&env);
     let policy_id = client.buy_policy(&holder, &product_id);
 
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &20_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &20_0000000i128,
+    );
 
     // Advance past the 24h staleness window
     env.ledger().with_mut(|l| l.timestamp += 86_401);
@@ -209,7 +239,11 @@ fn test_process_claim_double_claim_fails() {
     let (env, client, _admin, oracle, product_id) = setup();
     let holder = Address::generate(&env);
     let policy_id = client.buy_policy(&holder, &product_id);
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &10_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &10_0000000i128,
+    );
     client.process_claim(&policy_id);
     let result = client.try_process_claim(&policy_id);
     assert!(matches!(result, Err(Ok(Error::PolicyAlreadyClaimed))));
@@ -220,7 +254,11 @@ fn test_process_claim_expired_policy_fails() {
     let (env, client, _admin, oracle, product_id) = setup();
     let holder = Address::generate(&env);
     let policy_id = client.buy_policy(&holder, &product_id);
-    client.submit_reading(&oracle, &String::from_str(&env, "RAINFALL_MM"), &10_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "RAINFALL_MM"),
+        &10_0000000i128,
+    );
 
     // Advance past policy term
     env.ledger().with_mut(|l| l.timestamp += TERM + 1);
@@ -247,7 +285,11 @@ fn test_at_or_above_trigger_fires_correctly() {
     let policy_id = client.buy_policy(&holder, &flood_product);
 
     // Water level = 150cm, threshold = 100cm, AtOrAbove → triggered
-    client.submit_reading(&oracle, &String::from_str(&env, "WATER_LEVEL_CM"), &150_0000000i128);
+    client.submit_reading(
+        &oracle,
+        &String::from_str(&env, "WATER_LEVEL_CM"),
+        &150_0000000i128,
+    );
     let payout = client.process_claim(&policy_id);
     assert_eq!(payout, COVERAGE);
 }

@@ -28,7 +28,10 @@ function validateSourceCode(code) {
     return {
       ok: false,
       error: `Code exceeds max size of ${config.compile.maxSourceBytes} bytes`,
-      details: { maxSourceBytes: config.compile.maxSourceBytes, actualBytes: bytes },
+      details: {
+        maxSourceBytes: config.compile.maxSourceBytes,
+        actualBytes: bytes,
+      },
     };
   }
 

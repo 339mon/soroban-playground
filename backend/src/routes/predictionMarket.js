@@ -77,7 +77,8 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const errs = requireFields(req.body, ['contractId', 'admin']);
-    if (errs) return next(createHttpError(400, 'Validation failed', { errors: errs }));
+    if (errs)
+      return next(createHttpError(400, 'Validation failed', { errors: errs }));
 
     const { contractId, admin, network } = req.body;
 
@@ -108,7 +109,8 @@ router.post(
       'resolutionDeadline',
       'oracle',
     ]);
-    if (errs) return next(createHttpError(400, 'Validation failed', { errors: errs }));
+    if (errs)
+      return next(createHttpError(400, 'Validation failed', { errors: errs }));
 
     const {
       contractId,
@@ -127,13 +129,20 @@ router.post(
     if (!validateAddress(oracle))
       return next(createHttpError(400, 'Invalid oracle address format'));
     if (![0, 1].includes(Number(marketType)))
-      return next(createHttpError(400, 'marketType must be 0 (Binary) or 1 (Scalar)'));
+      return next(
+        createHttpError(400, 'marketType must be 0 (Binary) or 1 (Scalar)')
+      );
     if (typeof question !== 'string' || question.trim().length === 0)
       return next(createHttpError(400, 'question must be a non-empty string'));
 
     const deadlineTs = Number(resolutionDeadline);
     if (!Number.isInteger(deadlineTs) || deadlineTs <= 0)
-      return next(createHttpError(400, 'resolutionDeadline must be a positive integer (Unix timestamp)'));
+      return next(
+        createHttpError(
+          400,
+          'resolutionDeadline must be a positive integer (Unix timestamp)'
+        )
+      );
 
     const result = await invoke(
       contractId,
@@ -173,10 +182,12 @@ router.get(
 
     // Fetch markets in parallel (IDs are 1-indexed)
     const fetches = Array.from({ length: count }, (_, i) =>
-      invoke(contractId, 'get_market', { market_id: i + 1 }, network).catch((err) => ({
-        error: err.message,
-        id: i + 1,
-      }))
+      invoke(contractId, 'get_market', { market_id: i + 1 }, network).catch(
+        (err) => ({
+          error: err.message,
+          id: i + 1,
+        })
+      )
     );
 
     const markets = await Promise.all(fetches);
@@ -199,7 +210,12 @@ router.get(
     if (!Number.isInteger(marketId) || marketId <= 0)
       return next(createHttpError(400, 'Market ID must be a positive integer'));
 
-    const result = await invoke(contractId, 'get_market', { market_id: marketId }, network);
+    const result = await invoke(
+      contractId,
+      'get_market',
+      { market_id: marketId },
+      network
+    );
     res.json({ success: true, data: result });
   })
 );
@@ -214,10 +230,12 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const errs = requireFields(req.body, ['contractId', 'trader', 'stake']);
-    if (errs) return next(createHttpError(400, 'Validation failed', { errors: errs }));
+    if (errs)
+      return next(createHttpError(400, 'Validation failed', { errors: errs }));
 
     const { contractId, trader, stake, network } = req.body;
-    const outcome = req.body.outcome !== undefined ? Number(req.body.outcome) : undefined;
+    const outcome =
+      req.body.outcome !== undefined ? Number(req.body.outcome) : undefined;
     const marketId = parseInt(req.params.id, 10);
 
     if (!validateContractId(contractId))
@@ -260,20 +278,27 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const errs = requireFields(req.body, ['contractId']);
-    if (errs) return next(createHttpError(400, 'Validation failed', { errors: errs }));
+    if (errs)
+      return next(createHttpError(400, 'Validation failed', { errors: errs }));
 
     const { contractId, network } = req.body;
-    const winningOutcome = req.body.winningOutcome !== undefined
-      ? Number(req.body.winningOutcome)
-      : undefined;
+    const winningOutcome =
+      req.body.winningOutcome !== undefined
+        ? Number(req.body.winningOutcome)
+        : undefined;
     const marketId = parseInt(req.params.id, 10);
 
     if (!validateContractId(contractId))
       return next(createHttpError(400, 'Invalid contractId format'));
     if (!Number.isInteger(marketId) || marketId <= 0)
       return next(createHttpError(400, 'Market ID must be a positive integer'));
-    if (winningOutcome === undefined || (winningOutcome !== 0 && winningOutcome !== 1))
-      return next(createHttpError(400, 'winningOutcome must be 0 (NO) or 1 (YES)'));
+    if (
+      winningOutcome === undefined ||
+      (winningOutcome !== 0 && winningOutcome !== 1)
+    )
+      return next(
+        createHttpError(400, 'winningOutcome must be 0 (NO) or 1 (YES)')
+      );
 
     const result = await invoke(
       contractId,
@@ -299,7 +324,8 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const errs = requireFields(req.body, ['contractId']);
-    if (errs) return next(createHttpError(400, 'Validation failed', { errors: errs }));
+    if (errs)
+      return next(createHttpError(400, 'Validation failed', { errors: errs }));
 
     const { contractId, network } = req.body;
     const marketId = parseInt(req.params.id, 10);

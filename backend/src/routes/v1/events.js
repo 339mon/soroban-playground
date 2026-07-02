@@ -3,7 +3,10 @@
 
 import express from 'express';
 import crypto from 'crypto';
-import { asyncHandler, createHttpError } from '../../middleware/errorHandler.js';
+import {
+  asyncHandler,
+  createHttpError,
+} from '../../middleware/errorHandler.js';
 import { QueryBuilder } from '../../services/queryBuilder.js';
 import cacheService from '../../services/cacheService.js';
 import { listEmittedEvents } from '../../services/emittedEventsService.js';

@@ -25,9 +25,7 @@ use crate::storage::{
     is_initialized, is_oracle, set_admin, set_oracle, set_oracle_reading, set_policy,
     set_policy_count, set_product, set_product_count,
 };
-use crate::types::{
-    Error, OracleReading, Policy, PolicyStatus, Product, TriggerDirection,
-};
+use crate::types::{Error, OracleReading, Policy, PolicyStatus, Product, TriggerDirection};
 
 /// Maximum staleness window for oracle data (24 hours).
 const MAX_ORACLE_STALENESS_SECS: u64 = 86_400;
@@ -53,7 +51,12 @@ impl ParametricInsurance {
     // ── Oracle management ─────────────────────────────────────────────────────
 
     /// Register or deregister an authorised oracle address.
-    pub fn set_oracle(env: Env, admin: Address, oracle: Address, active: bool) -> Result<(), Error> {
+    pub fn set_oracle(
+        env: Env,
+        admin: Address,
+        oracle: Address,
+        active: bool,
+    ) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         set_oracle(&env, &oracle, active);
         env.events()
@@ -263,8 +266,7 @@ impl ParametricInsurance {
         }
         policy.status = PolicyStatus::Expired;
         set_policy(&env, policy_id, &policy);
-        env.events()
-            .publish((symbol_short!("expired"),), policy_id);
+        env.events().publish((symbol_short!("expired"),), policy_id);
         Ok(())
     }
 

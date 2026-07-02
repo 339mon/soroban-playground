@@ -24,7 +24,9 @@ export function startBackupScheduler(schedule = DEFAULT_SCHEDULE) {
   }
 
   if (_task) {
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:scheduler:already_running' }));
+    logger.info(
+      JSON.stringify({ level: 'info', msg: 'backup:scheduler:already_running' })
+    );
     return _task;
   }
 
@@ -37,15 +39,25 @@ export function startBackupScheduler(schedule = DEFAULT_SCHEDULE) {
   );
 
   _task = cron.schedule(schedule, async () => {
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:scheduler:triggered' }));
+    logger.info(
+      JSON.stringify({ level: 'info', msg: 'backup:scheduler:triggered' })
+    );
     try {
       const result = await runBackup();
       logger.info(
-        JSON.stringify({ level: 'info', msg: 'backup:scheduler:success', s3Key: result.s3Key })
+        JSON.stringify({
+          level: 'info',
+          msg: 'backup:scheduler:success',
+          s3Key: result.s3Key,
+        })
       );
     } catch (err) {
       logger.error(
-        JSON.stringify({ level: 'error', msg: 'backup:scheduler:error', error: err.message })
+        JSON.stringify({
+          level: 'error',
+          msg: 'backup:scheduler:error',
+          error: err.message,
+        })
       );
       alertManager.alert('scheduled_backup_failed', { error: err.message });
     }
@@ -58,6 +70,8 @@ export function stopBackupScheduler() {
   if (_task) {
     _task.stop();
     _task = null;
-    logger.info(JSON.stringify({ level: 'info', msg: 'backup:scheduler:stopped' }));
+    logger.info(
+      JSON.stringify({ level: 'info', msg: 'backup:scheduler:stopped' })
+    );
   }
 }

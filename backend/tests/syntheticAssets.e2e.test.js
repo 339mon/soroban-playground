@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Mock the synthetic assets service dependencies
-jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
+jest.mock('../src/services/syntheticAssetsService.js', () => ({
   syntheticAssetsService: {
     registerAsset: jest.fn(),
     mintSynthetic: jest.fn(),
@@ -25,14 +25,14 @@ jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
 }));
 
 // Mock database service
-jest.unstable_mockModule('../src/services/databaseService.js', () => ({
+jest.mock('../src/services/databaseService.js', () => ({
   databaseService: {
     query: jest.fn(),
   },
 }));
 
 // Mock redis service
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   redisService: {
     get: jest.fn(),
     set: jest.fn(),
@@ -41,15 +41,16 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
 }));
 
 // Mock invoke service
-jest.unstable_mockModule('../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeContract: jest.fn(),
 }));
 
-const { syntheticAssetsService } =
-  await import('../src/services/syntheticAssetsService.js');
-const { databaseService } = await import('../src/services/databaseService.js');
-const { redisService } = await import('../src/services/redisService.js');
-const { invokeContract } = await import('../src/services/invokeService.js');
+const {
+  syntheticAssetsService,
+} = require('../src/services/syntheticAssetsService.js');
+const { databaseService } = require('../src/services/databaseService.js');
+const { redisService } = require('../src/services/redisService.js');
+const { invokeContract } = require('../src/services/invokeService.js');
 
 const CONTRACT_ID = 'CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const USER_ADDRESS = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';

@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   __esModule: true,
   default: {
     get: jest.fn().mockResolvedValue(null),
@@ -11,9 +11,8 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
   },
 }));
 
-const { default: redisService } =
-  await import('../src/services/redisService.js');
-const { MultiLevelCache } = await import('../src/services/multiLevelCache.js');
+const { default: redisService } = require('../src/services/redisService.js');
+const { MultiLevelCache } = require('../src/services/multiLevelCache.js');
 
 describe('MultiLevelCache', () => {
   let cache;

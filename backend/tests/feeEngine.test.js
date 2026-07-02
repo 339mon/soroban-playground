@@ -9,7 +9,7 @@ const mockRedisService = {
   set: jest.fn(),
 };
 
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   __esModule: true,
   default: mockRedisService,
 }));
@@ -20,7 +20,7 @@ const {
   isFeeError,
   submitWithEscalation,
   _clearCacheForTesting,
-} = await import('../src/services/feeEngine.js');
+} = require('../src/services/feeEngine.js');
 
 function makeFeeStats(p90 = '200') {
   return {

@@ -58,7 +58,12 @@ impl TwapOracle {
         Ok(())
     }
 
-    pub fn set_feeder(env: Env, admin: Address, feeder: Address, active: bool) -> Result<(), Error> {
+    pub fn set_feeder(
+        env: Env,
+        admin: Address,
+        feeder: Address,
+        active: bool,
+    ) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         set_feeder(&env, &feeder, active);
         env.events()
@@ -89,7 +94,8 @@ impl TwapOracle {
         set_asset(&env, id, &config);
         set_asset_symbol_index(&env, &symbol, id);
         set_asset_count(&env, id);
-        env.events().publish((symbol_short!("asset_reg"),), (id, symbol));
+        env.events()
+            .publish((symbol_short!("asset_reg"),), (id, symbol));
         Ok(id)
     }
 
@@ -137,7 +143,8 @@ impl TwapOracle {
         } else {
             let last = obs_list.last().unwrap();
             let elapsed = now.saturating_sub(last.timestamp) as i128;
-            last.cumulative_price.saturating_add(last.price.saturating_mul(elapsed))
+            last.cumulative_price
+                .saturating_add(last.price.saturating_mul(elapsed))
         };
 
         let obs = Observation {
@@ -166,7 +173,11 @@ impl TwapOracle {
         Self::assert_initialized(&env)?;
         let _ = get_asset(&env, asset_id)?;
 
-        let window = if window_secs == 0 { DEFAULT_WINDOW_SECS } else { window_secs };
+        let window = if window_secs == 0 {
+            DEFAULT_WINDOW_SECS
+        } else {
+            window_secs
+        };
         let now = env.ledger().timestamp();
         let window_start = now.saturating_sub(window);
 

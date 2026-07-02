@@ -5,11 +5,11 @@ import DatabaseService from '../src/services/databaseService.js';
 import { syntheticAssetsService } from '../src/services/syntheticAssetsService.js';
 
 // Mock only the external dependencies we can't test directly
-jest.unstable_mockModule('../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeContract: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   redisService: {
     get: jest.fn(),
     set: jest.fn(),
@@ -17,8 +17,8 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
   },
 }));
 
-const { invokeContract } = await import('../src/services/invokeService.js');
-const { redisService } = await import('../src/services/redisService.js');
+const { invokeContract } = require('../src/services/invokeService.js');
+const { redisService } = require('../src/services/redisService.js');
 
 // Use in-memory SQLite database for testing
 const TEST_DB_PATH = ':memory:';
@@ -33,8 +33,7 @@ beforeAll(async () => {
   // Run migrations to set up schema
   try {
     // Import and run the synthetic assets migration
-    const migrationSQL =
-      await import('../../migrations/V003__synthetic_assets.up.sql');
+    const migrationSQL = require('../../migrations/V003__synthetic_assets.up.sql');
     // In practice, we'd execute the migration SQL here
     // For now, we'll create the tables manually
     await databaseService.run(`

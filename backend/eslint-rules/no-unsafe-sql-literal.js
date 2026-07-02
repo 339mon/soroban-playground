@@ -27,7 +27,7 @@ const rule = {
 
       const isAllowlistedSortMap =
         /sortMapping|ORDER_OPTIONS|SORT_OPTIONS|sortOptions/i.test(
-          context.getSourceCode().getText(node.parent || node)
+          context.sourceCode.getText(node.parent || node)
         );
       if (isAllowlistedSortMap) return;
 

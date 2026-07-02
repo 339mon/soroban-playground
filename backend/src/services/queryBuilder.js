@@ -34,10 +34,7 @@ export class QueryBuilder {
           return restriction;
         }
         return {
-          $and: [
-            filter,
-            restriction
-          ]
+          $and: [filter, restriction],
         };
       }
     }
@@ -95,7 +92,11 @@ export class QueryBuilder {
         if (subExpressions.length > 0) {
           expressions.push(`(${subExpressions.join(` ${subOp} `)})`);
         }
-      } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      } else if (
+        value !== null &&
+        typeof value === 'object' &&
+        !Array.isArray(value)
+      ) {
         for (const [op, opVal] of Object.entries(value)) {
           if (this.operators[op])
             expressions.push(this._buildExpression(key, op, opVal));

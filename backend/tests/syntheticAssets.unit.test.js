@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 // Setup ES Module mocks before imports
 // Mock the synthetic assets service dependencies
-jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
+jest.mock('../src/services/syntheticAssetsService.js', () => ({
   syntheticAssetsService: {
     registerAsset: jest.fn(),
     mintSynthetic: jest.fn(),
@@ -27,7 +27,7 @@ jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
 }));
 
 // Mock database service
-jest.unstable_mockModule('../src/services/databaseService.js', () => ({
+jest.mock('../src/services/databaseService.js', () => ({
   databaseService: {
     query: jest.fn(),
   },
@@ -35,17 +35,17 @@ jest.unstable_mockModule('../src/services/databaseService.js', () => ({
 }));
 
 const mockRedisService = { get: jest.fn(), set: jest.fn(), delete: jest.fn() };
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   redisService: mockRedisService,
   default: mockRedisService,
 }));
 
-jest.unstable_mockModule('../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeContract: jest.fn(),
   invokeSorobanContract: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/utils/logger.js', () => ({
+jest.mock('../src/utils/logger.js', () => ({
   logger: {
     error: jest.fn(),
     info: jest.fn(),
@@ -61,11 +61,11 @@ let syntheticAssetsService,
   logger;
 
 beforeAll(async () => {
-  const mod1 = await import('../src/services/syntheticAssetsService.js');
-  const mod2 = await import('../src/services/databaseService.js');
-  const mod3 = await import('../src/services/redisService.js');
-  const mod4 = await import('../src/services/invokeService.js');
-  const mod5 = await import('../src/utils/logger.js');
+  const mod1 = require('../src/services/syntheticAssetsService.js');
+  const mod2 = require('../src/services/databaseService.js');
+  const mod3 = require('../src/services/redisService.js');
+  const mod4 = require('../src/services/invokeService.js');
+  const mod5 = require('../src/utils/logger.js');
   syntheticAssetsService = mod1.syntheticAssetsService;
   databaseService = mod2.databaseService;
   redisService = mod3.redisService;
@@ -587,7 +587,7 @@ describe('SyntheticAssetsService Unit Tests', () => {
 });
 
 // Mock redis service
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   redisService: {
     get: jest.fn(),
     set: jest.fn(),
@@ -596,7 +596,7 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
 }));
 
 // Mock invoke service
-jest.unstable_mockModule('../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeContract: jest.fn(),
 }));
 

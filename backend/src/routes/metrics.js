@@ -84,17 +84,25 @@ export const requestRate = new client.Gauge({
 });
 register.registerMetric(requestRate);
 
-export const processCpuSecondsTotal = new client.Gauge({
-  name: 'process_cpu_seconds_total',
-  help: 'Total CPU time consumed by this process in seconds',
-});
-register.registerMetric(processCpuSecondsTotal);
+export const processCpuSecondsTotal =
+  register.getSingleMetric('process_cpu_seconds_total') ||
+  new client.Gauge({
+    name: 'process_cpu_seconds_total',
+    help: 'Total CPU time consumed by this process in seconds',
+  });
+if (!register.getSingleMetric('process_cpu_seconds_total')) {
+  register.registerMetric(processCpuSecondsTotal);
+}
 
-export const processMemoryRssBytes = new client.Gauge({
-  name: 'process_memory_rss_bytes',
-  help: 'Resident memory usage in bytes',
-});
-register.registerMetric(processMemoryRssBytes);
+export const processMemoryRssBytes =
+  register.getSingleMetric('process_memory_rss_bytes') ||
+  new client.Gauge({
+    name: 'process_memory_rss_bytes',
+    help: 'Resident memory usage in bytes',
+  });
+if (!register.getSingleMetric('process_memory_rss_bytes')) {
+  register.registerMetric(processMemoryRssBytes);
+}
 
 const requestTimestamps = [];
 const REQUEST_RATE_WINDOW_MS = 60_000;
@@ -239,7 +247,7 @@ router.get('/', async (req, res) => {
     ]).metrics();
     res.end(merged);
   } catch (ex) {
-    res.status(500).end(ex);
+    res.status(500).send(ex.toString());
   }
 });
 

@@ -21,7 +21,9 @@ pub fn get_admin(env: &Env) -> Result<Address, Error> {
 }
 
 pub fn set_decimals(env: &Env, decimals: u32) {
-    env.storage().instance().set(&InstanceKey::Decimals, &decimals);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::Decimals, &decimals);
 }
 
 pub fn get_decimals(env: &Env) -> u32 {
@@ -61,7 +63,9 @@ pub fn get_total_supply(env: &Env) -> i128 {
 }
 
 pub fn set_total_supply(env: &Env, supply: i128) {
-    env.storage().instance().set(&InstanceKey::TotalSupply, &supply);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::TotalSupply, &supply);
 }
 
 pub fn get_balance(env: &Env, account: &Address) -> i128 {

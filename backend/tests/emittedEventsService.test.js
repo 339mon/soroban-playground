@@ -55,16 +55,19 @@ describe('emittedEventsService', () => {
       nextCursor: '17',
       hasMore: true,
     });
-    expect(db.all).toHaveBeenCalledWith(expect.stringContaining('FROM contract_events'), [
-      1,
-    ]);
+    expect(db.all).toHaveBeenCalledWith(
+      expect.stringContaining('FROM contract_events'),
+      [1]
+    );
   });
 
   it('returns empty results when events table is missing', async () => {
     const db = {
       all: jest
         .fn()
-        .mockRejectedValue(new Error('SQLITE_ERROR: no such table: contract_events')),
+        .mockRejectedValue(
+          new Error('SQLITE_ERROR: no such table: contract_events')
+        ),
     };
 
     const result = await listEmittedEvents({}, db);

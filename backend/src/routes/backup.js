@@ -29,7 +29,10 @@ router.get('/status', (_req, res) => {
   if (!last) {
     return res.status(200).json({
       success: true,
-      data: { status: 'no_backup_yet', message: 'No backup has run in this process lifetime.' },
+      data: {
+        status: 'no_backup_yet',
+        message: 'No backup has run in this process lifetime.',
+      },
     });
   }
   return res.status(200).json({ success: true, data: last });

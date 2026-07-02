@@ -69,7 +69,7 @@ describe('WebSocket heartbeat reaper (#734)', () => {
   });
 
   async function loadAndSetup() {
-    const { setupWebsocketServer } = await import('../src/websocket.js');
+    const { setupWebsocketServer } = require('../src/websocket.js');
     setupWebsocketServer({ on: jest.fn() });
   }
 

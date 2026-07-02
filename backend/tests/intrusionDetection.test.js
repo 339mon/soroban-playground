@@ -44,7 +44,7 @@ function makeRes() {
 
 let redisService;
 beforeEach(async () => {
-  const m = await import('../src/services/redisService.js');
+  const m = require('../src/services/redisService.js');
   redisService = m.default;
   redisService._reset();
   jest.clearAllMocks();

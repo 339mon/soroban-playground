@@ -23,7 +23,9 @@ function parseDirectiveValue(valueNode) {
 }
 
 function getDirectiveValue(directiveNode, name) {
-  const argument = directiveNode.arguments?.find((arg) => arg.name.value === name);
+  const argument = directiveNode.arguments?.find(
+    (arg) => arg.name.value === name
+  );
   return argument ? parseDirectiveValue(argument.value) : null;
 }
 
@@ -56,7 +58,7 @@ function evaluateDirective(node, user) {
 
     const isAuthenticated = Boolean(
       user &&
-        (user.id || user.sub || user.email || user.roles?.length || user.role)
+      (user.id || user.sub || user.email || user.roles?.length || user.role)
     );
 
     if (!isAuthenticated) {
@@ -66,7 +68,8 @@ function evaluateDirective(node, user) {
     }
 
     const missingRole = requires.find(
-      (requirement) => requirement !== 'authenticated' && !hasRequiredRole(user, requirement)
+      (requirement) =>
+        requirement !== 'authenticated' && !hasRequiredRole(user, requirement)
     );
 
     if (missingRole) {

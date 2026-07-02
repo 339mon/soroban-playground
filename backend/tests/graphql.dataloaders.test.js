@@ -180,9 +180,11 @@ describe('GraphQL DataLoader batching (issue #724)', () => {
   let app;
 
   beforeAll(async () => {
-    ({ initializeDatabase, closeDatabase } =
-      await import('../src/database/connection.js'));
-    ({ setupGraphQL } = await import('../src/graphql/index.js'));
+    ({
+      initializeDatabase,
+      closeDatabase,
+    } = require('../src/database/connection.js'));
+    ({ setupGraphQL } = require('../src/graphql/index.js'));
 
     await initializeDatabase();
     app = express();
@@ -334,9 +336,8 @@ describe('GraphQL DataLoader batching (issue #724)', () => {
     // This test documents the cost the loader is eliminating. It calls the
     // file service once per project (the naive pattern) and proves the query
     // count is 1 + N rather than the loader's flat 2.
-    const { listProjects } = await import('../src/services/projectService.js');
-    const { getFilesByProjectIds } =
-      await import('../src/services/fileService.js');
+    const { listProjects } = require('../src/services/projectService.js');
+    const { getFilesByProjectIds } = require('../src/services/fileService.js');
 
     resetQueryLog();
     const projects = await listProjects();

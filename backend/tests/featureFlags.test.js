@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   __esModule: true,
   default: {
     get: jest.fn().mockResolvedValue(null),
@@ -11,15 +11,14 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
   },
 }));
 
-jest.unstable_mockModule('../src/database/connection.js', () => ({
+jest.mock('../src/database/connection.js', () => ({
   __esModule: true,
   getDatabase: jest.fn(),
   initializeDatabase: jest.fn().mockResolvedValue({}),
 }));
 
-const { default: redisService } =
-  await import('../src/services/redisService.js');
-const { getDatabase } = await import('../src/database/connection.js');
+const { default: redisService } = require('../src/services/redisService.js');
+const { getDatabase } = require('../src/database/connection.js');
 
 // Create a fresh service for each test suite
 let featureFlagService;
@@ -62,7 +61,7 @@ describe('featureFlagService.evaluate', () => {
     redisService.client = null;
     getDatabase.mockReturnValue(mockDb);
     // Re-import to get a fresh instance
-    const mod = await import(
+    const mod = require(
       '../src/services/featureFlagService.js?bust=' + Math.random()
     );
     featureFlagService = mod.featureFlagService ?? mod.default;
@@ -148,11 +147,11 @@ describe('featureFlagService HTTP routes', () => {
     jest.clearAllMocks();
     redisService.get.mockResolvedValue(null);
     getDatabase.mockReturnValue(mockDb);
-    const express = (await import('express')).default;
-    const { default: featureFlagsRoute } = await import(
+    const express = require('express').default;
+    const { default: featureFlagsRoute } = require(
       '../src/routes/featureFlags.js?bust=' + Math.random()
     );
-    const { errorHandler } = await import('../src/middleware/errorHandler.js');
+    const { errorHandler } = require('../src/middleware/errorHandler.js');
     app = express();
     app.use(express.json());
     app.use('/api/feature-flags', featureFlagsRoute);
@@ -160,7 +159,7 @@ describe('featureFlagService HTTP routes', () => {
   });
 
   it('GET /api/feature-flags returns flags list', async () => {
-    const request = (await import('supertest')).default;
+    const request = require('supertest').default;
     mockDb.all.mockResolvedValue([makeFlag()]);
     const res = await request(app).get('/api/feature-flags');
     expect(res.status).toBe(200);
@@ -169,7 +168,7 @@ describe('featureFlagService HTTP routes', () => {
   });
 
   it('POST /api/feature-flags creates a flag', async () => {
-    const request = (await import('supertest')).default;
+    const request = require('supertest').default;
     mockDb.run.mockResolvedValue({ changes: 1 });
     mockDb.get.mockResolvedValue(makeFlag({ key: 'new-flag' }));
     const res = await request(app).post('/api/feature-flags').send({
@@ -183,7 +182,7 @@ describe('featureFlagService HTTP routes', () => {
   });
 
   it('POST /api/feature-flags returns 400 for invalid key', async () => {
-    const request = (await import('supertest')).default;
+    const request = require('supertest').default;
     const res = await request(app)
       .post('/api/feature-flags')
       .send({ key: 'INVALID KEY WITH SPACES', enabled: 1, rollout_pct: 50 });
@@ -191,7 +190,7 @@ describe('featureFlagService HTTP routes', () => {
   });
 
   it('DELETE /api/feature-flags/:key returns 404 for missing flag', async () => {
-    const request = (await import('supertest')).default;
+    const request = require('supertest').default;
     mockDb.run.mockResolvedValue({ changes: 0 });
     const res = await request(app).delete('/api/feature-flags/no-such-flag');
     expect(res.status).toBe(404);

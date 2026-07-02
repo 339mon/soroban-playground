@@ -84,7 +84,6 @@ export async function createSubscription({
     'SELECT id, tenant_id, url, events, active, created_at FROM webhook_subscriptions WHERE id = ? AND tenant_id = ?',
     [id, tenantId]
   );
-
 }
 
 export async function listSubscriptions(tenantId) {

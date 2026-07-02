@@ -41,7 +41,7 @@ class MockFlowProducer {
   }
 }
 
-jest.unstable_mockModule('bullmq', () => ({
+jest.mock('bullmq', () => ({
   Queue: MockQueue,
   Worker: MockWorker,
   FlowProducer: MockFlowProducer,
@@ -58,7 +58,7 @@ class MockRedis {
   on() {}
 }
 
-jest.unstable_mockModule('ioredis', () => ({
+jest.mock('ioredis', () => ({
   default: MockRedis,
   Redis: MockRedis,
 }));
@@ -71,11 +71,11 @@ const mockCreateBullBoard = jest.fn(() => ({
   removeQueue: jest.fn(),
 }));
 
-jest.unstable_mockModule('@bull-board/api', () => ({
+jest.mock('@bull-board/api', () => ({
   createBullBoard: mockCreateBullBoard,
 }));
 
-jest.unstable_mockModule('@bull-board/api/bullMQAdapter', () => ({
+jest.mock('@bull-board/api/bullMQAdapter', () => ({
   BullMQAdapter: class MockBullMQAdapter {
     constructor(queue) {
       this.queue = queue;
@@ -83,7 +83,7 @@ jest.unstable_mockModule('@bull-board/api/bullMQAdapter', () => ({
   },
 }));
 
-jest.unstable_mockModule('@bull-board/express', () => ({
+jest.mock('@bull-board/express', () => ({
   ExpressAdapter: class MockExpressAdapter {
     constructor() {
       this.basePath = '';
@@ -98,7 +98,7 @@ jest.unstable_mockModule('@bull-board/express', () => ({
 }));
 
 // Import target under test dynamically after mocking
-const queueService = await import('../src/services/queueService.js');
+const queueService = require('../src/services/queueService.js');
 
 // ─── Test Suite ──────────────────────────────────────────────────────────────
 
@@ -106,8 +106,10 @@ describe('queueService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Clear queues & workers objects
-    for (const key of Object.keys(queueService.queues)) delete queueService.queues[key];
-    for (const key of Object.keys(queueService.workers)) delete queueService.workers[key];
+    for (const key of Object.keys(queueService.queues))
+      delete queueService.queues[key];
+    for (const key of Object.keys(queueService.workers))
+      delete queueService.workers[key];
   });
 
   afterEach(async () => {
@@ -122,7 +124,7 @@ describe('queueService', () => {
     expect(queueService.queues.indexing).toBeDefined();
     expect(queueService.queues.email).toBeDefined();
     expect(queueService.queues.cron).toBeDefined();
-    
+
     // Workers should not start in test mode
     expect(Object.keys(queueService.workers).length).toBe(0);
     expect(queueService.queueDashboard).toEqual({ router: true });
@@ -163,16 +165,25 @@ describe('queueService', () => {
     const jobOpts = { priority: 10 };
     mockQueueAdd.mockResolvedValue({ id: 'job_123' });
 
-    const result = await queueService.addJob('indexing', 'contract-indexing', jobData, jobOpts);
+    const result = await queueService.addJob(
+      'indexing',
+      'contract-indexing',
+      jobData,
+      jobOpts
+    );
 
-    expect(mockQueueAdd).toHaveBeenCalledWith('contract-indexing', jobData, jobOpts);
+    expect(mockQueueAdd).toHaveBeenCalledWith(
+      'contract-indexing',
+      jobData,
+      jobOpts
+    );
     expect(result.id).toBe('job_123');
   });
 
   it('addJob throws if the requested queue is not initialized', async () => {
-    await expect(queueService.addJob('non-existent', 'job', {})).rejects.toThrow(
-      'Queue "non-existent" not found'
-    );
+    await expect(
+      queueService.addJob('non-existent', 'job', {})
+    ).rejects.toThrow('Queue "non-existent" not found');
   });
 
   it('addFlow delegates to FlowProducer', async () => {

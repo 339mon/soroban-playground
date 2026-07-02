@@ -102,12 +102,7 @@ impl TokenContract {
         Ok(())
     }
 
-    pub fn burn_from(
-        env: Env,
-        spender: Address,
-        from: Address,
-        amount: i128,
-    ) -> Result<(), Error> {
+    pub fn burn_from(env: Env, spender: Address, from: Address, amount: i128) -> Result<(), Error> {
         Self::assert_initialized(&env)?;
         if amount <= 0 {
             return Err(Error::ZeroAmount);
@@ -246,7 +241,12 @@ impl TokenContract {
         Ok(())
     }
 
-    fn spend_allowance(env: &Env, from: &Address, spender: &Address, amount: i128) -> Result<(), Error> {
+    fn spend_allowance(
+        env: &Env,
+        from: &Address,
+        spender: &Address,
+        amount: i128,
+    ) -> Result<(), Error> {
         let allowance = get_allowance(env, from, spender);
         if env.ledger().sequence() > allowance.expiration_ledger {
             return Err(Error::AllowanceExpired);

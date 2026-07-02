@@ -346,8 +346,16 @@ export function createConfig(env = process.env, options = {}) {
       ),
     },
     backup: {
-      enabled: toBoolean(env.BACKUP_ENABLED, DEFAULTS.BACKUP_ENABLED, 'BACKUP_ENABLED', warnings),
-      cronSchedule: cleanString(env.BACKUP_CRON_SCHEDULE, DEFAULTS.BACKUP_CRON_SCHEDULE),
+      enabled: toBoolean(
+        env.BACKUP_ENABLED,
+        DEFAULTS.BACKUP_ENABLED,
+        'BACKUP_ENABLED',
+        warnings
+      ),
+      cronSchedule: cleanString(
+        env.BACKUP_CRON_SCHEDULE,
+        DEFAULTS.BACKUP_CRON_SCHEDULE
+      ),
       s3Bucket: cleanString(env.BACKUP_S3_BUCKET, undefined),
       s3Prefix: cleanString(env.BACKUP_S3_PREFIX, DEFAULTS.BACKUP_S3_PREFIX),
       s3Region: cleanString(env.BACKUP_S3_REGION, DEFAULTS.BACKUP_S3_REGION),

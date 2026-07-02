@@ -30,7 +30,9 @@ pub fn is_paused(env: &Env) -> bool {
 }
 
 pub fn set_paused(env: &Env, paused: bool) {
-    env.storage().instance().set(&InstanceKey::IsPaused, &paused);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::IsPaused, &paused);
 }
 
 // ── Feeders ───────────────────────────────────────────────────────────────────

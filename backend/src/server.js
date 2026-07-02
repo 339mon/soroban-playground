@@ -22,7 +22,10 @@ import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { setupWebsocketServer, closeWebsocketServer } from './websocket.js';
 import { initializeCompileService } from './services/compileService.js';
 import adminRoute from './routes/admin.js';
-import metricsRoute, { requestLatency, recordHttpRequest } from './routes/metrics.js';
+import metricsRoute, {
+  requestLatency,
+  recordHttpRequest,
+} from './routes/metrics.js';
 import oracleRoute from './routes/oracle.js';
 import { rateLimitMiddleware } from './middleware/rateLimiter.js';
 import oracleQueueRoute from './routes/oracleQueue.js';
@@ -65,7 +68,10 @@ import {
 } from './services/queueService.js';
 import backgroundJobsRoute from './routes/backgroundJobs.js';
 import predictionMarketRoute from './routes/predictionMarket.js';
-import { startWebhookDispatcher, stopWebhookDispatcher } from './services/webhookDispatcher.js';
+import {
+  startWebhookDispatcher,
+  stopWebhookDispatcher,
+} from './services/webhookDispatcher.js';
 import { webhooksRoute } from './routes/webhooks.js';
 import corsAdminRoute from './routes/corsAdmin.js';
 import serviceRegistryRoute from './routes/serviceRegistry.js';
@@ -121,9 +127,7 @@ try {
 }
 
 // Fallback to HTTP if no certs are provided, otherwise use HTTPS
-server = hasCertificates
-  ? https.createServer(httpsOptions, app)
-  : httpServer;
+server = hasCertificates ? https.createServer(httpsOptions, app) : httpServer;
 const PORT = process.env.PORT || 5000;
 
 // Basic middleware
@@ -295,7 +299,9 @@ async function gracefulShutdown(signal) {
   console.log(`\n[Shutdown] Received ${signal}. Starting graceful shutdown...`);
 
   const forceExit = setTimeout(() => {
-    console.error('[Shutdown] Graceful shutdown timed out after 30s. Force exiting.');
+    console.error(
+      '[Shutdown] Graceful shutdown timed out after 30s. Force exiting.'
+    );
     process.exit(1);
   }, SHUTDOWN_TIMEOUT_MS);
 
@@ -309,7 +315,7 @@ async function gracefulShutdown(signal) {
     credentialRotationService.stop();
     try {
       await shutdownQueues();
-    } catch(err) {
+    } catch (err) {
       console.error('Error shutting down BullMQ:', err.message);
     }
 

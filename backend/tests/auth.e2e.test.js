@@ -24,11 +24,11 @@ describe('Auth E2E Token Security', () => {
 
     expect(res.status).toBe(200);
     const cookies = res.headers['set-cookie'];
-    
+
     // Find tokens in cookies
-    const accessCookie = cookies.find(c => c.startsWith('accessToken='));
-    const refreshCookie = cookies.find(c => c.startsWith('refreshToken='));
-    
+    const accessCookie = cookies.find((c) => c.startsWith('accessToken='));
+    const refreshCookie = cookies.find((c) => c.startsWith('refreshToken='));
+
     expect(accessCookie).toBeDefined();
     expect(refreshCookie).toBeDefined();
 
@@ -47,10 +47,10 @@ describe('Auth E2E Token Security', () => {
 
     expect(res.status).toBe(200);
     const cookies = res.headers['set-cookie'];
-    
-    const newRefreshCookie = cookies.find(c => c.startsWith('refreshToken='));
+
+    const newRefreshCookie = cookies.find((c) => c.startsWith('refreshToken='));
     const newRefresh = newRefreshCookie.split(';')[0].split('=')[1];
-    
+
     expect(newRefresh).not.toBe(firstRefreshToken);
     refreshToken = newRefresh; // Save for next tests
   });
@@ -63,7 +63,7 @@ describe('Auth E2E Token Security', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.error).toMatch(/Refresh token reuse detected/);
-    
+
     // Now trying to use the latest, valid refresh token should also fail because the family is invalidated
     const res2 = await request(app)
       .post('/api/auth/refresh')
@@ -80,14 +80,14 @@ describe('Auth E2E Token Security', () => {
       .send({ username: 'testuser', password: 'password123' });
 
     const cookies = loginRes.headers['set-cookie'];
-    const accessCookie = cookies.find(c => c.startsWith('accessToken='));
+    const accessCookie = cookies.find((c) => c.startsWith('accessToken='));
     const freshAccessToken = accessCookie.split(';')[0].split('=')[1];
 
     // Logout using this access token
     const logoutRes = await request(app)
       .post('/api/auth/logout')
       .set('Cookie', [`accessToken=${freshAccessToken}`]);
-      
+
     expect(logoutRes.status).toBe(200);
 
     // Now try to hit a protected route (we can use logout again as a protected route for testing)

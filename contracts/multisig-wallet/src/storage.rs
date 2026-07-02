@@ -12,7 +12,9 @@ pub fn is_initialized(env: &Env) -> bool {
 }
 
 pub fn set_initialized(env: &Env) {
-    env.storage().instance().set(&InstanceKey::Initialized, &true);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::Initialized, &true);
 }
 
 // ── Threshold ─────────────────────────────────────────────────────────────────

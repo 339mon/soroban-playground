@@ -15,24 +15,24 @@ import request from 'supertest';
 
 // ── Service mocks (must be registered BEFORE dynamic import of setupGraphQL) ──
 
-jest.unstable_mockModule('../src/services/compileService.js', () => ({
+jest.mock('../src/services/compileService.js', () => ({
   getCompileStats: jest.fn(),
   getCompileSnapshot: jest.fn(),
   initializeCompileService: jest.fn(),
   compileContract: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/services/deployService.js', () => ({
+jest.mock('../src/services/deployService.js', () => ({
   getDeploymentState: jest.fn(),
   deployContract: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeContract: jest.fn(),
   getInvokeLog: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/services/redisService.js', () => ({
+jest.mock('../src/services/redisService.js', () => ({
   default: {
     isConnected: false,
     get: jest.fn().mockResolvedValue(null),
@@ -40,13 +40,20 @@ jest.unstable_mockModule('../src/services/redisService.js', () => ({
   },
 }));
 
-const { setupGraphQL } = await import('../src/graphql/index.js');
-const { getCompileStats, getCompileSnapshot, compileContract } =
-  await import('../src/services/compileService.js');
-const { getDeploymentState, deployContract } =
-  await import('../src/services/deployService.js');
-const { invokeContract, getInvokeLog } =
-  await import('../src/services/invokeService.js');
+const { setupGraphQL } = require('../src/graphql/index.js');
+const {
+  getCompileStats,
+  getCompileSnapshot,
+  compileContract,
+} = require('../src/services/compileService.js');
+const {
+  getDeploymentState,
+  deployContract,
+} = require('../src/services/deployService.js');
+const {
+  invokeContract,
+  getInvokeLog,
+} = require('../src/services/invokeService.js');
 
 // ── Supertest helpers ─────────────────────────────────────────────────────────
 

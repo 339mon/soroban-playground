@@ -3,20 +3,22 @@ import express from 'express';
 import request from 'supertest';
 
 // Mock the services BEFORE importing setupGraphQL
-jest.unstable_mockModule('../src/services/compileService.js', () => ({
+jest.mock('../src/services/compileService.js', () => ({
   getCompileStats: jest.fn(),
   getCompileSnapshot: jest.fn(),
 }));
 
-jest.unstable_mockModule('../src/services/deployService.js', () => ({
+jest.mock('../src/services/deployService.js', () => ({
   getDeploymentState: jest.fn(),
 }));
 
 // Now import the things we want to test
-const { setupGraphQL } = await import('../src/graphql/index.js');
-const { getCompileStats, getCompileSnapshot } =
-  await import('../src/services/compileService.js');
-const { getDeploymentState } = await import('../src/services/deployService.js');
+const { setupGraphQL } = require('../src/graphql/index.js');
+const {
+  getCompileStats,
+  getCompileSnapshot,
+} = require('../src/services/compileService.js');
+const { getDeploymentState } = require('../src/services/deployService.js');
 
 describe('GraphQL API Layer', () => {
   let app;

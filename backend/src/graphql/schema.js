@@ -225,8 +225,12 @@ export const typeDefs = /* GraphQL */ `
   directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
   # ── Authorization directives ────────────────────────────────────────────────
-  directive @auth(requires: [String!]) on FIELD_DEFINITION | FIELD | OBJECT | QUERY | MUTATION | SUBSCRIPTION
-  directive @hasRole(role: String!) on FIELD_DEFINITION | FIELD | OBJECT | QUERY | MUTATION | SUBSCRIPTION
+  directive @auth(
+    requires: [String!]
+  ) on FIELD_DEFINITION | FIELD | OBJECT | QUERY | MUTATION | SUBSCRIPTION
+  directive @hasRole(
+    role: String!
+  ) on FIELD_DEFINITION | FIELD | OBJECT | QUERY | MUTATION | SUBSCRIPTION
 
   # ── Root types ────────────────────────────────────────────────────────────────
   type Query {
@@ -288,9 +292,11 @@ export const typeDefs = /* GraphQL */ `
     compileBatch(contracts: [BatchContractInput!]!): BatchCompileResult!
       @complexity(value: 20)
       @auth(requires: ["authenticated"])
-    deploy(input: DeployInput!): DeployResult! @complexity(value: 10)
+    deploy(input: DeployInput!): DeployResult!
+      @complexity(value: 10)
       @auth(requires: ["authenticated"])
-    invoke(input: InvokeInput!): InvokeResult! @complexity(value: 10)
+    invoke(input: InvokeInput!): InvokeResult!
+      @complexity(value: 10)
       @auth(requires: ["authenticated"])
   }
 

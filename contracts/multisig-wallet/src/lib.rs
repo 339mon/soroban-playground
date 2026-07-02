@@ -101,10 +101,8 @@ impl MultisigWallet {
         set_tx_count(&env, 0);
         set_initialized(&env);
 
-        env.events().publish(
-            (symbol_short!("Init"),),
-            (threshold, min_delay, max_delay),
-        );
+        env.events()
+            .publish((symbol_short!("Init"),), (threshold, min_delay, max_delay));
         Ok(())
     }
 
@@ -184,11 +182,11 @@ impl MultisigWallet {
                     .persistent()
                     .get(&DataKey::OwnerAt(last_idx))
                     .unwrap();
-                env.storage()
-                    .persistent()
-                    .set(&DataKey::OwnerAt(i), &last);
+                env.storage().persistent().set(&DataKey::OwnerAt(i), &last);
             }
-            env.storage().persistent().remove(&DataKey::OwnerAt(last_idx));
+            env.storage()
+                .persistent()
+                .remove(&DataKey::OwnerAt(last_idx));
         }
         env.storage()
             .persistent()

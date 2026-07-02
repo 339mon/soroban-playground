@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Mock the synthetic assets service dependencies
-jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
+jest.mock('../src/services/syntheticAssetsService.js', () => ({
   syntheticAssetsService: {
     registerAsset: jest.fn(),
     mintSynthetic: jest.fn(),
@@ -25,19 +25,21 @@ jest.unstable_mockModule('../src/services/syntheticAssetsService.js', () => ({
 }));
 
 // Mock auth middleware
-jest.unstable_mockModule('../src/middleware/auth.js', () => ({
+jest.mock('../src/middleware/auth.js', () => ({
   requireAuth: (_req, _res, next) => next(),
 }));
 
 // Mock validation middleware
-jest.unstable_mockModule('../src/middleware/validation.js', () => ({
+jest.mock('../src/middleware/validation.js', () => ({
   validateInput: (_req, _res, next) => next(),
 }));
 
-const { syntheticAssetsService } =
-  await import('../src/services/syntheticAssetsService.js');
-const { default: syntheticAssetsRouter } =
-  await import('../src/routes/v1/synthetic-assets.js');
+const {
+  syntheticAssetsService,
+} = require('../src/services/syntheticAssetsService.js');
+const {
+  default: syntheticAssetsRouter,
+} = require('../src/routes/v1/synthetic-assets.js');
 
 import express from 'express';
 import request from 'supertest';

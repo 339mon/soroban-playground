@@ -27,12 +27,18 @@ class AuthService {
       { expiresIn: REFRESH_TOKEN_EXPIRATION_SEC }
     );
 
-    return { accessToken, refreshToken, accessTokenJti, refreshTokenJti, familyId };
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenJti,
+      refreshTokenJti,
+      familyId,
+    };
   }
 
   async verifyAccessToken(token) {
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Check if token is blacklisted in Redis
     const isBlacklisted = await redisService.get(`bl_access:${decoded.jti}`);
     if (isBlacklisted) {
@@ -66,12 +72,18 @@ class AuthService {
     if (isUsed) {
       // Anomaly detected: Refresh token reuse!
       // Invalidate the entire token family
-      await redisService.set(`bl_family:${decoded.familyId}`, '1', REFRESH_TOKEN_EXPIRATION_SEC);
+      await redisService.set(
+        `bl_family:${decoded.familyId}`,
+        '1',
+        REFRESH_TOKEN_EXPIRATION_SEC
+      );
       throw new Error('Refresh token reuse detected. Family invalidated.');
     }
 
     // Check if the family is blacklisted
-    const isFamilyBlacklisted = await redisService.get(`bl_family:${decoded.familyId}`);
+    const isFamilyBlacklisted = await redisService.get(
+      `bl_family:${decoded.familyId}`
+    );
     if (isFamilyBlacklisted) {
       throw new Error('Token family is blacklisted due to previous anomaly.');
     }
@@ -94,14 +106,19 @@ class AuthService {
     );
 
     const newRefreshToken = jwt.sign(
-      { sub: decoded.sub, familyId: decoded.familyId, jti: newRefreshTokenJti, type: 'refresh' },
+      {
+        sub: decoded.sub,
+        familyId: decoded.familyId,
+        jti: newRefreshTokenJti,
+        type: 'refresh',
+      },
       JWT_SECRET,
       { expiresIn: REFRESH_TOKEN_EXPIRATION_SEC }
     );
 
     return {
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken
+      refreshToken: newRefreshToken,
     };
   }
 
@@ -228,7 +245,6 @@ class AuthService {
     const rolesToCheck = Array.isArray(roles) ? roles : [roles];
     return rolesToCheck.includes(user.role);
   }
-
 }
 
 export default new AuthService();

@@ -13,10 +13,7 @@ import {
   injectTraceContext,
 } from '../utils/tracing.js';
 import { alertManager } from '../utils/alerting.js';
-import {
-  spawnTracked,
-  terminateChildProcess,
-} from './childProcessManager.js';
+import { spawnTracked, terminateChildProcess } from './childProcessManager.js';
 
 const DEFAULT_TIMEOUT_MS = 30000;
 const DEFAULT_STATE_FILE =

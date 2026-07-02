@@ -8,9 +8,9 @@ mod types;
 use soroban_sdk::{contract, contractimpl, token, Address, Env, String};
 
 use crate::storage::{
-    get_admin, get_plan, get_subscriber_plan_sub_id, get_subscription, next_plan_id,
-    next_sub_id, remove_subscriber_plan_sub_id, set_admin, set_initialized, set_plan,
-    set_subscriber_plan_sub_id, set_subscription, is_initialized,
+    get_admin, get_plan, get_subscriber_plan_sub_id, get_subscription, is_initialized,
+    next_plan_id, next_sub_id, remove_subscriber_plan_sub_id, set_admin, set_initialized, set_plan,
+    set_subscriber_plan_sub_id, set_subscription,
 };
 use crate::types::{Error, Plan, SubStatus, Subscription};
 
@@ -201,18 +201,23 @@ impl SubscriptionManagerContract {
 
         // Pull payment from subscriber
         let token_client = token::Client::new(&env, &plan.token);
-        token_client.transfer(&sub.subscriber, &env.current_contract_address(), &plan.price);
+        token_client.transfer(
+            &sub.subscriber,
+            &env.current_contract_address(),
+            &plan.price,
+        );
 
         // Advance the schedule (handles multiple missed cycles gracefully)
         let intervals_missed = (now - sub.next_payment_due) / plan.interval + 1;
         sub.next_payment_due = sub
             .next_payment_due
-            .checked_add(intervals_missed.checked_mul(plan.interval).ok_or(Error::Overflow)?)
+            .checked_add(
+                intervals_missed
+                    .checked_mul(plan.interval)
+                    .ok_or(Error::Overflow)?,
+            )
             .ok_or(Error::Overflow)?;
-        sub.cycles_paid = sub
-            .cycles_paid
-            .checked_add(1)
-            .ok_or(Error::Overflow)?;
+        sub.cycles_paid = sub.cycles_paid.checked_add(1).ok_or(Error::Overflow)?;
 
         set_subscription(&env, &sub);
         Ok(())
@@ -255,11 +260,7 @@ impl SubscriptionManagerContract {
     }
 
     /// Look up the subscription id for a (subscriber, plan) pair
-    pub fn get_subscription_id(
-        env: Env,
-        subscriber: Address,
-        plan_id: u64,
-    ) -> Option<u64> {
+    pub fn get_subscription_id(env: Env, subscriber: Address, plan_id: u64) -> Option<u64> {
         get_subscriber_plan_sub_id(&env, &subscriber, plan_id)
     }
 

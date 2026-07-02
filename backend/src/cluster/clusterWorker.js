@@ -11,14 +11,19 @@ export function log(text, level = 'info') {
     process.send({ type: 'log', text, level });
   }
 
-  console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](`${prefix} ${text}`);
+  console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](
+    `${prefix} ${text}`
+  );
 }
 
 /**
  * Wire up graceful shutdown for an HTTP(S) server.
  * When master sends { type: 'shutdown' }, drains connections then exits cleanly.
  */
-export function attachGracefulShutdown(httpServer, { drainTimeout = 5000 } = {}) {
+export function attachGracefulShutdown(
+  httpServer,
+  { drainTimeout = 5000 } = {}
+) {
   if (!cluster.isWorker) return;
 
   process.on('message', (msg) => {
@@ -48,8 +53,8 @@ export function assertExternalSessionStore(sessionMiddlewareOptions) {
   if (!store) {
     throw new Error(
       '[Cluster] In-memory session store detected. ' +
-      'In cluster mode all session state MUST be stored externally (e.g. Redis). ' +
-      'Pass a compatible session store to express-session.'
+        'In cluster mode all session state MUST be stored externally (e.g. Redis). ' +
+        'Pass a compatible session store to express-session.'
     );
   }
   log('External session store confirmed.');

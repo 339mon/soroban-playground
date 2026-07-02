@@ -1,7 +1,10 @@
 #![cfg(test)]
 
 use super::{types::Error, TwapOracle, TwapOracleClient};
-use soroban_sdk::{testutils::{Address as _, Ledger}, Address, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger},
+    Address, Env, String,
+};
 
 fn setup() -> (Env, TwapOracleClient<'static>, Address, Address, u32) {
     let env = Env::default();

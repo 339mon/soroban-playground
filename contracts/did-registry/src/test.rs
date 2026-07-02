@@ -4,10 +4,13 @@
 #![cfg(test)]
 extern crate std;
 
-use soroban_sdk::{testutils::{Address as _, Ledger as _}, Address, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Address, Env, String,
+};
 
-use crate::{DidRegistry, DidRegistryClient};
 use crate::types::{CredentialStatus, Error, ReputationTier};
+use crate::{DidRegistry, DidRegistryClient};
 
 fn setup() -> (Env, Address, DidRegistryClient<'static>) {
     let env = Env::default();
@@ -38,7 +41,10 @@ fn test_initialize() {
 #[test]
 fn test_double_initialize_fails() {
     let (env, admin, client) = setup();
-    assert_eq!(client.try_initialize(&admin), Err(Ok(Error::AlreadyInitialized)));
+    assert_eq!(
+        client.try_initialize(&admin),
+        Err(Ok(Error::AlreadyInitialized))
+    );
 }
 
 #[test]
@@ -132,7 +138,10 @@ fn test_deactivate_identity() {
 fn test_get_nonexistent_identity_fails() {
     let (env, _, client) = setup();
     let user = Address::generate(&env);
-    assert_eq!(client.try_get_identity(&user), Err(Ok(Error::IdentityNotFound)));
+    assert_eq!(
+        client.try_get_identity(&user),
+        Err(Ok(Error::IdentityNotFound))
+    );
 }
 
 // ── Credentials ───────────────────────────────────────────────────────────────
@@ -191,7 +200,10 @@ fn test_revoke_credential() {
 
     let cred_id = client.issue_credential(&issuer, &subject, &1u64, &2u64, &0u64);
     client.revoke_credential(&cred_id);
-    assert_eq!(client.get_credential(&cred_id).status, CredentialStatus::Revoked);
+    assert_eq!(
+        client.get_credential(&cred_id).status,
+        CredentialStatus::Revoked
+    );
 }
 
 #[test]
@@ -427,7 +439,10 @@ fn test_reputation_tier_unverified_negative() {
     let user = Address::generate(&env);
     register(&env, &client, &user);
     client.adjust_reputation(&user, &-1i32);
-    assert_eq!(client.get_reputation_tier(&user), ReputationTier::Unverified);
+    assert_eq!(
+        client.get_reputation_tier(&user),
+        ReputationTier::Unverified
+    );
 }
 
 #[test]

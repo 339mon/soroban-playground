@@ -3,7 +3,9 @@
 
 use soroban_sdk::{Address, Bytes, Env};
 
-use crate::types::{DataKey, Deposit, Error, InstanceKey, ValidatorKey, BridgeStats, ValidatorProof, ProofStatus};
+use crate::types::{
+    BridgeStats, DataKey, Deposit, Error, InstanceKey, ProofStatus, ValidatorKey, ValidatorProof,
+};
 
 // ── Admin ────────────────────────────────────────────────────────────────────
 
@@ -32,7 +34,9 @@ pub fn is_paused(env: &Env) -> bool {
 }
 
 pub fn set_paused(env: &Env, paused: bool) {
-    env.storage().instance().set(&InstanceKey::IsPaused, &paused);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::IsPaused, &paused);
 }
 
 // ── Fee ──────────────────────────────────────────────────────────────────────
@@ -198,17 +202,13 @@ pub fn get_validator_quorum(env: &Env) -> u32 {
 }
 
 pub fn set_validator_quorum(env: &Env, quorum: u32) {
-    env.storage()
-        .instance()
-        .set(&ValidatorKey::Quorum, &quorum);
+    env.storage().instance().set(&ValidatorKey::Quorum, &quorum);
 }
 
 // ── Proof records ─────────────────────────────────────────────────────────────
 
 pub fn get_proof(env: &Env, deposit_id: u32) -> Option<ValidatorProof> {
-    env.storage()
-        .persistent()
-        .get(&DataKey::Proof(deposit_id))
+    env.storage().persistent().get(&DataKey::Proof(deposit_id))
 }
 
 pub fn set_proof(env: &Env, deposit_id: u32, proof: &ValidatorProof) {
@@ -225,9 +225,10 @@ pub fn has_validator_voted(env: &Env, deposit_id: u32, validator: &Address) -> b
 }
 
 pub fn record_validator_vote(env: &Env, deposit_id: u32, validator: &Address) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::ValidatorVote(deposit_id, validator.clone()), &true);
+    env.storage().persistent().set(
+        &DataKey::ValidatorVote(deposit_id, validator.clone()),
+        &true,
+    );
 }
 
 /// Submit a validator proof vote. Returns the updated proof record.

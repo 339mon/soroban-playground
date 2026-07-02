@@ -131,12 +131,15 @@ type ApiErrorPayload = {
 };
 
 type InvokeProgressEvent = {
+  estimatedWaitTimeMs?: number;
   type: string;
   requestId?: string;
   contractId?: string;
   functionName?: string;
   status?: string;
   detail?: string;
+  message?: string;
+  progress?: number;
   timestamp?: string;
   queueLength?: number;
   activeWorkers?: number;
@@ -759,7 +762,7 @@ export default function Home() {
       }>("/api/invoke", {
         contractId,
         functionName: funcName,
-        args,
+        args: args as Record<string, string>,
       });
 
       appendLog(`[invoke] ${payload.message}`);
@@ -767,7 +770,7 @@ export default function Home() {
       const invocationPayload = createMockInvocationPayload(
         contractId,
         funcName,
-        args,
+        args as Record<string, string>,
         storage,
       );
       const parsedGraph = parseTransactionInvocationPayload(invocationPayload);

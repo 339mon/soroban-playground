@@ -6,7 +6,7 @@ import path from 'path';
 
 let testDb = null;
 
-jest.unstable_mockModule('../src/database/connection.js', () => ({
+jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
     if (testDb) return testDb;
     testDb = await open({
@@ -36,15 +36,16 @@ jest.unstable_mockModule('../src/database/connection.js', () => ({
   },
 }));
 
-const { initializeDatabase, closeDatabase } =
-  await import('../src/database/connection.js');
+const {
+  initializeDatabase,
+  closeDatabase,
+} = require('../src/database/connection.js');
 
 import express from 'express';
 import request from 'supertest';
-const { default: favoritesRouter } = await import('../src/routes/favorites.js');
-const { errorHandler } = await import('../src/middleware/errorHandler.js');
-const { default: apiKeyService } =
-  await import('../src/services/apiKeyService.js');
+const { default: favoritesRouter } = require('../src/routes/favorites.js');
+const { errorHandler } = require('../src/middleware/errorHandler.js');
+const { default: apiKeyService } = require('../src/services/apiKeyService.js');
 
 const app = express();
 app.use(express.json());

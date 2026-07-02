@@ -70,7 +70,7 @@ jest.mock('../src/services/databaseService.js', () => {
 let ContractEventIndexer;
 
 beforeAll(async () => {
-  const mod = await import('../src/services/contractEventIndexer.js');
+  const mod = require('../src/services/contractEventIndexer.js');
   // Access the class through the singleton's constructor
   ContractEventIndexer = mod.contractEventIndexer.constructor;
 });

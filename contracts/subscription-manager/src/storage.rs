@@ -75,9 +75,7 @@ pub fn set_plan(env: &Env, plan: &Plan) {
 
 #[allow(dead_code)]
 pub fn has_plan(env: &Env, plan_id: u64) -> bool {
-    env.storage()
-        .persistent()
-        .has(&DataKey::Plan(plan_id))
+    env.storage().persistent().has(&DataKey::Plan(plan_id))
 }
 
 // ── Subscriptions ─────────────────────────────────────────────────────────────
@@ -96,11 +94,7 @@ pub fn set_subscription(env: &Env, sub: &Subscription) {
 }
 
 /// Returns the subscription id for a (subscriber, plan) pair if one exists
-pub fn get_subscriber_plan_sub_id(
-    env: &Env,
-    subscriber: &Address,
-    plan_id: u64,
-) -> Option<u64> {
+pub fn get_subscriber_plan_sub_id(env: &Env, subscriber: &Address, plan_id: u64) -> Option<u64> {
     env.storage()
         .persistent()
         .get(&DataKey::SubscriberPlan(subscriber.clone(), plan_id))

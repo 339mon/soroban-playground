@@ -24,23 +24,23 @@ const alertManager = {
   checkDeploymentFailure: jest.fn(),
 };
 
-jest.unstable_mockModule('fs', () => ({
+jest.mock('fs', () => ({
   default: fsMock,
   ...fsMock,
 }));
 
-jest.unstable_mockModule('child_process', () => ({
+jest.mock('child_process', () => ({
   spawn: spawnMock,
 }));
 
-jest.unstable_mockModule('../src/utils/tracing.js', () => ({
+jest.mock('../src/utils/tracing.js', () => ({
   createSpan: jest.fn(() => span),
   setSpanAttributes: jest.fn(),
   addSpanEvent: jest.fn(),
   injectTraceContext: jest.fn((env) => env),
 }));
 
-jest.unstable_mockModule('../src/utils/alerting.js', () => ({
+jest.mock('../src/utils/alerting.js', () => ({
   alertManager,
 }));
 
@@ -49,7 +49,7 @@ const {
   deployContract,
   getDeploymentState,
   validateDeployContract,
-} = await import('../src/services/deployService.js');
+} = require('../src/services/deployService.js');
 
 function createChildProcess() {
   const child = new EventEmitter();

@@ -10,11 +10,15 @@ describe('buildSandbox', () => {
     const sandbox = createBuildSandboxPaths('/tmp/soroban-compile-a1');
 
     expect(sandbox.workspaceDir).toBe('/tmp/soroban-compile-a1');
-    expect(sandbox.crateRoot).toBe(path.join('/tmp/soroban-compile-a1', 'crate'));
+    expect(sandbox.crateRoot).toBe(
+      path.join('/tmp/soroban-compile-a1', 'crate')
+    );
     expect(sandbox.cargoHome).toBe(
       path.join('/tmp/soroban-compile-a1', 'cargo-home')
     );
-    expect(sandbox.cargoTargetDir).toBe(path.join('/tmp/soroban-compile-a1', 'target'));
+    expect(sandbox.cargoTargetDir).toBe(
+      path.join('/tmp/soroban-compile-a1', 'target')
+    );
     expect(sandbox.wasmOutPath).toContain(
       path.join('wasm32-unknown-unknown', 'release', 'soroban_contract.wasm')
     );
@@ -46,9 +50,14 @@ describe('buildSandbox', () => {
   it('accepts outputs inside sandbox and rejects escaped paths', () => {
     const sandbox = createBuildSandboxPaths('/tmp/soroban-compile-a3');
 
-    expect(() => assertSandboxedOutputPath(sandbox, sandbox.wasmOutPath)).not.toThrow();
     expect(() =>
-      assertSandboxedOutputPath(sandbox, '/tmp/soroban-compile-a3-escape/out.wasm')
+      assertSandboxedOutputPath(sandbox, sandbox.wasmOutPath)
+    ).not.toThrow();
+    expect(() =>
+      assertSandboxedOutputPath(
+        sandbox,
+        '/tmp/soroban-compile-a3-escape/out.wasm'
+      )
     ).toThrow('Build output path escaped compile sandbox');
   });
 });

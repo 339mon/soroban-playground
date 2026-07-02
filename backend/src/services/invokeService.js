@@ -7,10 +7,7 @@ import {
   addSpanEvent,
   injectTraceContext,
 } from '../utils/tracing.js';
-import {
-  spawnTracked,
-  terminateChildProcess,
-} from './childProcessManager.js';
+import { spawnTracked, terminateChildProcess } from './childProcessManager.js';
 
 const MAX_CONCURRENT = Number.parseInt(process.env.INVOKE_POOL_SIZE || '3', 10);
 const INVOKE_TIMEOUT_MS = Number.parseInt(
@@ -196,11 +193,15 @@ export async function invokeSorobanContract(request, { signal } = {}) {
       () =>
         new Promise((resolve, reject) => {
           const startedAt = new Date().toISOString();
-          const child = spawnTracked(process.env.SOROBAN_CLI || 'soroban', cliArgs, {
-            shell: false,
-            windowsHide: true,
-            env: injectTraceContext(process.env),
-          });
+          const child = spawnTracked(
+            process.env.SOROBAN_CLI || 'soroban',
+            cliArgs,
+            {
+              shell: false,
+              windowsHide: true,
+              env: injectTraceContext(process.env),
+            }
+          );
 
           let stdout = '';
           let stderr = '';

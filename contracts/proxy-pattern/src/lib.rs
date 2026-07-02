@@ -219,11 +219,7 @@ impl ProxyContract {
 
     /// Create a new upgrade proposal.  
     /// Only the admin or an authorised upgrader may call this.
-    pub fn propose_upgrade(
-        env: Env,
-        proposer: Address,
-        new_implementation: Address,
-    ) -> u32 {
+    pub fn propose_upgrade(env: Env, proposer: Address, new_implementation: Address) -> u32 {
         proposer.require_auth();
 
         // Verify proposer is admin or an authorised upgrader.
@@ -272,11 +268,10 @@ impl ProxyContract {
         voter.require_auth();
 
         let key = ProposalKey::Proposal(proposal_id);
-        let mut proposal: UpgradeProposal =
-            match env.storage().instance().get(&key) {
-                Some(p) => p,
-                None => return,
-            };
+        let mut proposal: UpgradeProposal = match env.storage().instance().get(&key) {
+            Some(p) => p,
+            None => return,
+        };
 
         if proposal.status != 0 {
             return; // only pending proposals can be voted on
@@ -299,11 +294,10 @@ impl ProxyContract {
         state.admin.require_auth();
 
         let key = ProposalKey::Proposal(proposal_id);
-        let mut proposal: UpgradeProposal =
-            match env.storage().instance().get(&key) {
-                Some(p) => p,
-                None => return false,
-            };
+        let mut proposal: UpgradeProposal = match env.storage().instance().get(&key) {
+            Some(p) => p,
+            None => return false,
+        };
 
         // Require simple majority.
         if proposal.votes_for <= proposal.votes_against {
@@ -382,9 +376,7 @@ impl ProxyContract {
         let mut state = Self::load_state(&env);
         state.admin.require_auth();
         state.upgrade_delay = new_delay;
-        env.storage()
-            .instance()
-            .set(&DataKey::ProxyState, &state);
+        env.storage().instance().set(&DataKey::ProxyState, &state);
     }
 
     // ── Emergency controls ────────────────────────────────────────────────────
@@ -394,9 +386,7 @@ impl ProxyContract {
         let mut state = Self::load_state(&env);
         state.admin.require_auth();
         state.upgrade_delay = u64::MAX;
-        env.storage()
-            .instance()
-            .set(&DataKey::ProxyState, &state);
+        env.storage().instance().set(&DataKey::ProxyState, &state);
         env.events().publish((symbol_short!("paused"),), ());
         true
     }
@@ -406,9 +396,7 @@ impl ProxyContract {
         let mut state = Self::load_state(&env);
         state.admin.require_auth();
         state.upgrade_delay = normal_delay;
-        env.storage()
-            .instance()
-            .set(&DataKey::ProxyState, &state);
+        env.storage().instance().set(&DataKey::ProxyState, &state);
         env.events().publish((symbol_short!("resumed"),), ());
         true
     }

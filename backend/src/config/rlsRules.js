@@ -29,5 +29,5 @@ export const rlsRules = {
       return null;
     }
     return { uploader_id: user.id };
-  }
+  },
 };

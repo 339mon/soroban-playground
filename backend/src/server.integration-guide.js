@@ -18,16 +18,18 @@ const {
 } = require('./cluster/clusterWorker');
 
 // ── EXISTING: your normal imports (example) ───────────────────────────────────
-const express  = require('express');
-const session  = require('express-session');
-const RedisStore = require('connect-redis').default;   // npm i connect-redis
-const { createClient } = require('redis');             // npm i redis
+const express = require('express');
+const session = require('express-session');
+const RedisStore = require('connect-redis').default; // npm i connect-redis
+const { createClient } = require('redis'); // npm i redis
 
 // ── ADD (2): Create and connect the Redis client ──────────────────────────────
 const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
 });
-redisClient.connect().catch((err) => log(`Redis connection error: ${err.message}`, 'error'));
+redisClient
+  .connect()
+  .catch((err) => log(`Redis connection error: ${err.message}`, 'error'));
 redisClient.on('error', (err) => log(`Redis error: ${err.message}`, 'error'));
 
 // ── EXISTING: build your Express app ─────────────────────────────────────────

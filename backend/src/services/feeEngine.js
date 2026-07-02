@@ -53,9 +53,9 @@ export async function fetchFeeStats(network = 'testnet') {
     stats,
     expiresAt: Date.now() + FEE_STATS_TTL_SECONDS * 1000,
   };
-  redisService.set(cacheKey, JSON.stringify(stats), FEE_STATS_TTL_SECONDS).catch(
-    () => null
-  );
+  redisService
+    .set(cacheKey, JSON.stringify(stats), FEE_STATS_TTL_SECONDS)
+    .catch(() => null);
   return stats;
 }
 

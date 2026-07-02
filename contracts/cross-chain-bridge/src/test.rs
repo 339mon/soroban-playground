@@ -1,8 +1,13 @@
 #![cfg(test)]
 
-use super::{types::{Error, ProofStatus}, BridgeContract, BridgeContractClient};
+use super::{
+    types::{Error, ProofStatus},
+    BridgeContract, BridgeContractClient,
+};
 use soroban_sdk::{
-    bytes, testutils::{Address as _, Ledger}, Address, Bytes, Env, String,
+    bytes,
+    testutils::{Address as _, Ledger},
+    Address, Bytes, Env, String,
 };
 
 const FEE_BPS: u32 = 100; // 1%
@@ -381,7 +386,14 @@ fn proof_hash(env: &Env) -> Bytes {
     bytes!(env, 0xaabbccdd)
 }
 
-fn setup_with_validators() -> (Env, BridgeContractClient<'static>, Address, Address, Address, Address) {
+fn setup_with_validators() -> (
+    Env,
+    BridgeContractClient<'static>,
+    Address,
+    Address,
+    Address,
+    Address,
+) {
     let (env, client, admin, relayer) = setup();
     let v1 = Address::generate(&env);
     let v2 = Address::generate(&env);
@@ -422,7 +434,12 @@ fn test_set_validator_quorum_zero_fails() {
 fn test_submit_proof_reaches_quorum() {
     let (env, client, _admin, _relayer, v1, v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
 
     let p1 = client.submit_proof(&v1, &id, &proof_hash(&env));
     assert_eq!(p1.vote_count, 1);
@@ -437,7 +454,12 @@ fn test_submit_proof_reaches_quorum() {
 fn test_submit_proof_unknown_validator_fails() {
     let (env, client, _admin, _relayer, _v1, _v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     let stranger = Address::generate(&env);
     let result = client.try_submit_proof(&stranger, &id, &proof_hash(&env));
     assert!(matches!(result, Err(Ok(Error::UnknownValidator))));
@@ -447,7 +469,12 @@ fn test_submit_proof_unknown_validator_fails() {
 fn test_submit_proof_double_vote_fails() {
     let (env, client, _admin, _relayer, v1, _v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     client.submit_proof(&v1, &id, &proof_hash(&env));
     let result = client.try_submit_proof(&v1, &id, &proof_hash(&env));
     assert!(matches!(result, Err(Ok(Error::AlreadyVoted))));
@@ -457,7 +484,12 @@ fn test_submit_proof_double_vote_fails() {
 fn test_submit_proof_empty_hash_fails() {
     let (env, client, _admin, _relayer, v1, _v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     let empty: Bytes = Bytes::new(&env);
     let result = client.try_submit_proof(&v1, &id, &empty);
     assert!(matches!(result, Err(Ok(Error::EmptyProofHash))));
@@ -467,7 +499,12 @@ fn test_submit_proof_empty_hash_fails() {
 fn test_confirm_mint_with_proof_works() {
     let (env, client, _admin, relayer, v1, v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     client.submit_proof(&v1, &id, &proof_hash(&env));
     client.submit_proof(&v2, &id, &proof_hash(&env));
     client.confirm_mint_with_proof(&relayer, &id, &eth_hash(&env));
@@ -479,7 +516,12 @@ fn test_confirm_mint_with_proof_works() {
 fn test_confirm_mint_with_proof_requires_quorum() {
     let (env, client, _admin, relayer, v1, _v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     // Only one vote — quorum is 2
     client.submit_proof(&v1, &id, &proof_hash(&env));
     let result = client.try_confirm_mint_with_proof(&relayer, &id, &eth_hash(&env));
@@ -490,7 +532,12 @@ fn test_confirm_mint_with_proof_requires_quorum() {
 fn test_confirm_mint_with_proof_no_proof_at_all_fails() {
     let (env, client, _admin, relayer, _v1, _v2) = setup_with_validators();
     let depositor = Address::generate(&env);
-    let id = client.lock(&depositor, &String::from_str(&env, "USDC"), &1_000_000i128, &eth_dest(&env));
+    let id = client.lock(
+        &depositor,
+        &String::from_str(&env, "USDC"),
+        &1_000_000i128,
+        &eth_dest(&env),
+    );
     let result = client.try_confirm_mint_with_proof(&relayer, &id, &eth_hash(&env));
     assert!(matches!(result, Err(Ok(Error::ProofNotVerified))));
 }

@@ -6,15 +6,20 @@ use soroban_sdk::{
     Address, Env, String,
 };
 
-use crate::{SubscriptionManagerContract, SubscriptionManagerContractClient};
 use crate::types::{Error, SubStatus};
+use crate::{SubscriptionManagerContract, SubscriptionManagerContractClient};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const INTERVAL: u64 = 2_592_000; // 30 days in seconds
 const PRICE: i128 = 1_000_000_000; // 1 000 XLM in stroops
 
-fn setup() -> (Env, Address, Address, SubscriptionManagerContractClient<'static>) {
+fn setup() -> (
+    Env,
+    Address,
+    Address,
+    SubscriptionManagerContractClient<'static>,
+) {
     let env = Env::default();
     env.mock_all_auths();
 
@@ -26,7 +31,10 @@ fn setup() -> (Env, Address, Address, SubscriptionManagerContractClient<'static>
     (env, admin, contract_id, client)
 }
 
-fn create_token(env: &Env, admin: &Address) -> (Address, TokenClient<'static>, StellarAssetClient<'static>) {
+fn create_token(
+    env: &Env,
+    admin: &Address,
+) -> (Address, TokenClient<'static>, StellarAssetClient<'static>) {
     let token_id = env.register_stellar_asset_contract_v2(admin.clone());
     let token_address = token_id.address();
     let token_client = TokenClient::new(env, &token_address);
@@ -75,12 +83,7 @@ fn test_create_plan_zero_price_fails() {
     let (env, admin, _, client) = setup();
     let (token, _, _) = create_token(&env, &admin);
 
-    let result = client.try_create_plan(
-        &String::from_str(&env, "Bad"),
-        &0,
-        &INTERVAL,
-        &token,
-    );
+    let result = client.try_create_plan(&String::from_str(&env, "Bad"), &0, &INTERVAL, &token);
     assert_eq!(result, Err(Ok(Error::InvalidAmount)));
 }
 
@@ -89,12 +92,7 @@ fn test_create_plan_zero_interval_fails() {
     let (env, admin, _, client) = setup();
     let (token, _, _) = create_token(&env, &admin);
 
-    let result = client.try_create_plan(
-        &String::from_str(&env, "Bad"),
-        &PRICE,
-        &0,
-        &token,
-    );
+    let result = client.try_create_plan(&String::from_str(&env, "Bad"), &PRICE, &0, &token);
     assert_eq!(result, Err(Ok(Error::InvalidInterval)));
 }
 
@@ -103,12 +101,7 @@ fn test_deactivate_and_reactivate_plan() {
     let (env, admin, _, client) = setup();
     let (token, _, _) = create_token(&env, &admin);
 
-    let plan_id = client.create_plan(
-        &String::from_str(&env, "Basic"),
-        &PRICE,
-        &INTERVAL,
-        &token,
-    );
+    let plan_id = client.create_plan(&String::from_str(&env, "Basic"), &PRICE, &INTERVAL, &token);
 
     client.deactivate_plan(&plan_id);
     assert!(!client.get_plan(&plan_id).active);
@@ -226,7 +219,10 @@ fn test_cancel_by_admin() {
     let sub_id = client.subscribe(&subscriber, &plan_id);
     client.cancel(&admin, &sub_id);
 
-    assert_eq!(client.get_subscription(&sub_id).status, SubStatus::Cancelled);
+    assert_eq!(
+        client.get_subscription(&sub_id).status,
+        SubStatus::Cancelled
+    );
 }
 
 #[test]

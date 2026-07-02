@@ -60,12 +60,14 @@ function mapFromIds(ids, factory) {
 
 describe('createLoaders — DataLoader batching (issue #724)', () => {
   beforeAll(async () => {
-    ({ createLoaders } = await import('../src/graphql/dataloaders.js'));
-    ({ getProjectsByIds } = await import('../src/services/projectService.js'));
-    ({ getFilesByIds, getFilesByProjectIds, getFilesByTemplateIds } =
-      await import('../src/services/fileService.js'));
-    ({ getTemplatesByIds } =
-      await import('../src/services/templateService.js'));
+    ({ createLoaders } = require('../src/graphql/dataloaders.js'));
+    ({ getProjectsByIds } = require('../src/services/projectService.js'));
+    ({
+      getFilesByIds,
+      getFilesByProjectIds,
+      getFilesByTemplateIds,
+    } = require('../src/services/fileService.js'));
+    ({ getTemplatesByIds } = require('../src/services/templateService.js'));
   });
 
   beforeEach(() => {

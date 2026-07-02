@@ -8,7 +8,10 @@ import {
   createBuildSandboxPaths,
   createSandboxEnv,
 } from './buildSandbox.js';
-import { trackChildProcess, terminateChildProcess } from './childProcessManager.js';
+import {
+  trackChildProcess,
+  terminateChildProcess,
+} from './childProcessManager.js';
 
 parentPort.on('message', async (job) => {
   const startedAt = Date.now();
@@ -19,8 +22,16 @@ parentPort.on('message', async (job) => {
   await fs.mkdir(sandbox.cargoTargetDir, { recursive: true });
 
   try {
-    await fs.writeFile(path.join(sandbox.crateRoot, 'Cargo.toml'), job.cargoToml, 'utf8');
-    await fs.writeFile(path.join(sandbox.sourceRoot, 'lib.rs'), job.code, 'utf8');
+    await fs.writeFile(
+      path.join(sandbox.crateRoot, 'Cargo.toml'),
+      job.cargoToml,
+      'utf8'
+    );
+    await fs.writeFile(
+      path.join(sandbox.sourceRoot, 'lib.rs'),
+      job.code,
+      'utf8'
+    );
 
     parentPort.postMessage({
       type: 'progress',
@@ -86,14 +97,14 @@ function runCargoBuild(cwd, env, timeoutMs) {
   return new Promise((resolve, reject) => {
     const child = trackChildProcess(
       spawn(
-      'cargo',
-      ['build', '--target', 'wasm32-unknown-unknown', '--release'],
-      {
-        cwd,
-        shell: false,
-        windowsHide: true,
-        env,
-      }
+        'cargo',
+        ['build', '--target', 'wasm32-unknown-unknown', '--release'],
+        {
+          cwd,
+          shell: false,
+          windowsHide: true,
+          env,
+        }
       )
     );
 

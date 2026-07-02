@@ -10,7 +10,7 @@ import path from 'path';
 let testDb = null;
 
 // Mock the SQLite connection to use a clean in-memory database during tests
-jest.unstable_mockModule('../src/database/connection.js', () => ({
+jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
     if (testDb) return testDb;
     testDb = await open({
@@ -47,10 +47,11 @@ jest.unstable_mockModule('../src/database/connection.js', () => ({
 }));
 
 // Import connection utilities and ApiKeyService after mocking connection.js
-const { initializeDatabase, closeDatabase } =
-  await import('../src/database/connection.js');
-const { default: apiKeyService } =
-  await import('../src/services/apiKeyService.js');
+const {
+  initializeDatabase,
+  closeDatabase,
+} = require('../src/database/connection.js');
+const { default: apiKeyService } = require('../src/services/apiKeyService.js');
 
 describe('ApiKeyService (Auth Service)', () => {
   beforeAll(async () => {

@@ -25,11 +25,11 @@ use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, Env, Str
 use crate::storage::{
     accumulate_daily_volume, get_admin, get_daily_limit, get_deposit, get_deposit_count,
     get_expiry_seconds, get_fee_bps, get_proof, get_stats, get_validator_quorum, is_initialized,
-    is_paused, is_relayer, is_validator, set_admin, set_deposit, set_deposit_count,
-    set_expiry_seconds, set_fee_bps, set_daily_limit, set_paused, set_relayer, set_stats,
+    is_paused, is_relayer, is_validator, set_admin, set_daily_limit, set_deposit,
+    set_deposit_count, set_expiry_seconds, set_fee_bps, set_paused, set_relayer, set_stats,
     set_validator, set_validator_quorum, submit_validator_vote,
 };
-use crate::types::{Deposit, DepositStatus, Error, BridgeStats, ProofStatus, ValidatorProof};
+use crate::types::{BridgeStats, Deposit, DepositStatus, Error, ProofStatus, ValidatorProof};
 
 const MAX_FEE_BPS: u32 = 1_000; // 10 %
 
@@ -99,7 +99,12 @@ impl BridgeContract {
     }
 
     /// Register or deregister a relayer address.
-    pub fn set_relayer(env: Env, admin: Address, relayer: Address, active: bool) -> Result<(), Error> {
+    pub fn set_relayer(
+        env: Env,
+        admin: Address,
+        relayer: Address,
+        active: bool,
+    ) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         set_relayer(&env, &relayer, active);
         env.events()
@@ -303,7 +308,12 @@ impl BridgeContract {
     // ── Validator management ──────────────────────────────────────────────────
 
     /// Register or deregister a validator.
-    pub fn set_validator(env: Env, admin: Address, validator: Address, active: bool) -> Result<(), Error> {
+    pub fn set_validator(
+        env: Env,
+        admin: Address,
+        validator: Address,
+        active: bool,
+    ) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         set_validator(&env, &validator, active);
         env.events()
@@ -361,7 +371,11 @@ impl BridgeContract {
 
         env.events().publish(
             (symbol_short!("proof_sub"), deposit_id),
-            (validator, proof.vote_count, proof.status == ProofStatus::Verified),
+            (
+                validator,
+                proof.vote_count,
+                proof.status == ProofStatus::Verified,
+            ),
         );
 
         Ok(proof)

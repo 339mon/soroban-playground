@@ -193,13 +193,18 @@ impl DidRegistry {
         let is_valid = is_credential_valid(&cred, now);
 
         // Mark as expired if applicable
-        if !is_valid && cred.status == CredentialStatus::Active && cred.expires_at > 0 && cred.expires_at <= now {
+        if !is_valid
+            && cred.status == CredentialStatus::Active
+            && cred.expires_at > 0
+            && cred.expires_at <= now
+        {
             let mut updated = cred;
             updated.status = CredentialStatus::Expired;
             save_credential(&env, &updated);
         }
 
-        env.events().publish((symbol_short!("verify"),), (credential_id, is_valid));
+        env.events()
+            .publish((symbol_short!("verify"),), (credential_id, is_valid));
         Ok(is_valid)
     }
 
@@ -220,7 +225,8 @@ impl DidRegistry {
             return Err(Error::InvalidReputation);
         }
         let score = apply_reputation_delta(&env, &subject, amount)?;
-        env.events().publish((symbol_short!("boost"),), (&subject, amount));
+        env.events()
+            .publish((symbol_short!("boost"),), (&subject, amount));
         Ok(score)
     }
 
@@ -232,7 +238,8 @@ impl DidRegistry {
             return Err(Error::InvalidReputation);
         }
         let score = apply_reputation_delta(&env, &subject, -amount)?;
-        env.events().publish((symbol_short!("penalize"),), (&subject, amount));
+        env.events()
+            .publish((symbol_short!("penalize"),), (&subject, amount));
         Ok(score)
     }
 

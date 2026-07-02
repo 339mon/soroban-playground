@@ -5,14 +5,15 @@ import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-const NUM_CPUS  = os.cpus().length;
+const NUM_CPUS = os.cpus().length;
 const TEST_PORT = 14321;
-const BASE_URL  = `http://127.0.0.1:${TEST_PORT}`;
+const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WORKER_PATH = join(__dirname, '_testWorker_temp.mjs');
 
 // ─── Test runner ──────────────────────────────────────────────────────────────
-let passed = 0, failed = 0;
+let passed = 0,
+  failed = 0;
 
 async function test(name, fn) {
   try {
@@ -35,16 +36,27 @@ function getJSON(path = '/health') {
     const req = http.get(`${BASE_URL}${path}`, (res) => {
       let body = '';
       res.on('data', (c) => (body += c));
-      res.on('end', () => { try { resolve(JSON.parse(body)); } catch(e) { reject(e); } });
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (e) {
+          reject(e);
+        }
+      });
     });
     req.on('error', reject);
-    req.setTimeout(3000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.setTimeout(3000, () => {
+      req.destroy();
+      reject(new Error('timeout'));
+    });
   });
 }
 
 // ─── Temp worker file ─────────────────────────────────────────────────────────
 function setupWorkerFile() {
-  writeFileSync(WORKER_PATH, `
+  writeFileSync(
+    WORKER_PATH,
+    `
 import http from 'http';
 import cluster from 'cluster';
 const server = http.createServer((req, res) => {
@@ -55,7 +67,8 @@ server.listen(${TEST_PORT});
 process.on('message', (msg) => {
   if (msg && msg.type === 'shutdown') server.close(() => process.exit(0));
 });
-`);
+`
+  );
 }
 
 // ─── Cluster setup ───────────────────────────────────────────────────────────
@@ -80,9 +93,13 @@ function startCluster() {
   return {
     shutdown() {
       for (const w of workers.values()) {
-        try { w.send({ type: 'shutdown' }); } catch (_) {}
+        try {
+          w.send({ type: 'shutdown' });
+        } catch (_) {}
       }
-      setTimeout(() => { if (existsSync(WORKER_PATH)) unlinkSync(WORKER_PATH); }, 1500);
+      setTimeout(() => {
+        if (existsSync(WORKER_PATH)) unlinkSync(WORKER_PATH);
+      }, 1500);
     },
   };
 }
@@ -101,18 +118,24 @@ await test('AC1 – Requests reach all CPU cores', async () => {
   const pids = new Set();
   await Promise.all(
     Array.from({ length: NUM_CPUS * 20 }, () =>
-      getJSON().then((d) => pids.add(d.pid)).catch(() => {})
+      getJSON()
+        .then((d) => pids.add(d.pid))
+        .catch(() => {})
     )
   );
-  assert(pids.size >= Math.min(2, NUM_CPUS),
-    `Expected ≥${Math.min(2, NUM_CPUS)} distinct PIDs, got ${pids.size}`);
+  assert(
+    pids.size >= Math.min(2, NUM_CPUS),
+    `Expected ≥${Math.min(2, NUM_CPUS)} distinct PIDs, got ${pids.size}`
+  );
   console.log(`           Distinct worker PIDs seen: ${pids.size}/${NUM_CPUS}`);
 });
 
 // AC2 – Crashed worker replaced within 1 second
 await test('AC2 – Crashed worker replaced within 1 second', async () => {
   const { pid: victimPid } = await getJSON();
-  try { process.kill(victimPid, 'SIGKILL'); } catch (_) {}
+  try {
+    process.kill(victimPid, 'SIGKILL');
+  } catch (_) {}
 
   const start = Date.now();
   let recovered = false;
@@ -120,7 +143,10 @@ await test('AC2 – Crashed worker replaced within 1 second', async () => {
     await new Promise((r) => setTimeout(r, 25));
     try {
       const d = await getJSON();
-      if (d.pid !== victimPid) { recovered = true; break; }
+      if (d.pid !== victimPid) {
+        recovered = true;
+        break;
+      }
     } catch (_) {}
   }
   const elapsed = Date.now() - start;
@@ -130,11 +156,14 @@ await test('AC2 – Crashed worker replaced within 1 second', async () => {
 
 // AC3 – Zero socket dropouts under load
 await test('AC3 – Zero socket dropouts under concurrent load', async () => {
-  let errors = 0, successes = 0;
+  let errors = 0,
+    successes = 0;
   for (let r = 0; r < 10; r++) {
     await Promise.all(
       Array.from({ length: 50 }, () =>
-        getJSON().then(() => successes++).catch(() => errors++)
+        getJSON()
+          .then(() => successes++)
+          .catch(() => errors++)
       )
     );
   }

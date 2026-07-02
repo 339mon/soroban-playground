@@ -3,8 +3,8 @@ import { open } from 'sqlite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 let db = null;
 
@@ -23,8 +23,8 @@ function enhanceDatabaseError(error, context) {
 // before swapping it in).
 async function openDatabase(options = {}) {
   const {
-    filename = path.join(__dirname, 'database.sqlite'),
-    schemaPath = path.join(__dirname, 'schema.sql'),
+    filename = path.join(dirname, 'database.sqlite'),
+    schemaPath = path.join(dirname, 'schema.sql'),
     seedSampleData = process.env.SEED_SAMPLE_DATA !== 'false',
   } = options;
 

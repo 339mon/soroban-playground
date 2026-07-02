@@ -10,7 +10,7 @@ import path from 'path';
 let testDb = null;
 
 // Mock database connection to use SQLite in-memory database for tests
-jest.unstable_mockModule('../src/database/connection.js', () => ({
+jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
     if (testDb) return testDb;
     testDb = await open({
@@ -40,7 +40,10 @@ jest.unstable_mockModule('../src/database/connection.js', () => ({
   },
 }));
 
-const { initializeDatabase, closeDatabase } = await import('../src/database/connection.js');
+const {
+  initializeDatabase,
+  closeDatabase,
+} = require('../src/database/connection.js');
 import express from 'express';
 import supertest from 'supertest';
 
@@ -48,16 +51,16 @@ let server;
 const request = () => supertest(server);
 
 // Import our authorization elements
-const { QueryBuilder } = await import('../src/services/queryBuilder.js');
-const { default: authService } = await import('../src/services/authService.js');
+const { QueryBuilder } = require('../src/services/queryBuilder.js');
+const { default: authService } = require('../src/services/authService.js');
 const {
   authenticate,
   requireRole,
   requirePermission,
-} = await import('../src/middleware/auth.js');
-const { default: projectsRouter } = await import('../src/routes/projects.js');
-const { setupGraphQL } = await import('../src/graphql/index.js');
-const { errorHandler } = await import('../src/middleware/errorHandler.js');
+} = require('../src/middleware/auth.js');
+const { default: projectsRouter } = require('../src/routes/projects.js');
+const { setupGraphQL } = require('../src/graphql/index.js');
+const { errorHandler } = require('../src/middleware/errorHandler.js');
 
 describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => {
   let app;
@@ -69,10 +72,10 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     // Create an Express App
     app = express();
     app.use(express.json());
-    
+
     // Register projects endpoints
     app.use('/api/projects', projectsRouter);
-    
+
     // Setup GraphQL
     await setupGraphQL(app);
 
@@ -88,7 +91,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     }
     await closeDatabase();
     try {
-      const { default: redisService } = await import('../src/services/redisService.js');
+      const {
+        default: redisService,
+      } = require('../src/services/redisService.js');
       if (redisService && redisService.client) {
         if (typeof redisService.client.quit === 'function') {
           await redisService.client.quit();
@@ -108,7 +113,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
 
     // Create seed users
     const hash = 'hashedpassword';
-    
+
     // Admin user (id: 1)
     await testDb.run(
       'INSERT INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
@@ -141,9 +146,15 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
   // ── 1. SCHEMA TESTS ────────────────────────────────────────────────────────
   describe('Database Schema Definitions', () => {
     it('creates roles, permissions, and role_permissions tables', async () => {
-      const rolesTable = await testDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='roles'");
-      const permissionsTable = await testDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='permissions'");
-      const rolePermissionsTable = await testDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='role_permissions'");
+      const rolesTable = await testDb.get(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='roles'"
+      );
+      const permissionsTable = await testDb.get(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='permissions'"
+      );
+      const rolePermissionsTable = await testDb.get(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='role_permissions'"
+      );
 
       expect(rolesTable).toBeTruthy();
       expect(permissionsTable).toBeTruthy();
@@ -154,7 +165,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       const roles = await testDb.all('SELECT name FROM roles ORDER BY name');
       expect(roles.map((r) => r.name)).toEqual(['admin', 'developer', 'guest']);
 
-      const permissions = await testDb.all('SELECT name FROM permissions ORDER BY name');
+      const permissions = await testDb.all(
+        'SELECT name FROM permissions ORDER BY name'
+      );
       expect(permissions.map((p) => p.name)).toContain('project:create');
       expect(permissions.map((p) => p.name)).toContain('project:read');
     });
@@ -195,7 +208,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
   describe('Authorization Middleware (REST)', () => {
     it('allows access if user has the required permission', async () => {
       const middleware = requirePermission('project:create');
-      const req = { user: { role: 'developer', permissions: ['project:create'] } };
+      const req = {
+        user: { role: 'developer', permissions: ['project:create'] },
+      };
       const res = {};
       const next = jest.fn();
 
@@ -235,14 +250,32 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       await testDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [10, 'Dev1 Project', 'Description 1', 'DeFi', 'active', 2, 'dev_user_1', 10000]
+        [
+          10,
+          'Dev1 Project',
+          'Description 1',
+          'DeFi',
+          'active',
+          2,
+          'dev_user_1',
+          10000,
+        ]
       );
 
       // Project 2 (creator: Dev 2, ID: 3)
       await testDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [20, 'Dev2 Project', 'Description 2', 'NFT', 'draft', 3, 'dev_user_2', 50000]
+        [
+          20,
+          'Dev2 Project',
+          'Description 2',
+          'NFT',
+          'draft',
+          3,
+          'dev_user_2',
+          50000,
+        ]
       );
     });
 
@@ -288,9 +321,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     });
 
     it('allows user to view their own projects', async () => {
-      const res = await request(app)
-        .get('/api/projects')
-        .set('x-user-id', '2'); // devUser1 ID
+      const res = await request(app).get('/api/projects').set('x-user-id', '2'); // devUser1 ID
 
       expect(res.status).toBe(200);
       expect(res.body.projects).toHaveLength(1);
@@ -298,9 +329,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     });
 
     it('prevents user from listing other users projects', async () => {
-      const res = await request(app)
-        .get('/api/projects')
-        .set('x-user-id', '2'); // devUser1 ID
+      const res = await request(app).get('/api/projects').set('x-user-id', '2'); // devUser1 ID
 
       // Should only see Dev1 Project (id 10), not Dev2 Project (id 20)
       expect(res.body.projects.map((p) => p.id)).not.toContain(20);
@@ -325,7 +354,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       expect(res.body.message).toMatch(/Forbidden/i);
 
       // Verify not updated in DB
-      const project = await testDb.get('SELECT title FROM projects WHERE id = 20');
+      const project = await testDb.get(
+        'SELECT title FROM projects WHERE id = 20'
+      );
       expect(project.title).toBe('Dev2 Project');
     });
 
@@ -371,7 +402,16 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       await testDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [30, 'Dev2 GraphQL Project', 'GraphQL Desc', 'Infrastructure', 'active', 3, 'dev_user_2', 25000]
+        [
+          30,
+          'Dev2 GraphQL Project',
+          'GraphQL Desc',
+          'Infrastructure',
+          'active',
+          3,
+          'dev_user_2',
+          25000,
+        ]
       );
     });
 
@@ -466,7 +506,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
 
       expect(res.status).toBe(200);
       expect(res.body.errors).toBeDefined();
-      expect(res.body.errors[0].message).toMatch(/Forbidden: Access requires permission "project:create"/i);
+      expect(res.body.errors[0].message).toMatch(
+        /Forbidden: Access requires permission "project:create"/i
+      );
     });
 
     it('GraphQL: prevents user from updating another users project', async () => {
@@ -489,7 +531,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
 
       expect(res.status).toBe(200);
       expect(res.body.errors).toBeDefined();
-      expect(res.body.errors[0].message).toMatch(/Forbidden: You do not own this project/i);
+      expect(res.body.errors[0].message).toMatch(
+        /Forbidden: You do not own this project/i
+      );
     });
 
     it('GraphQL: prevents user from deleting another users project', async () => {
@@ -506,7 +550,9 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
 
       expect(res.status).toBe(200);
       expect(res.body.errors).toBeDefined();
-      expect(res.body.errors[0].message).toMatch(/Forbidden: You do not own this project/i);
+      expect(res.body.errors[0].message).toMatch(
+        /Forbidden: You do not own this project/i
+      );
     });
 
     it('GraphQL: allows admin to update and delete any project', async () => {

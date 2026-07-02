@@ -1,17 +1,17 @@
 import { jest } from '@jest/globals';
 
-jest.unstable_mockModule('../src/services/emittedEventsService.js', () => ({
+jest.mock('../src/services/emittedEventsService.js', () => ({
   listEmittedEvents: jest.fn(),
 }));
 
-const { listEmittedEvents } = await import(
-  '../src/services/emittedEventsService.js'
-);
+const {
+  listEmittedEvents,
+} = require('../src/services/emittedEventsService.js');
 
 import express from 'express';
 import request from 'supertest';
-const { default: eventsRouter } = await import('../src/routes/v1/events.js');
-const { errorHandler } = await import('../src/middleware/errorHandler.js');
+const { default: eventsRouter } = require('../src/routes/v1/events.js');
+const { errorHandler } = require('../src/middleware/errorHandler.js');
 
 const app = express();
 app.use(express.json());

@@ -5,10 +5,7 @@ import express from 'express';
 import { asyncHandler, createHttpError } from '../middleware/errorHandler.js';
 import { getDatabase } from '../database/connection.js';
 import { QueryBuilder } from '../services/queryBuilder.js';
-import {
-  authenticate,
-  requirePermission,
-} from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 const projectQueryBuilder = new QueryBuilder('projects');
@@ -25,7 +22,7 @@ router.get(
   requirePermission('project:read'),
   asyncHandler(async (req, res) => {
     const db = getDatabase();
-    
+
     // Parse filters/pagination from query params if needed
     const limit = parseInt(req.query.limit, 10) || 50;
     const filter = {};
@@ -40,9 +37,9 @@ router.get(
     );
 
     const projects = await db.all(sql, params);
-    
+
     // Parse tags JSON strings back to arrays if necessary
-    const formatted = projects.map(p => ({
+    const formatted = projects.map((p) => ({
       ...p,
       tags: p.tags ? JSON.parse(p.tags) : [],
     }));
@@ -69,7 +66,9 @@ router.get(
 
     // Verify row-level access: creator matches user (unless admin)
     if (req.user.role !== 'admin' && project.creator_id !== req.user.id) {
-      return next(createHttpError(403, 'Forbidden: You do not own this project'));
+      return next(
+        createHttpError(403, 'Forbidden: You do not own this project')
+      );
     }
 
     project.tags = project.tags ? JSON.parse(project.tags) : [];
@@ -85,9 +84,16 @@ router.post(
   '/',
   requirePermission('project:create'),
   asyncHandler(async (req, res, next) => {
-    const { title, description, category, status, funding_goal, tags } = req.body || {};
-    
-    if (!title || !description || !category || !status || funding_goal === undefined) {
+    const { title, description, category, status, funding_goal, tags } =
+      req.body || {};
+
+    if (
+      !title ||
+      !description ||
+      !category ||
+      !status ||
+      funding_goal === undefined
+    ) {
       return next(createHttpError(400, 'Missing required fields'));
     }
 
@@ -99,7 +105,16 @@ router.post(
     const result = await db.run(
       `INSERT INTO projects (title, description, category, status, creator_id, creator_name, funding_goal, tags)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, description, category, status, creatorId, creatorName, funding_goal, tagsJson]
+      [
+        title,
+        description,
+        category,
+        status,
+        creatorId,
+        creatorName,
+        funding_goal,
+        tagsJson,
+      ]
     );
 
     const newProject = {
@@ -136,22 +151,36 @@ router.put(
 
     // Verify row-level access: creator matches user (unless admin)
     if (req.user.role !== 'admin' && project.creator_id !== req.user.id) {
-      return next(createHttpError(403, 'Forbidden: You do not own this project'));
+      return next(
+        createHttpError(403, 'Forbidden: You do not own this project')
+      );
     }
 
-    const { title, description, category, status, funding_goal, tags } = req.body || {};
+    const { title, description, category, status, funding_goal, tags } =
+      req.body || {};
     const updatedTitle = title !== undefined ? title : project.title;
-    const updatedDesc = description !== undefined ? description : project.description;
+    const updatedDesc =
+      description !== undefined ? description : project.description;
     const updatedCat = category !== undefined ? category : project.category;
     const updatedStatus = status !== undefined ? status : project.status;
-    const updatedGoal = funding_goal !== undefined ? funding_goal : project.funding_goal;
-    const updatedTags = tags !== undefined ? JSON.stringify(tags) : project.tags;
+    const updatedGoal =
+      funding_goal !== undefined ? funding_goal : project.funding_goal;
+    const updatedTags =
+      tags !== undefined ? JSON.stringify(tags) : project.tags;
 
     await db.run(
       `UPDATE projects 
        SET title = ?, description = ?, category = ?, status = ?, funding_goal = ?, tags = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [updatedTitle, updatedDesc, updatedCat, updatedStatus, updatedGoal, updatedTags, id]
+      [
+        updatedTitle,
+        updatedDesc,
+        updatedCat,
+        updatedStatus,
+        updatedGoal,
+        updatedTags,
+        id,
+      ]
     );
 
     const updatedProject = {
@@ -163,7 +192,12 @@ router.put(
       creator_id: project.creator_id,
       creator_name: project.creator_name,
       funding_goal: updatedGoal,
-      tags: tags !== undefined ? tags : (project.tags ? JSON.parse(project.tags) : []),
+      tags:
+        tags !== undefined
+          ? tags
+          : project.tags
+            ? JSON.parse(project.tags)
+            : [],
     };
 
     return res.json({ success: true, project: updatedProject });
@@ -188,7 +222,9 @@ router.delete(
 
     // Verify row-level access: creator matches user (unless admin)
     if (req.user.role !== 'admin' && project.creator_id !== req.user.id) {
-      return next(createHttpError(403, 'Forbidden: You do not own this project'));
+      return next(
+        createHttpError(403, 'Forbidden: You do not own this project')
+      );
     }
 
     await db.run('DELETE FROM projects WHERE id = ?', [id]);

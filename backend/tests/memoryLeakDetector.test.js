@@ -50,11 +50,11 @@ let MemoryLeakDetector;
 let startMemoryLeakDetector;
 
 beforeAll(async () => {
-  v8Mock = (await import('v8')).default ?? (await import('v8'));
-  pipelineMock = (await import('stream/promises')).pipeline;
-  alertManagerMock = (await import('../src/utils/alerting.js')).alertManager;
+  v8Mock = require('v8').default ?? require('v8');
+  pipelineMock = require('stream/promises').pipeline;
+  alertManagerMock = require('../src/utils/alerting.js').alertManager;
 
-  const mod = await import('../src/services/memoryLeakDetector.js');
+  const mod = require('../src/services/memoryLeakDetector.js');
   MemoryLeakDetector = mod.default.constructor;
   startMemoryLeakDetector = mod.startMemoryLeakDetector;
 });
