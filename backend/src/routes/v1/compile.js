@@ -64,7 +64,7 @@ router.post(
         dependencies: depValidation.deps,
       });
       if (!result.success) {
-        return res.json({
+        return res.status(400).json({
           success: false,
           status: 'error',
           message: 'Contract compilation failed',
