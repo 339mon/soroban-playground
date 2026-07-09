@@ -411,17 +411,19 @@ export const resolvers = {
         dependencies: input.dependencies ?? {},
       });
       return {
-        success: true,
+        success: result.success ?? false,
         cached: result.cached,
         hash: result.hash,
         durationMs: result.durationMs ?? null,
         logs: result.logs ?? [],
         artifact: {
-          name: result.artifact.name,
-          sizeBytes: result.artifact.sizeBytes,
-          path: result.artifact.path,
+          name: result.artifact?.name,
+          sizeBytes: result.artifact?.sizeBytes,
+          path: result.artifact?.path,
         },
-        message: result.cached
+        message: !result.success
+          ? 'Compilation failed'
+          : result.cached
           ? 'Compiled from cache'
           : 'Compiled successfully',
       };

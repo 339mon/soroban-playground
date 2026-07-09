@@ -63,6 +63,19 @@ router.post(
         code,
         dependencies: depValidation.deps,
       });
+      if (!result.success) {
+        return res.json({
+          success: false,
+          status: 'error',
+          message: 'Contract compilation failed',
+          cached: result.cached,
+          hash: result.hash,
+          durationMs: result.durationMs,
+          logs: result.logs,
+          artifact: null,
+        });
+      }
+
       return res.json({
         success: true,
         status: 'success',
