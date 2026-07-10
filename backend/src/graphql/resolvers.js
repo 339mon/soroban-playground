@@ -424,8 +424,8 @@ export const resolvers = {
         message: !result.success
           ? 'Compilation failed'
           : result.cached
-          ? 'Compiled from cache'
-          : 'Compiled successfully',
+            ? 'Compiled from cache'
+            : 'Compiled successfully',
       };
     },
 
