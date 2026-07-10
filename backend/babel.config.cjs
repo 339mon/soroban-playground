@@ -21,7 +21,7 @@ module.exports = {
   presets: [
     [
       resolveBabelModule('@babel/preset-env'),
-      { targets: { node: 'current' }, modules: 'auto' },
+      { targets: { node: 'current' }, modules: false },
     ],
   ],
   plugins: [resolveBabelModule('babel-plugin-transform-import-meta')],
