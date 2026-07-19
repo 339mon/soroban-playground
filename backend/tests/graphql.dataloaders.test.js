@@ -171,6 +171,7 @@ function gql(app, query) {
   return request(app)
     .post('/graphql')
     .set('Content-Type', 'application/json')
+    .set('x-user-id', '1')
     .send({ query });
 }
 

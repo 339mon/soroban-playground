@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 
 let deploymentState = { activeDeployments: [], history: [] };
 
-const fsMock = {
+const mockFs = {
   mkdirSync: jest.fn(),
   existsSync: jest.fn(() => true),
   readFileSync: jest.fn(() => `${JSON.stringify(deploymentState)}\n`),
@@ -13,35 +13,35 @@ const fsMock = {
   appendFileSync: jest.fn(),
 };
 
-const spawnMock = jest.fn();
+const mockSpawn = jest.fn();
 
-const span = {
+const mockSpan = {
   end: jest.fn(),
   setStatus: jest.fn(),
 };
 
-const alertManager = {
+const mockAlertManager = {
   checkDeploymentFailure: jest.fn(),
 };
 
 jest.mock('fs', () => ({
-  default: fsMock,
-  ...fsMock,
+  default: mockFs,
+  ...mockFs,
 }));
 
 jest.mock('child_process', () => ({
-  spawn: spawnMock,
+  spawn: mockSpawn,
 }));
 
 jest.mock('../src/utils/tracing.js', () => ({
-  createSpan: jest.fn(() => span),
+  createSpan: jest.fn(() => mockSpan),
   setSpanAttributes: jest.fn(),
   addSpanEvent: jest.fn(),
   injectTraceContext: jest.fn((env) => env),
 }));
 
 jest.mock('../src/utils/alerting.js', () => ({
-  alertManager,
+  alertManager: mockAlertManager,
 }));
 
 const {
@@ -70,7 +70,7 @@ describe('deployService', () => {
   beforeEach(() => {
     deploymentState = { activeDeployments: [], history: [] };
     jest.clearAllMocks();
-    fsMock.existsSync.mockReturnValue(true);
+    mockFs.existsSync.mockReturnValue(true);
   });
 
   it('validates deploy contracts before spawning the CLI', () => {
@@ -82,7 +82,7 @@ describe('deployService', () => {
       })
     ).not.toThrow();
 
-    fsMock.existsSync.mockReturnValue(false);
+    mockFs.existsSync.mockReturnValue(false);
     expect(() =>
       validateDeployContract({
         contractName: 'demo',
@@ -94,7 +94,7 @@ describe('deployService', () => {
 
   it('captures stdout and emits progress during a successful deploy', async () => {
     const child = createChildProcess();
-    spawnMock.mockReturnValue(child);
+    mockSpawn.mockReturnValue(child);
 
     const onProgress = jest.fn();
     const promise = deployContract(
@@ -123,7 +123,7 @@ describe('deployService', () => {
 
   it('surfaces CLI failures with captured output', async () => {
     const child = createChildProcess();
-    spawnMock.mockReturnValue(child);
+    mockSpawn.mockReturnValue(child);
 
     const promise = deployContract({
       contractName: 'demo',
@@ -143,7 +143,7 @@ describe('deployService', () => {
   });
 
   it('deploys a batch in dependency order and persists success state', async () => {
-    spawnMock
+    mockSpawn
       .mockImplementationOnce(() => {
         const child = createChildProcess();
         queueSuccessfulClose(child, 'C'.repeat(56));
@@ -179,7 +179,7 @@ describe('deployService', () => {
       'base',
       'derived',
     ]);
-    expect(spawnMock).toHaveBeenCalledTimes(2);
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
     expect(getDeploymentState().history).toHaveLength(1);
     expect(getDeploymentState().history[0]).toMatchObject({
       deploymentId: 'batch-1',
@@ -188,8 +188,14 @@ describe('deployService', () => {
   });
 
   it('records failed batch deployments and notifies alerting', async () => {
-    const child = createChildProcess();
-    spawnMock.mockReturnValue(child);
+    mockSpawn.mockImplementation(() => {
+      const child = createChildProcess();
+      setImmediate(() => {
+        child.stderr.emit('data', Buffer.from('bad deploy'));
+        child.emit('close', 1);
+      });
+      return child;
+    });
 
     const promise = deployBatchContracts({
       requestId: 'request-2',
@@ -204,11 +210,8 @@ describe('deployService', () => {
       ],
     });
 
-    child.stderr.emit('data', Buffer.from('bad deploy'));
-    child.emit('close', 1);
-
     await expect(promise).rejects.toThrow(/bad deploy/);
-    expect(alertManager.checkDeploymentFailure).toHaveBeenCalledWith(
+    expect(mockAlertManager.checkDeploymentFailure).toHaveBeenCalledWith(
       'batch-2',
       expect.objectContaining({ message: 'bad deploy' })
     );

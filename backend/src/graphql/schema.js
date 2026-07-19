@@ -15,6 +15,7 @@ export const typeDefs = /* GraphQL */ `
 
   # ── Compile ───────────────────────────────────────────────────────────────────
   type CompileArtifact {
+    hash: String!
     name: String!
     sizeBytes: Int!
     path: String!
@@ -95,6 +96,18 @@ export const typeDefs = /* GraphQL */ `
     network: String!
     status: String!
     deployedAt: String!
+  }
+
+  type Deployment {
+    deploymentId: String!
+    status: String!
+    contracts: [DeployedContractDetail!]!
+  }
+
+  type DeployedContractDetail {
+    id: String!
+    wasmPath: String!
+    artifact: CompileArtifact
   }
 
   # ── Invoke ────────────────────────────────────────────────────────────────────
@@ -190,6 +203,9 @@ export const typeDefs = /* GraphQL */ `
     fundingGoal: Float!
     currentFunding: Float!
     completionRate: Float!
+    creator_id: Int
+    creator_name: String
+    funding_goal: Float
     tags: [String!]!
     files: [File!]!
   }
@@ -245,6 +261,7 @@ export const typeDefs = /* GraphQL */ `
     # Deploy
     deployHistory(first: Int, after: String): DeployHistoryConnection!
       @complexity(value: 3, multipliers: ["first"])
+    deployments: [Deployment!]! @complexity(value: 3)
 
     # Invoke — admin only
     invokeLog(contractId: String!, first: Int, after: String): JSON
@@ -253,8 +270,6 @@ export const typeDefs = /* GraphQL */ `
       @hasRole(role: "admin")
 
     # Projects / Files / Templates (issue #724)
-    projects: [Project!]! @complexity(value: 3)
-    project(id: ID!): Project @complexity(value: 2)
     files: [File!]! @complexity(value: 3)
     templates: [Template!]! @complexity(value: 3)
     template(id: ID!): Template @complexity(value: 2)

@@ -1,12 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NotarizeForm from '../../components/notary/NotarizeForm';
 
-global.fetch = jest.fn();
-global.crypto = {
-  subtle: {
-    digest: jest.fn(),
-  },
-};
 
 describe('NotarizeForm', () => {
   beforeEach(() => {

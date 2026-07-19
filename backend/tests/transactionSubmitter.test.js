@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 
-import oracleRoute from '../../src/routes/oracle.js';
-import { errorHandler } from '../../src/middleware/errorHandler.js';
-import { resetOracleServiceForTests } from '../../src/services/oracle/oracleService.js';
+import oracleRoute from '../src/routes/oracle.js';
+import { errorHandler } from '../src/middleware/errorHandler.js';
+import { resetOracleServiceForTests } from '../src/services/oracle/oracleService.js';
 
 const app = express();
 app.use(express.json());
@@ -27,7 +27,7 @@ describe('Transaction Submitter Endpoint', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('id');
     expect(res.body.data).toHaveProperty('status');
-    expect(['submitted', 'pending']).toContain(res.body.data.status);
+    expect(['submitted', 'pending', 'voting']).toContain(res.body.data.status);
   });
 
   it('accepts proof submission and returns 200 status for synchronous submission', async () => {

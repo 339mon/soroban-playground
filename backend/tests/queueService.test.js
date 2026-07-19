@@ -47,21 +47,21 @@ jest.mock('bullmq', () => ({
   FlowProducer: MockFlowProducer,
 }));
 
-// Mock ioredis
-const mockRedisQuit = jest.fn();
-class MockRedis {
-  constructor(url, opts) {
+jest.mock('ioredis', () => {
+  const mockQuit = jest.fn();
+  function MockRedis(url, opts) {
     this.url = url;
     this.opts = opts;
-    this.quit = mockRedisQuit;
+    this.quit = mockQuit;
+    this.on = function() {};
   }
-  on() {}
-}
-
-jest.mock('ioredis', () => ({
-  default: MockRedis,
-  Redis: MockRedis,
-}));
+  return {
+    __esModule: true,
+    default: MockRedis,
+    Redis: MockRedis,
+    mockQuit,
+  };
+});
 
 // Mock Bull Board
 const mockCreateBullBoard = jest.fn(() => ({
@@ -211,6 +211,7 @@ describe('queueService', () => {
     expect(mockWorkerClose).toHaveBeenCalledTimes(3);
     expect(mockQueueClose).toHaveBeenCalledTimes(3);
     expect(mockFlowProducerClose).toHaveBeenCalledTimes(1);
-    expect(mockRedisQuit).toHaveBeenCalled();
+    const { mockQuit } = require('ioredis');
+    expect(mockQuit).toHaveBeenCalled();
   });
 });

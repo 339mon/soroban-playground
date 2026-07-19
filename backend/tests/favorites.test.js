@@ -4,34 +4,38 @@ import { open } from 'sqlite';
 import fs from 'fs/promises';
 import path from 'path';
 
-let testDb = null;
+let mockDb = null;
 
 jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
-    if (testDb) return testDb;
-    testDb = await open({
+    const sqlite3 = require('sqlite3');
+    const { open } = require('sqlite');
+    const fs = require('fs/promises');
+    const path = require('path');
+    if (mockDb) return mockDb;
+    mockDb = await open({
       filename: ':memory:',
       driver: sqlite3.Database,
     });
 
     const schemaPath = path.resolve(process.cwd(), 'src/database/schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
-    await testDb.exec(schema);
+    await mockDb.exec(schema);
 
-    return testDb;
+    return mockDb;
   },
   getDatabase: () => {
-    if (!testDb) {
+    if (!mockDb) {
       throw new Error(
         'Database not initialized. Call initializeDatabase() first.'
       );
     }
-    return testDb;
+    return mockDb;
   },
   closeDatabase: async () => {
-    if (testDb) {
-      await testDb.close();
-      testDb = null;
+    if (mockDb) {
+      await mockDb.close();
+      mockDb = null;
     }
   },
 }));
@@ -66,10 +70,10 @@ describe('Favorites API', () => {
   });
 
   beforeEach(async () => {
-    await testDb.run('DELETE FROM favorites');
-    await testDb.run('DELETE FROM rate_limit_usage');
-    await testDb.run('DELETE FROM audit_log');
-    await testDb.run('DELETE FROM api_keys');
+    await mockDb.run('DELETE FROM favorites');
+    await mockDb.run('DELETE FROM rate_limit_usage');
+    await mockDb.run('DELETE FROM audit_log');
+    await mockDb.run('DELETE FROM api_keys');
 
     tenantAKey = await apiKeyService.generateKey({
       name: 'Tenant A',
@@ -111,7 +115,7 @@ describe('Favorites API', () => {
     });
 
     it('returns stored favorites for an existing wallet', async () => {
-      await testDb.run(
+      await mockDb.run(
         'INSERT INTO favorites (tenant_id, wallet_address, favorites, updated_at) VALUES (?, ?, ?, ?)',
         [
           tenantAKey.tenantId,
@@ -162,7 +166,7 @@ describe('Favorites API', () => {
       expect(res.body.favorites).toEqual(['a', 'b', 'c']);
       expect(res.body).toHaveProperty('updatedAt');
 
-      const row = await testDb.get(
+      const row = await mockDb.get(
         'SELECT * FROM favorites WHERE tenant_id = ? AND wallet_address = ?',
         [tenantAKey.tenantId, WALLET]
       );
@@ -186,7 +190,7 @@ describe('Favorites API', () => {
       expect(res.status).toBe(200);
       expect(res.body.favorites).toEqual(['c']);
 
-      const rows = await testDb.all(
+      const rows = await mockDb.all(
         'SELECT * FROM favorites WHERE tenant_id = ? AND wallet_address = ?',
         [tenantAKey.tenantId, WALLET]
       );

@@ -43,6 +43,33 @@ jest.mock('../src/graphql/cache.js', () => ({
   invalidateCache: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../src/services/authService.js', () => ({
+  __esModule: true,
+  default: {
+    authenticate: jest.fn().mockImplementation(({ headers }) => {
+      // Keys might be lowercase in raw headers object
+      const headerRole = headers['x-role'] || headers['X-Role'];
+      if (headerRole) {
+        return {
+          id: headerRole === 'admin' ? 1 : 2,
+          username: `${headerRole}_user`,
+          email: `${headerRole}@example.com`,
+          role: headerRole,
+          permissions: ['project:read'],
+        };
+      }
+      return {
+        id: null,
+        username: 'anonymous',
+        email: '',
+        role: 'guest',
+        permissions: ['project:read'],
+      };
+    }),
+    hasPermission: () => true,
+  },
+}));
+
 import { createGraphQLServer } from '../src/graphql/index.js';
 import {
   computeComplexity,

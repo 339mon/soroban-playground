@@ -7,19 +7,19 @@ import express from 'express';
 import request from 'supertest';
 import { jest } from '@jest/globals';
 
-jest.mock('../../src/services/invokeService.js', () => ({
+jest.mock('../src/services/invokeService.js', () => ({
   invokeSorobanContract: jest.fn(),
 }));
-jest.mock('../../src/middleware/rateLimiter.js', () => ({
+jest.mock('../src/middleware/rateLimiter.js', () => ({
   rateLimitMiddleware: () => (_req, _res, next) => next(),
 }));
 
-import { invokeSorobanContract } from '../../src/services/invokeService.js';
-import yieldOptimizerRoute from '../../src/routes/yieldOptimizer.js';
+import { invokeSorobanContract } from '../src/services/invokeService.js';
+import yieldOptimizerRoute from '../src/routes/yieldOptimizer.js';
 import {
   notFoundHandler,
   errorHandler,
-} from '../../src/middleware/errorHandler.js';
+} from '../src/middleware/errorHandler.js';
 
 function buildApp() {
   const app = express();
@@ -31,7 +31,7 @@ function buildApp() {
 }
 
 const CONTRACT = 'CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-const ADMIN = 'GDEMO4MV6L6QY6P4UQBW5SC4R6X4P7WALLETDEMO4MV6L6QY6P4UQBW';
+const ADMIN = 'GDEMO4MV6L6QY6P4UQBW5SC4R6X4P7WALLETDEMO4MV6L6QY6P4UQBWA';
 const USER = 'GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 
 describe('Yield Optimizer API', () => {

@@ -159,23 +159,24 @@ export const resolvers = {
       if (cached) return cached;
 
       const snapshot = await getCompileSnapshot();
-      const totalCompiles = snapshot?.stats?.totalCompiles ?? 0;
-      const cacheHits = snapshot?.stats?.cacheHits ?? 0;
+      const stats = snapshot?.stats || snapshot;
+      const totalCompiles = stats?.totalCompiles ?? 0;
+      const cacheHits = stats?.cacheHits ?? 0;
       const result = {
-        activeWorkers: snapshot?.stats?.activeWorkers ?? 0,
-        maxWorkers: 8,
-        queueLength: snapshot?.stats?.queueLength ?? 0,
-        estimatedWaitTimeMs: (snapshot?.stats?.queueLength ?? 0) * 1500,
+        activeWorkers: stats?.activeWorkers ?? 0,
+        maxWorkers: stats?.maxWorkers ?? 8,
+        queueLength: stats?.queueLength ?? 0,
+        estimatedWaitTimeMs: (stats?.queueLength ?? 0) * 1500,
         cacheHitRate:
           totalCompiles > 0
-            ? parseFloat((cacheHits / totalCompiles).toFixed(2))
+            ? parseFloat(((cacheHits / totalCompiles) * 100).toFixed(2))
             : 0.0,
         totalCompiles,
         cacheHits,
-        slowCompiles: snapshot?.stats?.slowCompiles ?? 0,
+        slowCompiles: stats?.slowCompiles ?? 0,
         memoryPeakBytes: 130023424,
         cacheBytes: 12582912,
-        artifactsCount: snapshot?.history?.length ?? 0,
+        artifactsCount: snapshot?.history?.length ?? snapshot?.artifacts?.length ?? 0,
       };
 
       await setCached(cacheKey, {}, result, 10_000);
@@ -222,6 +223,23 @@ export const resolvers = {
       return paginate(items, first, after);
     },
 
+    deployments: async (_parent, _args, context) => {
+      let history = [];
+      try {
+        history = getDeploymentState()?.history ?? [];
+      } catch {
+        history = [];
+      }
+      return history.map((item) => ({
+        deploymentId: item.deploymentId,
+        status: item.status,
+        contracts: (item.contracts || []).map((c) => ({
+          id: c.id || c.contractId,
+          wasmPath: c.wasmPath,
+        })),
+      }));
+    },
+
     invokeLog: async (_parent, { contractId, first = 20, after }, context) => {
       requireRole(context, 'admin');
       // Placeholder — real impl would query invoke log file filtered by contractId
@@ -232,11 +250,6 @@ export const resolvers = {
     // Top-level list resolvers issue one SQL query each. Per-parent relations
     // (Project.files, File.project, etc.) are resolved via context.loaders so
     // an N-parent fan-out collapses to one batched SQL query per relation.
-    projects: async (_parent, _args, _context) => listProjects(),
-
-    project: async (_parent, { id }, context) =>
-      context.loaders.project.load(id),
-
     files: async (_parent, _args, _context) => listFiles(),
 
     templates: async (_parent, _args, _context) => listTemplates(),
@@ -247,6 +260,14 @@ export const resolvers = {
 
   // ── Type-level field resolvers (relations routed through DataLoaders) ────────
   Project: {
+    creatorId: (parent) => parent.creatorId !== undefined ? parent.creatorId : parent.creator_id,
+    creatorName: (parent) => parent.creatorName !== undefined ? parent.creatorName : parent.creator_name,
+    fundingGoal: (parent) => parent.fundingGoal !== undefined ? parent.fundingGoal : parent.funding_goal,
+    currentFunding: (parent) => parent.currentFunding !== undefined ? parent.currentFunding : parent.current_funding,
+    completionRate: (parent) => parent.completionRate !== undefined ? parent.completionRate : parent.completion_rate,
+    creator_id: (parent) => parent.creator_id !== undefined ? parent.creator_id : parent.creatorId,
+    creator_name: (parent) => parent.creator_name !== undefined ? parent.creator_name : parent.creatorName,
+    funding_goal: (parent) => parent.funding_goal !== undefined ? parent.funding_goal : parent.fundingGoal,
     files: (parent, _args, context) =>
       context.loaders.filesByProject.load(parent.id),
   },
@@ -273,6 +294,15 @@ export const resolvers = {
     artifact: (parent, _args, context) => {
       if (!parent.hash) return null;
       return context.loaders.compileArtifact.load(parent.hash);
+    },
+  },
+
+  DeployedContractDetail: {
+    artifact: async (parent, _args, context) => {
+      if (!parent.wasmPath) return null;
+      const snapshot = await getCompileSnapshot();
+      const artifacts = snapshot?.artifacts ?? [];
+      return artifacts.find((a) => a.path === parent.wasmPath) ?? null;
     },
   },
 

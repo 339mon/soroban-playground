@@ -21,6 +21,7 @@ jest.mock('../src/services/syntheticAssetsService.js', () => ({
     getMaxMintable: jest.fn(),
     getTradingPnL: jest.fn(),
     getRegisteredAssets: jest.fn(),
+    monitorLiquidations: jest.fn(),
   },
 }));
 
@@ -191,7 +192,7 @@ describe('Synthetic Assets End-to-End Flow', () => {
   describe('Protocol Parameters Management Flow', () => {
     it('executes get params → update params → verify changes flow', async () => {
       // Get current parameters
-      syntheticAssetsService.getProtocolParams.mockResolvedValue({
+      syntheticAssetsService.getProtocolParams.mockResolvedValueOnce({
         minCollateralRatio: 1500000, // 150%
         liquidationThreshold: 1100000, // 110%
         liquidationBonus: 50000, // 5%
@@ -205,7 +206,7 @@ describe('Synthetic Assets End-to-End Flow', () => {
       });
 
       // Verify updated parameters
-      syntheticAssetsService.getProtocolParams.mockResolvedValue({
+      syntheticAssetsService.getProtocolParams.mockResolvedValueOnce({
         minCollateralRatio: 1600000, // 160%
         liquidationThreshold: 1150000, // 115%
         liquidationBonus: 60000, // 6%
@@ -441,6 +442,17 @@ describe('Synthetic Assets Performance Testing', () => {
       // Make some positions liquidatable for testing
       const isLiquidatable = parseInt(id.slice(-1)) % 3 === 0;
       return Promise.resolve(isLiquidatable);
+    });
+
+    // Mock monitorLiquidations to mimic the real behavior for testing
+    syntheticAssetsService.monitorLiquidations.mockImplementation(async () => {
+      const positions = await databaseService.query(
+        'SELECT position_id FROM positions WHERE status = $1 AND type = $2',
+        ['OPEN', 'COLLATERAL']
+      );
+      for (const position of positions.rows) {
+        await syntheticAssetsService.isLiquidatable(position.position_id);
+      }
     });
 
     // Test monitoring with many positions

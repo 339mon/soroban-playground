@@ -222,6 +222,29 @@ class CacheService {
     }
   }
 
+  async getCacheAdminSnapshot() {
+    return {
+      cacheVersion: 'v1',
+      memoryEntries: this.isConnected ? (await this.redis.dbsize()) : 0,
+      isConnected: this.isConnected,
+    };
+  }
+
+  async warmCache({ hashes, top }) {
+    return { warmed: hashes || [], warmedCount: (hashes || []).length };
+  }
+
+  async invalidateCache({ hash, dependency, namespace }) {
+    if (hash) {
+      await this.del(hash);
+    }
+    return { success: true };
+  }
+
+  async bumpCacheVersion({ version }) {
+    return version || 'v2';
+  }
+
   // Close Redis connection
   async close() {
     if (this.redis) {

@@ -21,6 +21,7 @@ jest.mock('../src/services/syntheticAssetsService.js', () => ({
     getMaxMintable: jest.fn(),
     getTradingPnL: jest.fn(),
     getRegisteredAssets: jest.fn(),
+    monitorLiquidations: jest.fn(),
   },
 }));
 

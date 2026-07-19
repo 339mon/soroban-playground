@@ -6,9 +6,10 @@ import oracleProofQueueService from '../services/oracleProofQueueService.js';
 import apiKeyService from '../services/apiKeyService.js';
 import { requireTenantContext } from '../middleware/tenantContext.js';
 import { seedDatabase } from '../../scripts/seed.js';
+import cacheService from '../services/cacheService.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 const router = express.Router();
 
@@ -236,13 +237,53 @@ router.post('/reset-database', async (req, res) => {
     const { users = 50, projects = 200, files = 500 } = req.body;
     const dbPath =
       process.env.MIGRATION_DB_PATH ||
-      path.join(__dirname, '../../data/soroban_playground.sqlite');
+      path.join(_dirname, '../../data/soroban_playground.sqlite');
 
     await seedDatabase({ dbPath, users, projects, files });
     res.json({
       success: true,
       message: 'Database reset and seeded successfully',
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Cache admin endpoints
+router.get('/cache', async (req, res) => {
+  try {
+    const snapshot = await cacheService.getCacheAdminSnapshot();
+    res.json({ success: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/cache/warm', async (req, res) => {
+  try {
+    const { hashes, top } = req.body;
+    const result = await cacheService.warmCache({ hashes, top });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/cache/invalidate', async (req, res) => {
+  try {
+    const { hash, dependency, namespace } = req.body;
+    const result = await cacheService.invalidateCache({ hash, dependency, namespace });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/cache/version/bump', async (req, res) => {
+  try {
+    const { version } = req.body;
+    const newVersion = await cacheService.bumpCacheVersion({ version });
+    res.json({ success: true, version: newVersion });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

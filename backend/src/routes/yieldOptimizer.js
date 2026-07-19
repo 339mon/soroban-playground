@@ -88,7 +88,7 @@ router.post(
     if (!validateAddress(admin))
       return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(contractId, 'pause', { admin }, network);
-    return res.json({ success: true, output: result.parsed });
+    return res.json({ success: true, message: 'Contract paused successfully', output: result.parsed });
   })
 );
 
@@ -104,7 +104,7 @@ router.post(
     if (!validateAddress(admin))
       return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(contractId, 'unpause', { admin }, network);
-    return res.json({ success: true, output: result.parsed });
+    return res.json({ success: true, message: 'Contract unpaused successfully', output: result.parsed });
   })
 );
 
@@ -422,6 +422,189 @@ router.get(
       paused: paused.parsed,
       strategyCount: count.parsed,
     });
+  })
+);
+
+// ── Vault & Protocol Aliases (for Unit Tests compatibility) ──────────────────
+
+router.post(
+  '/protocols',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, admin, name, baseApyBps, network } = req.body || {};
+    const errs = requireFields(req.body, ['contractId', 'admin', 'name', 'baseApyBps']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    if (typeof baseApyBps !== 'number' || baseApyBps < 0 || baseApyBps > 50000) {
+      return next(createHttpError(400, 'baseApyBps must be 0-50000'));
+    }
+    const result = await invoke(
+      contractId,
+      'add_protocol',
+      { admin, name, base_apy_bps: baseApyBps },
+      network
+    );
+    return res.status(201).json({ success: true, protocolId: result.parsed });
+  })
+);
+
+router.patch(
+  '/protocols/:id/apy',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, admin, newApyBps, network } = req.body || {};
+    const protocolId = Number(req.params.id);
+    if (!Number.isInteger(protocolId) || protocolId < 1) return next(createHttpError(400, 'Invalid protocol id'));
+    const errs = requireFields(req.body, ['contractId', 'admin', 'newApyBps']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    if (typeof newApyBps !== 'number' || newApyBps < 0 || newApyBps > 50000) {
+      return next(createHttpError(400, 'newApyBps must be 0-50000'));
+    }
+    const result = await invoke(
+      contractId,
+      'update_protocol_apy',
+      { admin, protocol_id: protocolId, new_apy_bps: newApyBps },
+      network
+    );
+    return res.json({ success: true, output: result.parsed });
+  })
+);
+
+router.post(
+  '/vaults',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, admin, name, protocolId, network } = req.body || {};
+    const errs = requireFields(req.body, ['contractId', 'admin', 'name', 'protocolId']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    const result = await invoke(
+      contractId,
+      'add_vault',
+      { admin, name, protocol_id: protocolId },
+      network
+    );
+    return res.status(201).json({ success: true, vaultId: result.parsed });
+  })
+);
+
+router.get(
+  '/vaults',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const contractId = getContractId(req);
+    const { network } = req.query;
+    const result = await invoke(contractId, 'vault_count', {}, network);
+    return res.json({ success: true, vaultCount: result.parsed });
+  })
+);
+
+router.post(
+  '/vaults/:id/deposit',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, user, amount, network } = req.body || {};
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    const errs = requireFields(req.body, ['contractId', 'user', 'amount']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
+    if (typeof amount !== 'number' || amount <= 0) return next(createHttpError(400, 'amount must be > 0'));
+    const result = await invoke(
+      contractId,
+      'deposit',
+      { user, vault_id: id, amount },
+      network
+    );
+    return res.json({ success: true, compoundedBalance: result.parsed });
+  })
+);
+
+router.post(
+  '/vaults/:id/withdraw',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, user, amount, network } = req.body || {};
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    const errs = requireFields(req.body, ['contractId', 'user', 'amount']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
+    if (typeof amount !== 'number' || amount <= 0) return next(createHttpError(400, 'amount must be > 0'));
+    const result = await invoke(
+      contractId,
+      'withdraw',
+      { user, vault_id: id, amount },
+      network
+    );
+    return res.json({ success: true, withdrawn: result.parsed });
+  })
+);
+
+router.post(
+  '/vaults/:id/compound',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, network } = req.body || {};
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    const errs = requireFields(req.body, ['contractId']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    const result = await invoke(
+      contractId,
+      'compound',
+      { vault_id: id },
+      network
+    );
+    return res.json({ success: true, rewardsCompounded: result.parsed });
+  })
+);
+
+router.get(
+  '/vaults/:id/estimated/:user',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const contractId = getContractId(req);
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    const { user } = req.params;
+    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
+    const { network } = req.query;
+    const result = await invoke(
+      contractId,
+      'estimated_balance',
+      { user, vault_id: id },
+      network
+    );
+    return res.json({ success: true, estimatedBalance: result.parsed });
+  })
+);
+
+router.post(
+  '/vaults/:id/backtest',
+  rateLimitMiddleware('invoke'),
+  asyncHandler(async (req, res, next) => {
+    const { contractId, admin, network } = req.body || {};
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    const errs = requireFields(req.body, ['contractId', 'admin']);
+    if (errs) return next(createHttpError(400, 'Validation failed', errs));
+    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    const result = await invoke(
+      contractId,
+      'backtest',
+      { admin, vault_id: id },
+      network
+    );
+    return res.status(201).json({ success: true, backtestId: result.parsed });
   })
 );
 

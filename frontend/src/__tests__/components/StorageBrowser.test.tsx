@@ -16,7 +16,7 @@ describe("detectType", () => {
     [{ a: 1 }, "json"],
     [["x"], "json"],
     ["0x1a2b3c4d5e6f", "hex"],
-    ["GABC1234567890XYZTESTACCOUNTADDRESSFULL1234567890AB", "address"],
+    ["GABC1234567890XYZTESTACCOUNTADDRESSFULL1234567890ABCDE12", "address"],
     ["aGVsbG8gd29ybGQ=", "base64"],
     ["99", "integer"],
     ["1.5", "decimal"],

@@ -18,7 +18,7 @@ const { default: compileRouter } = require('../src/routes/v1/compile.js');
 const { errorHandler } = require('../src/middleware/errorHandler.js');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use('/api/compile', compileRouter);
 app.use(errorHandler);
 
@@ -29,6 +29,7 @@ describe('POST /api/compile batch', () => {
 
   it('returns cached compile results quickly', async () => {
     compileQueued.mockResolvedValue({
+      success: true,
       cached: true,
       hash: 'abc',
       durationMs: 0,

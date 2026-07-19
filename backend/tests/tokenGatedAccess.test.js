@@ -8,10 +8,10 @@
 
 import express from 'express';
 import request from 'supertest';
-import tokenGatedRoute from '../../src/routes/tokenGatedAccess.js';
+import tokenGatedRoute from '../src/routes/tokenGatedAccess.js';
 
 // Stub rateLimitMiddleware so tests don't need Redis
-jest.mock('../../src/middleware/rateLimiter.js', () => ({
+jest.mock('../src/middleware/rateLimiter.js', () => ({
   rateLimitMiddleware: () => (_req, _res, next) => next(),
 }));
 

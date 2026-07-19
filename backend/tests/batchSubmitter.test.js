@@ -172,18 +172,19 @@ describe('BatchSubmitter', () => {
     const s = makeSubmitter(submit, { maxBatchSize: 2 });
     const events = [];
     s.on('batch:submitted', (e) => events.push(e));
-    await s.submit({
+    const p1 = s.submit({
       id: 't1',
       sourceAccount: 'GABC',
       buildEnvelope: (seq) => ({ seq }),
     });
-    await s.submit({
+    const p2 = s.submit({
       id: 't2',
       sourceAccount: 'GABC',
       buildEnvelope: (seq) => ({ seq }),
     });
-    // maxBatchSize reached, flush triggered automatically
-    await new Promise((r) => setTimeout(r, 50));
+    await Promise.all([p1, p2]);
+    // Yield to let the rest of #flush() run and emit the event
+    await new Promise((r) => setImmediate(r));
     expect(events.length).toBeGreaterThan(0);
     expect(events[0]).toHaveProperty('batchId');
     expect(events[0].count).toBe(2);

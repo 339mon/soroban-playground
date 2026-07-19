@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 
-import notaryRoute from '../../src/routes/notary.js';
-import { errorHandler } from '../../src/middleware/errorHandler.js';
-import { resetNotaryServiceForTests } from '../../src/services/notaryService.js';
+import notaryRoute from '../src/routes/notary.js';
+import { errorHandler } from '../src/middleware/errorHandler.js';
+import { resetNotaryServiceForTests } from '../src/services/notaryService.js';
 
 const app = express();
 app.use(express.json());
@@ -40,7 +40,7 @@ describe('File Storage Service (Notary)', () => {
   });
 
   it('returns 404 for unknown file hash in verify endpoint', async () => {
-    const res = await request(app).get('/api/notary/verify/invalidhash');
+    const res = await request(app).get('/api/notary/verify/' + 'b'.repeat(64));
     expect(res.status).toBe(404);
   });
 
@@ -51,7 +51,7 @@ describe('File Storage Service (Notary)', () => {
 
   it('returns 404 for unknown file hash in revoke endpoint', async () => {
     const res = await request(app)
-      .delete('/api/notary/revoke/invalidhash')
+      .delete('/api/notary/revoke/' + 'b'.repeat(64))
       .send({ callerAddress: 'GABC123...' });
     expect(res.status).toBe(404);
   });

@@ -57,8 +57,8 @@ import { getDatabase } from '../database/connection.js';
 import logger from '../utils/logger.js';
 import { alertManager } from '../utils/alerting.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 const AES_ALGORITHM = 'aes-256-cbc';
 const AES_KEY_LENGTH = 32;

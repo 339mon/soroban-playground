@@ -94,6 +94,7 @@ export default function CompileDashboard() {
   const { loading, error, data, refetch } = useQuery<CompileDashboardData>(GET_COMPILE_DASHBOARD, {
     pollInterval: 5000,
   });
+  const compileStore = useCompileStore();
 
   if (loading && !data) {
     return (
@@ -126,7 +127,6 @@ export default function CompileDashboard() {
 
   const stats = data?.compileStats;
   const history: HistoryItem[] = data?.compileHistory || [];
-  const compileStore = useCompileStore();
 
   const formatBytes = (bytes: number) => {
     if (!bytes) return '0 B';

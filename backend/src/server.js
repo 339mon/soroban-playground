@@ -72,14 +72,14 @@ import {
   startWebhookDispatcher,
   stopWebhookDispatcher,
 } from './services/webhookDispatcher.js';
-import { webhooksRoute } from './routes/webhooks.js';
+import webhooksRoute from './routes/webhooks.js';
 import corsAdminRoute from './routes/corsAdmin.js';
 import serviceRegistryRoute from './routes/serviceRegistry.js';
 import batchSubmitterRoute from './routes/batchSubmitter.js';
 import { setupSwagger } from './docs/swagger.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 const app = express();
 let httpServer = http.createServer(app);
@@ -115,11 +115,11 @@ try {
     httpsOptions.cert = fs.readFileSync(process.env.SSL_CERT_PATH);
     hasCertificates = true;
   } else if (
-    fs.existsSync(path.join(__dirname, 'cert.pem')) &&
-    fs.existsSync(path.join(__dirname, 'key.pem'))
+    fs.existsSync(path.join(_dirname, 'cert.pem')) &&
+    fs.existsSync(path.join(_dirname, 'key.pem'))
   ) {
-    httpsOptions.key = fs.readFileSync(path.join(__dirname, 'key.pem'));
-    httpsOptions.cert = fs.readFileSync(path.join(__dirname, 'cert.pem'));
+    httpsOptions.key = fs.readFileSync(path.join(_dirname, 'key.pem'));
+    httpsOptions.cert = fs.readFileSync(path.join(_dirname, 'cert.pem'));
     hasCertificates = true;
   }
 } catch (err) {
@@ -217,9 +217,7 @@ app.get('/', (_req, res) => {
 app.use('/health', healthRouter);
 app.get('/api/health', healthHandler);
 
-app.get('/health/live', handleLivenessCheck);
-app.get('/health', handleDeepHealthCheck);
-app.get('/api/health', handleDeepHealthCheck);
+
 
 // Error handlers (must be after routes)
 app.use(notFoundHandler);
@@ -277,12 +275,14 @@ initializeDatabase()
     }
 
     // Start listening
-    server.listen(PORT, () => {
-      const protocol = hasCertificates ? 'https' : 'http';
-      console.log(
-        `✅  Backend server running on ${protocol}://localhost:${PORT}`
-      );
-    });
+    if (process.env.NODE_ENV !== 'test') {
+      server.listen(PORT, () => {
+        const protocol = hasCertificates ? 'https' : 'http';
+        console.log(
+          `✅  Backend server running on ${protocol}://localhost:${PORT}`
+        );
+      });
+    }
   })
   .catch((err) => {
     console.error('CRITICAL: Database initialization failed:', err);

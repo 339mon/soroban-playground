@@ -1,12 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import VerifyForm from '../../components/notary/VerifyForm';
 
-global.fetch = jest.fn();
-global.crypto = {
-  subtle: {
-    digest: jest.fn(),
-  },
-};
 
 const VALID_HASH = 'a'.repeat(64);
 

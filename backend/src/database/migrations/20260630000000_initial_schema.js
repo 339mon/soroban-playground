@@ -2,11 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 export async function up(knex) {
-  const schemaPath = path.join(__dirname, '..', 'schema.sql');
+  const schemaPath = path.join(_dirname, '..', 'schema.sql');
   let schema = fs.readFileSync(schemaPath, 'utf8');
 
   if (process.env.SEED_SAMPLE_DATA === 'false') {

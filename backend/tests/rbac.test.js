@@ -7,35 +7,39 @@ import { open } from 'sqlite';
 import fs from 'fs/promises';
 import path from 'path';
 
-let testDb = null;
+let mockDb = null;
 
 // Mock database connection to use SQLite in-memory database for tests
 jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
-    if (testDb) return testDb;
-    testDb = await open({
+    const sqlite3 = require('sqlite3');
+    const { open } = require('sqlite');
+    const fs = require('fs/promises');
+    const path = require('path');
+    if (mockDb) return mockDb;
+    mockDb = await open({
       filename: ':memory:',
       driver: sqlite3.Database,
     });
 
     const schemaPath = path.resolve(process.cwd(), 'src/database/schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
-    await testDb.exec(schema);
+    await mockDb.exec(schema);
 
-    return testDb;
+    return mockDb;
   },
   getDatabase: () => {
-    if (!testDb) {
+    if (!mockDb) {
       throw new Error(
         'Database not initialized. Call initializeDatabase() first.'
       );
     }
-    return testDb;
+    return mockDb;
   },
   closeDatabase: async () => {
-    if (testDb) {
-      await testDb.close();
-      testDb = null;
+    if (mockDb) {
+      await mockDb.close();
+      mockDb = null;
     }
   },
 }));
@@ -108,35 +112,35 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
 
   beforeEach(async () => {
     // Reset database state
-    await testDb.run('DELETE FROM projects');
-    await testDb.run('DELETE FROM users');
+    await mockDb.run('DELETE FROM projects');
+    await mockDb.run('DELETE FROM users');
 
     // Create seed users
     const hash = 'hashedpassword';
 
     // Admin user (id: 1)
-    await testDb.run(
+    await mockDb.run(
       'INSERT INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
       [1, 'admin_user', 'admin@example.com', hash, 'admin']
     );
     adminUser = { id: 1, role: 'admin', username: 'admin_user' };
 
     // Developer 1 (id: 2)
-    await testDb.run(
+    await mockDb.run(
       'INSERT INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
       [2, 'dev_user_1', 'dev1@example.com', hash, 'developer']
     );
     devUser1 = { id: 2, role: 'developer', username: 'dev_user_1' };
 
     // Developer 2 (id: 3)
-    await testDb.run(
+    await mockDb.run(
       'INSERT INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
       [3, 'dev_user_2', 'dev2@example.com', hash, 'developer']
     );
     devUser2 = { id: 3, role: 'developer', username: 'dev_user_2' };
 
     // Guest user (id: 4)
-    await testDb.run(
+    await mockDb.run(
       'INSERT INTO users (id, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
       [4, 'guest_user', 'guest@example.com', hash, 'guest']
     );
@@ -146,13 +150,13 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
   // ── 1. SCHEMA TESTS ────────────────────────────────────────────────────────
   describe('Database Schema Definitions', () => {
     it('creates roles, permissions, and role_permissions tables', async () => {
-      const rolesTable = await testDb.get(
+      const rolesTable = await mockDb.get(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='roles'"
       );
-      const permissionsTable = await testDb.get(
+      const permissionsTable = await mockDb.get(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='permissions'"
       );
-      const rolePermissionsTable = await testDb.get(
+      const rolePermissionsTable = await mockDb.get(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='role_permissions'"
       );
 
@@ -162,10 +166,10 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     });
 
     it('populates roles and permissions with default RBAC config', async () => {
-      const roles = await testDb.all('SELECT name FROM roles ORDER BY name');
+      const roles = await mockDb.all('SELECT name FROM roles ORDER BY name');
       expect(roles.map((r) => r.name)).toEqual(['admin', 'developer', 'guest']);
 
-      const permissions = await testDb.all(
+      const permissions = await mockDb.all(
         'SELECT name FROM permissions ORDER BY name'
       );
       expect(permissions.map((p) => p.name)).toContain('project:create');
@@ -247,7 +251,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
     beforeEach(async () => {
       // Seed two projects
       // Project 1 (creator: Dev 1, ID: 2)
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -263,7 +267,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       );
 
       // Project 2 (creator: Dev 2, ID: 3)
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -354,7 +358,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       expect(res.body.message).toMatch(/Forbidden/i);
 
       // Verify not updated in DB
-      const project = await testDb.get(
+      const project = await mockDb.get(
         'SELECT title FROM projects WHERE id = 20'
       );
       expect(project.title).toBe('Dev2 Project');
@@ -369,7 +373,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
       expect(res.body.message).toMatch(/Forbidden/i);
 
       // Verify not deleted in DB
-      const project = await testDb.get('SELECT * FROM projects WHERE id = 20');
+      const project = await mockDb.get('SELECT * FROM projects WHERE id = 20');
       expect(project).toBeTruthy();
     });
 
@@ -399,7 +403,7 @@ describe('Role-Based Access Control (RBAC) and Row-Level Security (RLS)', () => 
   describe('GraphQL Resolvers Security', () => {
     beforeEach(async () => {
       // Seed project belonging to Dev 2
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO projects (id, title, description, category, status, creator_id, creator_name, funding_goal)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [

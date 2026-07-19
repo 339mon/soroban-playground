@@ -6,9 +6,9 @@ import DatabaseService from './databaseService.js';
 import { getDatabase, saveDatabase } from './dbService.js';
 
 class MigrationService {
-  constructor(dbPath = null) {
+  constructor(dbPath = null, migrationsPath = null) {
     this.dbService = new DatabaseService(dbPath);
-    this.migrationsPath = path.join(process.cwd(), 'migrations');
+    this.migrationsPath = migrationsPath || path.join(process.cwd(), 'migrations');
     this.migrationTable = '_schema_migrations';
   }
 
@@ -271,14 +271,21 @@ class MigrationService {
     }
   }
 
-  async migrateUp(dryRun = false) {
+  async migrateUp(dryRun = false, limit = null) {
     const pendingMigrations = await this.getPendingMigrations();
     const results = [];
+    let count = 0;
 
     for (const migration of pendingMigrations) {
+      if (limit !== null && count >= limit) {
+        break;
+      }
       try {
         const result = await this.executeMigration(migration, dryRun);
         results.push(result);
+        if (result.success) {
+          count++;
+        }
 
         if (!dryRun && !result.success) {
           // Attempt rollback on failure

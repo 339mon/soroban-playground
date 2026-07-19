@@ -5,9 +5,9 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { seedDatabase } from '../scripts/seed.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const TEST_DB_PATH = path.join(__dirname, '../data/test_seed.sqlite');
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
+const TEST_DB_PATH = path.join(_dirname, '../data/test_seed.sqlite');
 
 describe('Automated Database Seeding', () => {
   let db;
@@ -21,7 +21,7 @@ describe('Automated Database Seeding', () => {
       driver: sqlite3.Database,
     });
 
-    const schemaPath = path.join(__dirname, '../src/database/schema.sql');
+    const schemaPath = path.join(_dirname, '../src/database/schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
     await db.exec(schema);
   });

@@ -68,7 +68,7 @@ describe('CallPanel', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/name/i), {
+    fireEvent.change(screen.getByLabelText(/^name$/), {
       target: { value: 'Ada' },
     });
     fireEvent.change(screen.getByLabelText(/amount/i), {

@@ -2,88 +2,59 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import TemplateSearchBar from "../../components/TemplateSearchBar";
 
 describe("TemplateSearchBar", () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it("renders input and result count", () => {
+  it("renders input with correct placeholder and value", () => {
     render(
-      <TemplateSearchBar value="" onChange={jest.fn()} resultCount={42} />
+      <TemplateSearchBar value="hello" onChange={jest.fn()} placeholder="Custom placeholder" />
     );
 
-    expect(
-      screen.getByLabelText("Search contract templates")
-    ).toBeInTheDocument();
-    expect(screen.getByText("42 templates found")).toBeInTheDocument();
+    const input = screen.getByLabelText("Search templates") as HTMLInputElement;
+    expect(input).toBeInTheDocument();
+    expect(input.value).toBe("hello");
+    expect(input.placeholder).toBe("Custom placeholder");
   });
 
-  it("uses singular 'template' when result count is 1", () => {
-    render(
-      <TemplateSearchBar value="" onChange={jest.fn()} resultCount={1} />
-    );
-
-    expect(screen.getByText("1 template found")).toBeInTheDocument();
-  });
-
-  it("debounces onChange by 200ms", () => {
+  it("calls onChange immediately on input change", () => {
     const onChange = jest.fn();
     render(
-      <TemplateSearchBar value="" onChange={onChange} resultCount={0} />
+      <TemplateSearchBar value="" onChange={onChange} />
     );
 
-    const input = screen.getByLabelText("Search contract templates");
-    fireEvent.change(input, { target: { value: "hello" } });
+    const input = screen.getByLabelText("Search templates");
+    fireEvent.change(input, { target: { value: "test query" } });
 
-    // onChange should not have been called yet (debounced)
-    expect(onChange).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(200);
-
-    expect(onChange).toHaveBeenCalledWith("hello");
+    expect(onChange).toHaveBeenCalledWith("test query");
   });
 
-  it("shows clear button when input is non-empty and clears on click", () => {
+  it("shows clear button when value is non-empty and calls onChange('') when clicked", () => {
     const onChange = jest.fn();
     render(
-      <TemplateSearchBar value="hello" onChange={onChange} resultCount={0} />
+      <TemplateSearchBar value="non-empty" onChange={onChange} />
     );
 
-    const clearButton = screen.getByLabelText("Clear search");
-    expect(clearButton).toBeInTheDocument();
+    const clearBtn = screen.getByLabelText("Clear search");
+    expect(clearBtn).toBeInTheDocument();
 
-    fireEvent.click(clearButton);
+    fireEvent.click(clearBtn);
     expect(onChange).toHaveBeenCalledWith("");
   });
 
-  it("does not show clear button when input is empty", () => {
+  it("does not show clear button when value is empty", () => {
     render(
-      <TemplateSearchBar value="" onChange={jest.fn()} resultCount={0} />
+      <TemplateSearchBar value="" onChange={jest.fn()} />
     );
 
     expect(screen.queryByLabelText("Clear search")).not.toBeInTheDocument();
   });
 
-  it("has aria-live polite region for result count", () => {
+  it("clears input when Escape key is pressed", () => {
+    const onChange = jest.fn();
     render(
-      <TemplateSearchBar value="" onChange={jest.fn()} resultCount={24} />
+      <TemplateSearchBar value="some query" onChange={onChange} />
     );
 
-    const liveRegion = screen.getByText("24 templates found");
-    expect(liveRegion).toHaveAttribute("aria-live", "polite");
-  });
+    const input = screen.getByLabelText("Search templates");
+    fireEvent.keyDown(input, { key: "Escape" });
 
-  it("has label associated via htmlFor", () => {
-    render(
-      <TemplateSearchBar value="" onChange={jest.fn()} resultCount={0} />
-    );
-
-    const input = screen.getByLabelText("Search contract templates");
-    const label = screen.getByText("Search templates");
-    expect(label).toHaveAttribute("for", "template-search");
-    expect(input).toHaveAttribute("id", "template-search");
+    expect(onChange).toHaveBeenCalledWith("");
   });
 });

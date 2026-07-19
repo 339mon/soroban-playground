@@ -120,8 +120,12 @@ export function recordHttpRequest(method, route, status) {
 
 export function updateSystemMetrics() {
   const usage = process.cpuUsage();
-  processCpuSecondsTotal.set((usage.user + usage.system) / 1e6);
-  processMemoryRssBytes.set(process.memoryUsage().rss);
+  if (processCpuSecondsTotal && typeof processCpuSecondsTotal.set === 'function') {
+    processCpuSecondsTotal.set((usage.user + usage.system) / 1e6);
+  }
+  if (processMemoryRssBytes && typeof processMemoryRssBytes.set === 'function') {
+    processMemoryRssBytes.set(process.memoryUsage().rss);
+  }
 }
 
 // Oracle Queue Metrics
@@ -168,21 +172,21 @@ register.registerMetric(eventSchemaBreakingChangesTotal);
 export const eventSchemaDetectionAlertsTotal = new client.Counter({
   name: 'event_schema_detection_alerts_total',
   help: 'Total number of schema detection alerts fired',
-  labelNames: ['severity'],
+  labelNames: ['event_type', 'severity'],
 });
 register.registerMetric(eventSchemaDetectionAlertsTotal);
 
 export const eventSchemaVersionEventsTotal = new client.Counter({
   name: 'event_schema_version_events_total',
   help: 'Total number of schema version events',
-  labelNames: ['event_type', 'version'],
+  labelNames: ['event_type', 'schema_version'],
 });
 register.registerMetric(eventSchemaVersionEventsTotal);
 
 export const eventValidationTotal = new client.Counter({
   name: 'event_validation_total',
   help: 'Total number of event validation attempts',
-  labelNames: ['status'],
+  labelNames: ['event_type', 'schema_version', 'outcome'],
 });
 register.registerMetric(eventValidationTotal);
 

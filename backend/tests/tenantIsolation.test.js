@@ -7,34 +7,38 @@ import { open } from 'sqlite';
 import fs from 'fs/promises';
 import path from 'path';
 
-let testDb = null;
+let mockDb = null;
 
 jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
-    if (testDb) return testDb;
-    testDb = await open({
+    const sqlite3 = require('sqlite3');
+    const { open } = require('sqlite');
+    const fs = require('fs/promises');
+    const path = require('path');
+    if (mockDb) return mockDb;
+    mockDb = await open({
       filename: ':memory:',
       driver: sqlite3.Database,
     });
 
     const schemaPath = path.resolve(process.cwd(), 'src/database/schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
-    await testDb.exec(schema);
+    await mockDb.exec(schema);
 
-    return testDb;
+    return mockDb;
   },
   getDatabase: () => {
-    if (!testDb) {
+    if (!mockDb) {
       throw new Error(
         'Database not initialized. Call initializeDatabase() first.'
       );
     }
-    return testDb;
+    return mockDb;
   },
   closeDatabase: async () => {
-    if (testDb) {
-      await testDb.close();
-      testDb = null;
+    if (mockDb) {
+      await mockDb.close();
+      mockDb = null;
     }
   },
 }));
@@ -70,14 +74,14 @@ describe('multi-tenant isolation', () => {
   });
 
   beforeEach(async () => {
-    await testDb.run('DELETE FROM webhook_deliveries');
-    await testDb.run('DELETE FROM webhook_subscriptions');
-    await testDb.run('DELETE FROM search_analytics');
-    await testDb.run('DELETE FROM popular_searches');
-    await testDb.run('DELETE FROM projects');
-    await testDb.run('DELETE FROM rate_limit_usage');
-    await testDb.run('DELETE FROM audit_log');
-    await testDb.run('DELETE FROM api_keys');
+    await mockDb.run('DELETE FROM webhook_deliveries');
+    await mockDb.run('DELETE FROM webhook_subscriptions');
+    await mockDb.run('DELETE FROM search_analytics');
+    await mockDb.run('DELETE FROM popular_searches');
+    await mockDb.run('DELETE FROM projects');
+    await mockDb.run('DELETE FROM rate_limit_usage');
+    await mockDb.run('DELETE FROM audit_log');
+    await mockDb.run('DELETE FROM api_keys');
 
     tenantAKey = await apiKeyService.generateKey({
       name: 'Tenant A',
@@ -151,7 +155,7 @@ describe('multi-tenant isolation', () => {
 
     expect(crossTenantDelete.status).toBe(404);
 
-    const row = await testDb.get(
+    const row = await mockDb.get(
       'SELECT id FROM webhook_subscriptions WHERE id = ? AND tenant_id = ?',
       [created.body.data.id, tenantAKey.tenantId]
     );
@@ -199,7 +203,7 @@ describe('multi-tenant isolation', () => {
   it('filters search results and search analytics by tenant_id', async () => {
     await searchService.initialize();
 
-    await testDb.run(
+    await mockDb.run(
       `INSERT INTO projects
        (tenant_id, title, description, category, status, creator_id, creator_name, funding_goal, tags)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -215,7 +219,7 @@ describe('multi-tenant isolation', () => {
         '["alpha"]',
       ]
     );
-    await testDb.run(
+    await mockDb.run(
       `INSERT INTO projects
        (tenant_id, title, description, category, status, creator_id, creator_name, funding_goal, tags)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -250,7 +254,7 @@ describe('multi-tenant isolation', () => {
     expect(resultsB.results).toHaveLength(1);
     expect(resultsB.results[0].creator_name).toBe('Tenant B');
 
-    const analyticsA = await testDb.get(
+    const analyticsA = await mockDb.get(
       'SELECT COUNT(*) as count FROM search_analytics WHERE tenant_id = ?',
       [tenantAKey.tenantId]
     );

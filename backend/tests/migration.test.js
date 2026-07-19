@@ -1,3 +1,6 @@
+process.env.USE_REAL_DB = 'true';
+
+import { jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import MigrationService from '../src/services/migrationService.js';
@@ -17,7 +20,7 @@ describe('MigrationService', () => {
       fs.mkdirSync(testMigrationsPath, { recursive: true });
     }
 
-    migrationService = new MigrationService(testDbPath);
+    migrationService = new MigrationService(testDbPath, testMigrationsPath);
     await migrationService.initialize();
   });
 
@@ -32,14 +35,21 @@ describe('MigrationService', () => {
     if (fs.existsSync(testMigrationsPath)) {
       fs.rmSync(testMigrationsPath, { recursive: true, force: true });
     }
+
+    process.env.USE_REAL_DB = 'false';
   });
 
   beforeEach(async () => {
-    // Clean database before each test
-    const dbService = new DatabaseService(testDbPath);
-    await dbService.connect();
-    await dbService.run('DELETE FROM _schema_migrations');
-    await dbService.close();
+    // Close existing connection
+    await migrationService.close();
+
+    // Delete database file if exists
+    if (fs.existsSync(testDbPath)) {
+      fs.unlinkSync(testDbPath);
+    }
+
+    // Re-initialize
+    await migrationService.initialize();
 
     // Clean migrations directory
     if (fs.existsSync(testMigrationsPath)) {
@@ -263,7 +273,7 @@ describe('MigrationService', () => {
       expect(status.pendingMigrations).toBe(2);
 
       // Apply one migration
-      await migrationService.migrateUp();
+      await migrationService.migrateUp(false, 1);
 
       // Check updated status
       status = await migrationService.getMigrationStatus();

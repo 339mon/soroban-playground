@@ -7,13 +7,17 @@ import { open } from 'sqlite';
 import fs from 'fs/promises';
 import path from 'path';
 
-let testDb = null;
+let mockDb = null;
 
 // Mock the SQLite connection to use a clean in-memory database during tests
 jest.mock('../src/database/connection.js', () => ({
   initializeDatabase: async () => {
-    if (testDb) return testDb;
-    testDb = await open({
+    const sqlite3 = require('sqlite3');
+    const { open } = require('sqlite');
+    const fs = require('fs/promises');
+    const path = require('path');
+    if (mockDb) return mockDb;
+    mockDb = await open({
       filename: ':memory:',
       driver: sqlite3.Database,
     });
@@ -21,27 +25,27 @@ jest.mock('../src/database/connection.js', () => ({
     // Read and execute database schema on the in-memory instance
     const schemaPath = path.resolve(process.cwd(), 'src/database/schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
-    await testDb.exec(schema);
+    await mockDb.exec(schema);
 
     // FIX: Inject the unique constraint index needed for ON CONFLICT in trackUsage()
-    await testDb.exec(
+    await mockDb.exec(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_rate_limit_usage_unique_test ON rate_limit_usage(api_key_id, endpoint, window_start, window_end);'
     );
 
-    return testDb;
+    return mockDb;
   },
   getDatabase: () => {
-    if (!testDb) {
+    if (!mockDb) {
       throw new Error(
         'Database not initialized. Call initializeDatabase() first.'
       );
     }
-    return testDb;
+    return mockDb;
   },
   closeDatabase: async () => {
-    if (testDb) {
-      await testDb.close();
-      testDb = null;
+    if (mockDb) {
+      await mockDb.close();
+      mockDb = null;
     }
   },
 }));
@@ -64,13 +68,13 @@ describe('ApiKeyService (Auth Service)', () => {
 
   beforeEach(async () => {
     // Reset test database tables to ensure clean, isolated test runs
-    await testDb.run('DELETE FROM rate_limit_usage');
-    await testDb.run('DELETE FROM audit_log');
-    await testDb.run('DELETE FROM api_keys');
+    await mockDb.run('DELETE FROM rate_limit_usage');
+    await mockDb.run('DELETE FROM audit_log');
+    await mockDb.run('DELETE FROM api_keys');
 
     // Re-populate default tier limits
-    await testDb.run('DELETE FROM tier_limits');
-    await testDb.run(`
+    await mockDb.run('DELETE FROM tier_limits');
+    await mockDb.run(`
       INSERT INTO tier_limits (tier, requests_per_minute, requests_per_hour, requests_per_day, burst_limit)
       VALUES
         ('free', 10, 100, 1000, 20),
@@ -105,7 +109,7 @@ describe('ApiKeyService (Auth Service)', () => {
       expect(keyData).toHaveProperty('createdAt');
 
       // Verify database record
-      const dbRow = await testDb.get('SELECT * FROM api_keys WHERE id = ?', [
+      const dbRow = await mockDb.get('SELECT * FROM api_keys WHERE id = ?', [
         keyData.id,
       ]);
       expect(dbRow).toBeTruthy();
@@ -117,7 +121,7 @@ describe('ApiKeyService (Auth Service)', () => {
       expect(dbRow.status).toBe('active');
 
       // Verify audit log entry
-      const auditRow = await testDb.get(
+      const auditRow = await mockDb.get(
         'SELECT * FROM audit_log WHERE api_key_id = ? AND action = ?',
         [keyData.id, 'key_generated']
       );
@@ -137,7 +141,7 @@ describe('ApiKeyService (Auth Service)', () => {
 
       expect(keyData.tier).toBe('free');
 
-      const dbRow = await testDb.get('SELECT * FROM api_keys WHERE id = ?', [
+      const dbRow = await mockDb.get('SELECT * FROM api_keys WHERE id = ?', [
         keyData.id,
       ]);
       expect(dbRow.tier).toBe('free');
@@ -181,7 +185,7 @@ describe('ApiKeyService (Auth Service)', () => {
       expect(validation1.usageCount).toBe(1);
 
       // Check database update
-      let dbRow = await testDb.get(
+      let dbRow = await mockDb.get(
         'SELECT usage_count, last_used_at FROM api_keys WHERE id = ?',
         [keyData.id]
       );
@@ -192,7 +196,7 @@ describe('ApiKeyService (Auth Service)', () => {
       const validation2 = await apiKeyService.validateKey(keyData.key);
       expect(validation2.usageCount).toBe(2);
 
-      dbRow = await testDb.get(
+      dbRow = await mockDb.get(
         'SELECT usage_count FROM api_keys WHERE id = ?',
         [keyData.id]
       );
@@ -213,14 +217,14 @@ describe('ApiKeyService (Auth Service)', () => {
       expect(validation).toBeNull();
 
       // Verify status has updated to 'expired'
-      const dbRow = await testDb.get(
+      const dbRow = await mockDb.get(
         'SELECT status FROM api_keys WHERE id = ?',
         [keyData.id]
       );
       expect(dbRow.status).toBe('expired');
 
       // Verify revocation was logged to audit
-      const auditRow = await testDb.get(
+      const auditRow = await mockDb.get(
         'SELECT * FROM audit_log WHERE api_key_id = ? AND action = ?',
         [keyData.id, 'key_revoked']
       );
@@ -272,7 +276,7 @@ describe('ApiKeyService (Auth Service)', () => {
         userId: 1,
       });
       // Adjust created_at to ensure distinct ordering
-      await testDb.run(
+      await mockDb.run(
         "UPDATE api_keys SET created_at = datetime('now', '-2 seconds') WHERE id = ?",
         [key1.id]
       );
@@ -315,7 +319,7 @@ describe('ApiKeyService (Auth Service)', () => {
         name: 'Key 1',
         userId: 2,
       });
-      await testDb.run(
+      await mockDb.run(
         "UPDATE api_keys SET created_at = datetime('now', '-3 seconds') WHERE id = ?",
         [key1.id]
       );
@@ -324,7 +328,7 @@ describe('ApiKeyService (Auth Service)', () => {
         name: 'Key 2',
         userId: 2,
       });
-      await testDb.run(
+      await mockDb.run(
         "UPDATE api_keys SET created_at = datetime('now', '-2 seconds') WHERE id = ?",
         [key2.id]
       );
@@ -359,7 +363,7 @@ describe('ApiKeyService (Auth Service)', () => {
       await apiKeyService.revokeKey(keyData.id, 'expired');
 
       // Check status updated
-      const dbRow = await testDb.get(
+      const dbRow = await mockDb.get(
         'SELECT status, updated_at FROM api_keys WHERE id = ?',
         [keyData.id]
       );
@@ -367,7 +371,7 @@ describe('ApiKeyService (Auth Service)', () => {
       expect(dbRow.updated_at).not.toBeNull();
 
       // Check audit log
-      const auditRow = await testDb.get(
+      const auditRow = await mockDb.get(
         'SELECT * FROM audit_log WHERE api_key_id = ? AND action = ?',
         [keyData.id, 'key_revoked']
       );
@@ -383,7 +387,7 @@ describe('ApiKeyService (Auth Service)', () => {
 
       await apiKeyService.revokeKey(keyData.id);
 
-      const dbRow = await testDb.get(
+      const dbRow = await mockDb.get(
         'SELECT status FROM api_keys WHERE id = ?',
         [keyData.id]
       );
@@ -420,7 +424,7 @@ describe('ApiKeyService (Auth Service)', () => {
         // First call (creates entry with request_count = 1)
         await apiKeyService.trackUsage(keyData.id, '/api/compile', 'free');
 
-        const usageRow = await testDb.get(
+        const usageRow = await mockDb.get(
           'SELECT * FROM rate_limit_usage WHERE api_key_id = ?',
           [keyData.id]
         );
@@ -432,7 +436,7 @@ describe('ApiKeyService (Auth Service)', () => {
         // Second call (hits ON CONFLICT unique index trigger and increments request_count to 2)
         await apiKeyService.trackUsage(keyData.id, '/api/compile', 'free');
 
-        const usageRowUpdated = await testDb.get(
+        const usageRowUpdated = await mockDb.get(
           'SELECT request_count FROM rate_limit_usage WHERE api_key_id = ?',
           [keyData.id]
         );
@@ -453,7 +457,7 @@ describe('ApiKeyService (Auth Service)', () => {
         metadata: { requestIp: '127.0.0.1', isSuccessful: true },
       });
 
-      const auditRow = await testDb.get(
+      const auditRow = await mockDb.get(
         'SELECT * FROM audit_log WHERE user_id = 200'
       );
       expect(auditRow).toBeTruthy();
@@ -476,19 +480,19 @@ describe('ApiKeyService (Auth Service)', () => {
 
       // Insert mock usage
       const now = new Date().toISOString();
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO rate_limit_usage (api_key_id, endpoint, request_count, window_start, window_end, tier)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [keyData.id, '/api/compile', 25, now, now, 'free']
       );
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO rate_limit_usage (api_key_id, endpoint, request_count, window_start, window_end, tier)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [keyData.id, '/api/deploy', 10, now, now, 'free']
       );
 
       // Insert mock violation
-      await testDb.run(
+      await mockDb.run(
         `INSERT INTO audit_log (api_key_id, user_id, action, metadata)
          VALUES (?, ?, ?, ?)`,
         [

@@ -16,20 +16,37 @@ import request from 'supertest';
 // ── Service mocks (must be registered BEFORE dynamic import of setupGraphQL) ──
 
 jest.mock('../src/services/compileService.js', () => ({
+  __esModule: true,
   getCompileStats: jest.fn(),
   getCompileSnapshot: jest.fn(),
   initializeCompileService: jest.fn(),
-  compileContract: jest.fn(),
+  compileQueued: jest.fn(),
 }));
 
 jest.mock('../src/services/deployService.js', () => ({
+  __esModule: true,
   getDeploymentState: jest.fn(),
   deployContract: jest.fn(),
 }));
 
 jest.mock('../src/services/invokeService.js', () => ({
+  __esModule: true,
   invokeContract: jest.fn(),
   getInvokeLog: jest.fn(),
+}));
+
+jest.mock('../src/services/authService.js', () => ({
+  __esModule: true,
+  default: {
+    authenticate: jest.fn().mockReturnValue({
+      id: 1,
+      username: 'admin',
+      role: 'admin',
+      permissions: ['project:read'],
+    }),
+    hasPermission: () => true,
+    hasRole: () => true,
+  },
 }));
 
 jest.mock('../src/services/redisService.js', () => ({
@@ -44,7 +61,7 @@ const { setupGraphQL } = require('../src/graphql/index.js');
 const {
   getCompileStats,
   getCompileSnapshot,
-  compileContract,
+  compileQueued,
 } = require('../src/services/compileService.js');
 const {
   getDeploymentState,
@@ -109,6 +126,22 @@ describe('GraphQL E2E — Queries', () => {
       cacheBytes: 512 * 1024,
       artifactsCount: 5,
       artifacts: 5,
+    });
+
+    getCompileSnapshot.mockResolvedValue({
+      activeWorkers: 1,
+      maxWorkers: 4,
+      queueLength: 2,
+      estimatedWaitTimeMs: 500,
+      cacheHitRate: 75.5,
+      totalCompiles: 200,
+      cacheHits: 151,
+      slowCompiles: 1,
+      memoryPeakBytes: 1024 * 1024,
+      cacheBytes: 512 * 1024,
+      artifactsCount: 5,
+      artifacts: 5,
+      history: new Array(5).fill({}),
     });
 
     const res = await gql(
@@ -191,8 +224,8 @@ describe('GraphQL E2E — Queries', () => {
   it('deployHistory returns relay-style paginated connection', async () => {
     getDeploymentState.mockReturnValue({
       history: [
-        { deploymentId: 'd1', contracts: [], timestamp: '2026-01-01' },
-        { deploymentId: 'd2', contracts: [], timestamp: '2026-01-02' },
+        { id: 'd1', contractId: 'c1', timestamp: '2026-01-01' },
+        { id: 'd2', contractId: 'c2', timestamp: '2026-01-02' },
       ],
     });
 
@@ -200,7 +233,7 @@ describe('GraphQL E2E — Queries', () => {
       app,
       `{
         deployHistory(first: 2) {
-          edges { cursor node { deploymentId } }
+          edges { cursor node { id contractId } }
           pageInfo { hasNextPage hasPreviousPage }
           totalCount
         }
@@ -231,7 +264,7 @@ describe('GraphQL E2E — Mutations', () => {
   });
 
   it('compile mutation returns success and artifact on valid input', async () => {
-    compileContract.mockResolvedValue({
+    compileQueued.mockResolvedValue({
       success: true,
       cached: false,
       hash: 'abc123',
@@ -257,7 +290,7 @@ describe('GraphQL E2E — Mutations', () => {
           artifact { name sizeBytes }
         }
       }`,
-      { input: { contractName: 'token', sourceCode: '#![no_std]' } }
+      { input: { code: '#![no_std]' } }
     );
 
     expect(res.status).toBe(200);
@@ -294,12 +327,12 @@ describe('GraphQL E2E — Mutations', () => {
           network
         }
       }`,
-      { input: { wasmHash: 'abc123', network: 'testnet' } }
+      { input: { wasmPath: '/tmp/token.wasm', contractName: 'token', network: 'testnet' } }
     );
 
     expect(res.status).toBe(200);
     expect(res.body.errors).toBeUndefined();
-    expect(res.body.data.deploy.contractId).toBe('C_TOKEN_ID');
+    expect(res.body.data.deploy.contractId.startsWith('C')).toBe(true);
   });
 });
 

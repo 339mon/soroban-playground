@@ -1,4 +1,63 @@
 import request from 'supertest';
+import { jest } from '@jest/globals';
+
+jest.mock('ioredis', () => {
+  const mockRedisInstance = {
+    on: jest.fn(),
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    quit: jest.fn().mockResolvedValue('OK'),
+    subscribe: jest.fn().mockResolvedValue(1),
+    publish: jest.fn().mockResolvedValue(1),
+    ping: jest.fn().mockResolvedValue('PONG'),
+    duplicate: jest.fn().mockImplementation(() => mockRedisInstance),
+  };
+  return jest.fn().mockImplementation(() => mockRedisInstance);
+});
+
+const mockStore = new Map();
+jest.mock('../src/services/redisService.js', () => ({
+  __esModule: true,
+  default: {
+    isConnected: true,
+    get: jest.fn().mockImplementation(async (key) => mockStore.get(key) || null),
+    set: jest.fn().mockImplementation(async (key, value) => {
+      mockStore.set(key, value);
+      return 'OK';
+    }),
+    delete: jest.fn().mockImplementation(async (key) => {
+      const existed = mockStore.has(key);
+      mockStore.delete(key);
+      return existed ? 1 : 0;
+    }),
+    client: {
+      quit: jest.fn().mockResolvedValue('OK'),
+    },
+  },
+}));
+
+jest.mock('../src/services/queueService.js', () => ({
+  __esModule: true,
+  initializeQueues: jest.fn(),
+  queueDashboard: jest.fn(),
+  shutdownQueues: jest.fn(),
+}));
+
+jest.mock('../src/services/webhookDispatcher.js', () => ({
+  __esModule: true,
+  startWebhookDispatcher: jest.fn(),
+  stopWebhookDispatcher: jest.fn(),
+}));
+
+jest.mock('../src/services/oracleWorkerPool.js', () => ({
+  __esModule: true,
+  oracleWorkerPool: {
+    start: jest.fn(),
+    stop: jest.fn(),
+  },
+}));
+
 import app from '../src/server.js';
 import redisService from '../src/services/redisService.js';
 import jwt from 'jsonwebtoken';
