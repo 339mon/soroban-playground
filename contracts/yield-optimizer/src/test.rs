@@ -395,6 +395,113 @@ fn test_list_strategies() {
     assert_eq!(list.len(), 2);
 }
 
+// ── Additional Edge & Validation Tests ────────────────────────────────────────
+
+#[test]
+fn test_add_strategy_empty_name_fails() {
+    let (env, admin, client) = setup();
+    assert_eq!(
+        client.add_strategy(&admin, &String::from_str(&env, ""), &500),
+        Err(Ok(Error::EmptyName))
+    );
+}
+
+#[test]
+fn test_configure_advanced_strategy_invalid_fee() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    assert_eq!(
+        client.configure_advanced_strategy(
+            &admin,
+            &sid,
+            &String::from_str(&env, "Protocol"),
+            &10_001, // Fee > 10,000 bps
+            &0,
+            &0,
+            &10,
+        ),
+        Err(Ok(Error::InvalidFee))
+    );
+}
+
+#[test]
+fn test_configure_advanced_strategy_invalid_risk() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    assert_eq!(
+        client.configure_advanced_strategy(
+            &admin,
+            &sid,
+            &String::from_str(&env, "Protocol"),
+            &500,
+            &0,
+            &0,
+            &101, // Risk > 100
+        ),
+        Err(Ok(Error::InvalidRiskScore))
+    );
+}
+
+#[test]
+fn test_deposit_zero_amount_fails() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    assert_eq!(
+        client.deposit(&user, &sid, &0),
+        Err(Ok(Error::ZeroAmount))
+    );
+}
+
+#[test]
+fn test_withdraw_zero_amount_fails() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    client.deposit(&user, &sid, &1_000).unwrap();
+    assert_eq!(
+        client.withdraw(&user, &sid, &0),
+        Err(Ok(Error::ZeroAmount))
+    );
+}
+
+#[test]
+fn test_withdraw_full_clears_position() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    client.deposit(&user, &sid, &1_000_000).unwrap();
+    let withdrawn = client.withdraw(&user, &sid, &1_000_000).unwrap();
+    assert_eq!(withdrawn, 1_000_000);
+    assert_eq!(
+        client.get_position(&user, &sid),
+        Err(Ok(Error::PositionNotFound))
+    );
+}
+
+#[test]
+fn test_non_existent_strategy_fails() {
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+    assert_eq!(
+        client.get_strategy(&999),
+        Err(Ok(Error::StrategyNotFound))
+    );
+    assert_eq!(
+        client.deposit(&user, &999, &1_000),
+        Err(Ok(Error::StrategyNotFound))
+    );
+}
+
+#[test]
+fn test_best_strategy_no_strategies() {
+    let (_env, _admin, client) = setup();
+    assert_eq!(
+        client.best_strategy(),
+        Err(Ok(Error::NoOptimizableStrategy))
+    );
+}
+
 
 #[cfg(test)]
 mod tests {
