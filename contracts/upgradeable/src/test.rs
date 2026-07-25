@@ -225,3 +225,44 @@ fn test_ledger_sequence_advances() {
     }
     // An InvokeError (host error) also means timelock was passed → test passes.
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{UpgradeableContract, UpgradeableContractClient, UpgradeError};
+    use soroban_sdk::{testutils::Address as _, Address, BytesN, Env};
+
+    #[test]
+    fn test_timelock_and_emergency_pause() {
+        let env = Env::default();
+        env.mock_all_signatures();
+
+        let contract_id = env.register_contract(None, UpgradeableContract);
+        let client = UpgradeableContractClient::new(&env, &contract_id);
+
+        let admin = Address::generate(&env);
+        client.initialize(&admin);
+
+        let mock_wasm_hash = BytesN::from_array(&env, &[1u8; 32]);
+
+        // 1. Propose Upgrade
+        client.propose_upgrade(&mock_wasm_hash);
+
+        // 2. Early Execution Failure (Timelock not expired)
+        let result = client.try_execute_upgrade();
+        assert_eq!(result, Err(Ok(UpgradeError::TimelockNotExpired)));
+
+        // 3. Fast-forward ledger timestamp past 48 hours (172,800 seconds)
+        env.ledger().set_timestamp(172_801);
+
+        // 4. Test Emergency Pause Gating
+        client.set_paused(&true);
+        let pause_result = client.try_execute_upgrade();
+        assert_eq!(pause_result, Err(Ok(UpgradeError::ContractPaused)));
+
+        // 5. Unpause and execute successfully
+        client.set_paused(&false);
+        let exec_result = client.try_execute_upgrade();
+        assert!(exec_result.is_ok());
+    }
+}

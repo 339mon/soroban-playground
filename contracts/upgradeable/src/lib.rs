@@ -181,3 +181,146 @@ fn require_admin(env: &Env, caller: &Address) -> Result<(), Error> {
     }
     Ok(())
 }
+
+
+#![no_std]
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, BytesN, Env,
+    Symbol,
+};
+
+const TIMELOCK_DELAY_SECONDS: u64 = 172_800; // 48 Hours
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum UpgradeError {
+    NotAdmin = 1,
+    ContractPaused = 2,
+    NoUpgradeProposed = 3,
+    TimelockNotExpired = 4,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PendingUpgrade {
+    pub new_wasm_hash: BytesN<32>,
+    pub eta: u64,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Admin,
+    Paused,
+    PendingUpgrade,
+}
+
+#[contract]
+pub struct UpgradeableContract;
+
+#[contractimpl]
+impl UpgradeableContract {
+    /// Initialize the contract with an admin authority
+    pub fn initialize(env: Env, admin: Address) {
+        if env.storage().instance().has(&DataKey::Admin) {
+            panic!("Already initialized");
+        }
+        admin.require_auth();
+        env.storage().instance().set(&DataKey::Admin, &admin);
+        env.storage().instance().set(&DataKey::Paused, &false);
+    }
+
+    /// Admin proposes a new WASM hash subject to the 48-hour timelock
+    pub fn propose_upgrade(env: Env, new_wasm_hash: BytesN<32>) -> Result<(), UpgradeError> {
+        let admin = Self::get_admin(&env)?;
+        admin.require_auth();
+        Self::ensure_not_paused(&env)?;
+
+        let current_time = env.ledger().timestamp();
+        let eta = current_time + TIMELOCK_DELAY_SECONDS;
+
+        let pending = PendingUpgrade {
+            new_wasm_hash: new_wasm_hash.clone(),
+            eta,
+        };
+
+        env.storage()
+            .instance()
+            .set(&DataKey::PendingUpgrade, &pending);
+
+        env.events().publish(
+            (symbol_short!("upgrade"), symbol_short!("proposed")),
+            (new_wasm_hash, eta),
+        );
+
+        Ok(())
+    }
+
+    /// Execute proposed upgrade once timelock delay has elapsed
+    pub fn execute_upgrade(env: Env) -> Result<(), UpgradeError> {
+        let admin = Self::get_admin(&env)?;
+        admin.require_auth();
+        Self::ensure_not_paused(&env)?;
+
+        let pending: PendingUpgrade = env
+            .storage()
+            .instance()
+            .get(&DataKey::PendingUpgrade)
+            .ok_or(UpgradeError::NoUpgradeProposed)?;
+
+        let current_time = env.ledger().timestamp();
+        if current_time < pending.eta {
+            return Err(UpgradeError::TimelockNotExpired);
+        }
+
+        // Apply WASM code update via Soroban SDK deployer
+        env.deployer()
+            .update_current_contract_wasm(pending.new_wasm_hash.clone());
+
+        env.storage().instance().remove(&DataKey::PendingUpgrade);
+
+        env.events().publish(
+            (symbol_short!("upgrade"), symbol_short!("executed")),
+            pending.new_wasm_hash,
+        );
+
+        Ok(())
+    }
+
+    /// Toggle emergency pause status immediately
+    pub fn set_paused(env: Env, paused: bool) -> Result<(), UpgradeError> {
+        let admin = Self::get_admin(&env)?;
+        admin.require_auth();
+
+        env.storage().instance().set(&DataKey::Paused, &paused);
+
+        env.events().publish(
+            (symbol_short!("pause"), Symbol::new(&env, "toggled")),
+            paused,
+        );
+
+        Ok(())
+    }
+
+    /// Helper to fetch admin or fail
+    pub fn get_admin(env: &Env) -> Result<Address, UpgradeError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(UpgradeError::NotAdmin)
+    }
+
+    /// Helper to enforce active state
+    fn ensure_not_paused(env: &Env) -> Result<(), UpgradeError> {
+        let is_paused: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false);
+
+        if is_paused {
+            return Err(UpgradeError::ContractPaused);
+        }
+        Ok(())
+    }
+}
