@@ -49,6 +49,10 @@ pub enum Error {
     ProofNotVerified = 20,
     /// Proof is already finalized (quorum reached).
     ProofAlreadyFinalized = 21,
+    /// Arithmetic overflow or underflow occurred.
+    ArithmeticOverflow = 22,
+    /// Invalid parameter amount.
+    InvalidAmount = 23,
 }
 
 /// Status of a bridge deposit.
