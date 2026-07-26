@@ -11,6 +11,10 @@ export default {
       filename: path.join(_dirname, 'src', 'database', 'database.sqlite'),
     },
     useNullAsDefault: true,
+    pool: {
+      min: 2,
+      max: 10,
+    },
     migrations: {
       directory: path.join(_dirname, 'src', 'database', 'migrations'),
     },
@@ -31,6 +35,10 @@ export default {
       filename: path.join(_dirname, 'src', 'database', 'database.sqlite'),
     },
     useNullAsDefault: true,
+    pool: {
+      min: 2,
+      max: 10,
+    },
     migrations: {
       directory: path.join(_dirname, 'src', 'database', 'migrations'),
     },

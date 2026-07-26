@@ -43,4 +43,5 @@ members = [
     "contracts/yield-optimizer",
     "contracts/options-protocol",
     "contracts/perpetual-futures",
+    "contracts/insurance-protocol",
 ]
