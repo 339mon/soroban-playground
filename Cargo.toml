@@ -44,4 +44,5 @@ members = [
     "contracts/options-protocol",
     "contracts/perpetual-futures",
     "contracts/insurance-protocol",
+    "contracts/profile-registry",
 ]
