@@ -29,6 +29,7 @@ const Editor = dynamic(() => import("@/components/Editor"), {
   ),
 });
 import Console from "@/components/Console";
+import { ConsoleAndEventsDrawer } from "@/components/ConsoleAndEventsDrawer";
 import DeployPanel from "@/components/DeployPanel";
 import CallPanel from "@/components/CallPanel";
 import StorageViewer from "@/components/StorageViewer";
@@ -2559,12 +2560,13 @@ export default function Home() {
               walletAddress={wallet.address ?? undefined}
             />
             <TransactionStatus transactions={transactions} onClear={clearTx} />
-            <Console 
+            <ConsoleAndEventsDrawer 
               logs={logs} 
               baseLineNumber={0} 
               droppedMessages={droppedMessages} 
               isIngestionPaused={isIngestionPaused} 
-              onIngestionPauseChange={setIsIngestionPaused} 
+              onIngestionPauseChange={setIsIngestionPaused}
+              contractId={contractId} 
             />
           </aside>
             }
