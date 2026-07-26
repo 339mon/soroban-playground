@@ -131,4 +131,23 @@ router.use('/music-licensing', musicLicensingRoutes);
 router.use('/warranty', warrantyRoutes);
 router.use('/favorites', favoritesRoutes);
 router.use('/projects', projectsRoutes);
+
+import sorobanRpcManager from '../services/sorobanRpcManager.js';
+
+router.get('/rpc/status', (_req, res) => {
+  res.json({
+    success: true,
+    data: sorobanRpcManager.getStatus(),
+  });
+});
+
+router.post('/rpc/reset', (_req, res) => {
+  sorobanRpcManager.reset();
+  res.json({
+    success: true,
+    message: 'Soroban RPC circuit breaker reset cleanly',
+    data: sorobanRpcManager.getStatus(),
+  });
+});
+
 export default router;

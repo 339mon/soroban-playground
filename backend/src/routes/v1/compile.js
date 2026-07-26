@@ -152,4 +152,88 @@ router.get(
   })
 );
 
+// Memory fallback for compilation jobs in test/offline environments
+const inMemoryJobs = new Map();
+
+router.post(
+  '/async',
+  rateLimitMiddleware('compile'),
+  asyncHandler(async (req, res, next) => {
+    const { code, source, contractName } = req.body || {};
+    const codeToCompile = source || code;
+
+    const codeValidation = validateSourceCode(codeToCompile);
+    if (!codeValidation.ok) {
+      return next(
+        createHttpError(400, codeValidation.error, codeValidation.details)
+      );
+    }
+
+    const jobId = `wasm-job-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+    try {
+      const { queues } = await import('../../services/queueService.js');
+      if (queues && queues.compilation) {
+        await queues.compilation.add('compile-wasm', {
+          source: codeToCompile,
+          contractName: contractName || 'soroban_contract',
+        }, { jobId });
+      } else {
+        inMemoryJobs.set(jobId, { status: 'queued', createdAt: new Date().toISOString() });
+      }
+    } catch {
+      inMemoryJobs.set(jobId, { status: 'queued', createdAt: new Date().toISOString() });
+    }
+
+    return res.status(202).json({
+      success: true,
+      jobId,
+      status: 'queued',
+      message: 'Compilation job queued asynchronously',
+      createdAt: new Date().toISOString(),
+    });
+  })
+);
+
+router.get(
+  '/job/:jobId',
+  asyncHandler(async (req, res) => {
+    const { jobId } = req.params;
+
+    try {
+      const { queues } = await import('../../services/queueService.js');
+      if (queues && queues.compilation) {
+        const job = await queues.compilation.getJob(jobId);
+        if (job) {
+          const state = await job.getState();
+          return res.json({
+            success: true,
+            jobId,
+            status: state,
+            result: job.returnvalue || null,
+            failedReason: job.failedReason || null,
+          });
+        }
+      }
+    } catch {
+      // Fall through to memory check
+    }
+
+    const memoryJob = inMemoryJobs.get(jobId);
+    if (memoryJob) {
+      return res.json({
+        success: true,
+        jobId,
+        status: memoryJob.status,
+        result: memoryJob.result || null,
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      error: 'Compilation job not found',
+    });
+  })
+);
+
 export default router;

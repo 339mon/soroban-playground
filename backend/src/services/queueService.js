@@ -88,6 +88,17 @@ export function initializeQueues() {
     },
   });
 
+  queues.compilation = new Queue('compilation', {
+    connection: createConnection('queue-compilation'),
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    },
+  });
+
   // 2. Initialize FlowProducer for parent-child job trees
   flowProducer = new FlowProducer({
     connection: createConnection('flow-producer'),
@@ -108,6 +119,10 @@ export function initializeQueues() {
       _dirname,
       '../workers/cronProcessor.js'
     );
+    const compilationWorkerPath = path.resolve(
+      _dirname,
+      '../workers/compilationProcessor.js'
+    );
 
     workers.indexing = new Worker('indexing', indexingWorkerPath, {
       connection: createConnection('worker-indexing'),
@@ -123,6 +138,12 @@ export function initializeQueues() {
 
     workers.cron = new Worker('cron', cronWorkerPath, {
       connection: createConnection('worker-cron'),
+      useWorkerThreads: false,
+      settings: { backoffStrategies },
+    });
+
+    workers.compilation = new Worker('compilation', compilationWorkerPath, {
+      connection: createConnection('worker-compilation'),
       useWorkerThreads: false,
       settings: { backoffStrategies },
     });
@@ -157,6 +178,7 @@ export function initializeQueues() {
       new BullMQAdapter(queues.indexing),
       new BullMQAdapter(queues.email),
       new BullMQAdapter(queues.cron),
+      new BullMQAdapter(queues.compilation),
     ],
     serverAdapter,
   });
