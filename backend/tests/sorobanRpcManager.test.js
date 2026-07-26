@@ -19,7 +19,10 @@ describe('SorobanRpcManager Circuit Breaker', () => {
     const mockCall = jest.fn().mockResolvedValue('ledger-12345');
     const result = await sorobanRpcManager.executeRpcCall(mockCall);
     expect(result).toBe('ledger-12345');
-    expect(mockCall).toHaveBeenCalledWith(sorobanRpcManager.activeEndpoint.url);
+    expect(mockCall).toHaveBeenCalledWith(
+      sorobanRpcManager.activeEndpoint.url,
+      expect.objectContaining({}),
+    );
   });
 
   it('fails over to next fallback endpoint when primary endpoint fails', async () => {
