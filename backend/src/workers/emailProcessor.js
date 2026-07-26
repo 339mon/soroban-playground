@@ -1,13 +1,15 @@
 // Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
-/**
- * Sandboxed processor for sending emails.
- * Runs in a separate process.
- *
- * Job data shape:
- *   { to: string, subject?: string, body?: string, html?: string, from?: string }
- */
+class JobError extends Error {
+  constructor(message, { retryable = true, code = 'UNKNOWN', details = null } = {}) {
+    super(message);
+    this.name = 'JobError';
+    this.retryable = retryable;
+    this.code = code;
+    this.details = details;
+  }
+}
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_SUBJECT_LENGTH = 998;
@@ -54,6 +56,13 @@ function validateEmailInput(data) {
   return { valid: errors.length === 0, errors };
 }
 
+/**
+ * Sandboxed processor for sending emails.
+ * Runs in a separate process.
+ *
+ * Job data shape:
+ *   { to: string, subject?: string, body?: string, html?: string, from?: string }
+ */
 export default async function emailProcessor(job) {
   const data = job.data || {};
   const startTime = Date.now();
@@ -62,37 +71,53 @@ export default async function emailProcessor(job) {
     `[Email Worker] Processing job ${job.id} (Attempt ${job.attemptsMade + 1}/${job.opts?.attempts ?? 'unknown'})`
   );
 
-  // Validate input
   const validation = validateEmailInput(data);
   if (!validation.valid) {
-    const err = new Error(`Validation failed: ${validation.errors.join('; ')}`);
-    err.code = 'VALIDATION_ERROR';
-    throw err;
+    throw new JobError(`Validation failed: ${validation.errors.join('; ')}`, {
+      retryable: false,
+      code: 'VALIDATION_ERROR',
+      details: validation.errors,
+    });
   }
 
   const { to, subject, body, html, from } = data;
   const emailSubject = subject ?? '(no subject)';
   const recipient = to.trim();
 
-  console.log(
-    `[Email Worker] Sending email to ${recipient} with subject "${emailSubject}"`
-  );
+  try {
+    await job.updateProgress(20);
 
-  // Simulate heavy computation or network request for email sending
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(
+      `[Email Worker] Sending email to ${recipient} with subject "${emailSubject}"`
+    );
 
-  const durationMs = Date.now() - startTime;
-  console.log(
-    `[Email Worker] Email sent successfully to ${recipient} in ${durationMs}ms`
-  );
+    await job.updateProgress(50);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  return {
-    success: true,
-    sentTo: recipient,
-    subject: emailSubject,
-    from: from ?? 'noreply@soroban-playground.dev',
-    hasHtmlContent: Boolean(html),
-    hasTextContent: Boolean(body),
-    durationMs,
-  };
+    await job.updateProgress(100);
+
+    const durationMs = Date.now() - startTime;
+    console.log(
+      `[Email Worker] Email sent successfully to ${recipient} in ${durationMs}ms`
+    );
+
+    return {
+      success: true,
+      sentTo: recipient,
+      subject: emailSubject,
+      from: from ?? 'noreply@soroban-playground.dev',
+      hasHtmlContent: Boolean(html),
+      hasTextContent: Boolean(body),
+      durationMs,
+    };
+  } catch (err) {
+    const durationMs = Date.now() - startTime;
+    console.error(
+      `[Email Worker] Job ${job.id} failed after ${durationMs}ms:`,
+      err.message
+    );
+    throw err;
+  }
 }
+
+export { JobError };
