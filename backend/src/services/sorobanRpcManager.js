@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import config from '../config/index.js';
+import { createSpan, getTraceId } from '../utils/tracing.js';
 
 const DEFAULT_FALLBACK_ENDPOINTS = [
   process.env.SOROBAN_RPC_URL || config?.soroban?.rpcUrl || 'https://soroban-testnet.stellar.org',
@@ -56,47 +57,69 @@ class SorobanRpcManager {
   async executeRpcCall(callFn) {
     this.checkCircuitStates();
 
+    const span = createSpan('soroban_rpc_call', {
+      'rpc.active_endpoint': this.activeEndpoint.url,
+      'rpc.circuit_state': this.activeEndpoint.state,
+    });
+
+    const activeTraceId = getTraceId();
+    const traceHeaders = activeTraceId
+      ? {
+          'x-trace-id': activeTraceId,
+          traceparent: `00-${activeTraceId}-${span?.spanContext()?.spanId || '0000000000000000'}-01`,
+        }
+      : {};
+
     let lastError = null;
     const startIndex = this.activeEndpointIndex;
 
-    for (let i = 0; i < this.endpoints.length; i++) {
-      const idx = (startIndex + i) % this.endpoints.length;
-      const ep = this.endpoints[idx];
+    try {
+      for (let i = 0; i < this.endpoints.length; i++) {
+        const idx = (startIndex + i) % this.endpoints.length;
+        const ep = this.endpoints[idx];
 
-      if (ep.state === CIRCUIT_STATES.OPEN) {
-        continue;
-      }
+        if (ep.state === CIRCUIT_STATES.OPEN) {
+          continue;
+        }
 
-      try {
-        const result = await callFn(ep.url);
+        try {
+          const hasTrace = Object.keys(traceHeaders).length > 0;
+          const result = hasTrace
+            ? await callFn(ep.url, traceHeaders)
+            : await callFn(ep.url);
 
-        // Success: reset failures and set state to CLOSED
-        ep.failCount = 0;
-        ep.state = CIRCUIT_STATES.CLOSED;
-        ep.isHealthy = true;
-        this.activeEndpointIndex = idx;
+          // Success: reset failures and set state to CLOSED
+          ep.failCount = 0;
+          ep.state = CIRCUIT_STATES.CLOSED;
+          ep.isHealthy = true;
+          this.activeEndpointIndex = idx;
 
-        return result;
-      } catch (err) {
-        lastError = err;
-        ep.failCount += 1;
-        ep.lastFailureTime = Date.now();
+          span?.setStatus({ code: 1 }); // OK
+          return result;
+        } catch (err) {
+          lastError = err;
+          ep.failCount += 1;
+          ep.lastFailureTime = Date.now();
 
-        if (ep.failCount >= this.failureThreshold || ep.state === CIRCUIT_STATES.HALF_OPEN) {
-          ep.state = CIRCUIT_STATES.OPEN;
-          ep.isHealthy = false;
-          console.warn(
-            `[RPC Circuit Breaker] Tripped OPEN for endpoint ${ep.url} (failures: ${ep.failCount})`
-          );
+          if (ep.failCount >= this.failureThreshold || ep.state === CIRCUIT_STATES.HALF_OPEN) {
+            ep.state = CIRCUIT_STATES.OPEN;
+            ep.isHealthy = false;
+            console.warn(
+              `[RPC Circuit Breaker] Tripped OPEN for endpoint ${ep.url} (failures: ${ep.failCount})`
+            );
+          }
         }
       }
-    }
 
-    throw new Error(
-      `All Soroban RPC endpoints failed or are circuit breaker OPEN. Last error: ${
+      const errorMsg = `All Soroban RPC endpoints failed or are circuit breaker OPEN. Last error: ${
         lastError?.message || 'Unknown error'
-      }`
-    );
+      }`;
+      span?.setStatus({ code: 2, message: errorMsg }); // ERROR
+      span?.recordException(lastError || new Error(errorMsg));
+      throw new Error(errorMsg);
+    } finally {
+      span?.end();
+    }
   }
 
   getStatus() {

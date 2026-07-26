@@ -7,6 +7,7 @@ import {
   createHttpError,
 } from '../../middleware/errorHandler.js';
 import { deployBatchContracts } from '../../services/deployService.js';
+import { rateLimitMiddleware } from '../../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -43,6 +44,7 @@ function validateDeployRequest(body) {
 
 router.post(
   '/',
+  rateLimitMiddleware('deploy'),
   asyncHandler(async (req, res, next) => {
     // Validate request payload
     const validationError = validateDeployRequest(req.body);
@@ -94,6 +96,7 @@ function validateBatchRequest(body) {
 
 router.post(
   '/batch',
+  rateLimitMiddleware('deploy'),
   asyncHandler(async (req, res, next) => {
     const errors = validateBatchRequest(req.body);
     if (errors) {
