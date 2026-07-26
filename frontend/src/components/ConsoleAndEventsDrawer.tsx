@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Terminal, Activity } from "lucide-react";
+import { Terminal, Activity, SquareTerminal } from "lucide-react";
 import Console from "@/components/Console";
 import { EventsPanel } from "@/components/EventsPanel";
+import { SorobanCliTerminal } from "@/components/SorobanCliTerminal";
 
 interface ConsoleAndEventsDrawerProps {
   logs: string[];
@@ -22,7 +23,7 @@ export function ConsoleAndEventsDrawer({
   onIngestionPauseChange,
   contractId,
 }: ConsoleAndEventsDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"console" | "events">("console");
+  const [activeTab, setActiveTab] = useState<"console" | "events" | "terminal">("console");
 
   return (
     <div className="flex flex-col rounded-xl border border-gray-800 bg-gray-950 overflow-hidden shadow-2xl">
@@ -39,6 +40,19 @@ export function ConsoleAndEventsDrawer({
         >
           <Terminal size={14} />
           <span>Console Output</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("terminal")}
+          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 transition ${
+            activeTab === "terminal"
+              ? "bg-slate-800 text-amber-400 font-semibold"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+          }`}
+        >
+          <SquareTerminal size={14} />
+          <span>CLI Terminal</span>
         </button>
 
         <button
@@ -65,6 +79,8 @@ export function ConsoleAndEventsDrawer({
             isIngestionPaused={isIngestionPaused}
             onIngestionPauseChange={onIngestionPauseChange}
           />
+        ) : activeTab === "terminal" ? (
+          <SorobanCliTerminal />
         ) : (
           <EventsPanel contractId={contractId} />
         )}
@@ -72,3 +88,4 @@ export function ConsoleAndEventsDrawer({
     </div>
   );
 }
+
