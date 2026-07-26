@@ -41,4 +41,6 @@ members = [
     "contracts/did-registry",
     "contracts/multisig-wallet",
     "contracts/yield-optimizer",
+    "contracts/options-protocol",
+    "contracts/perpetual-futures",
 ]
