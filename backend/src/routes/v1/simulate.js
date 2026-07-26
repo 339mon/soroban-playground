@@ -1,6 +1,3 @@
-// Copyright (c) 2026 StellarDevTools
-// SPDX-License-Identifier: MIT
-
 import express from 'express';
 import { asyncHandler, createHttpError } from '../../middleware/errorHandler.js';
 import sorobanRpcManager from '../../services/sorobanRpcManager.js';
@@ -8,29 +5,39 @@ import { rateLimitMiddleware } from '../../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-/**
- * Helper to execute simulateTransaction RPC call via Soroban RPC manager
- * @param {string} xdr Base64 transaction XDR
- * @returns {Promise<Object>}
- */
+function estimateFallback(xdr) {
+  const xdrLength = xdr.length;
+  return {
+    minResourceFee: String(1_000 + Math.ceil(xdrLength * 1.5)),
+    cost: {
+      cpuInsns: String(Math.min(10_000_000, 150_000 + xdrLength * 120)),
+      memBytes: String(Math.min(5_000_000, 65_536 + xdrLength * 32)),
+    },
+    results: [{ auth: [], xdr }],
+    events: [],
+    latestLedger: 100000,
+  };
+}
+
 async function callSimulateTransaction(xdr) {
-  return await sorobanRpcManager.executeRpcCall(async (rpcUrl, traceHeaders = {}) => {
+  return await sorobanRpcManager.executeRpcCall(async (rpcUrl, options = {}) => {
+    const { signal, ...extraHeaders } = options;
+
     const payload = {
       jsonrpc: '2.0',
       id: Date.now(),
       method: 'simulateTransaction',
-      params: {
-        transaction: xdr,
-      },
+      params: { transaction: xdr },
     };
 
     const response = await fetch(rpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...traceHeaders,
+        ...extraHeaders,
       },
       body: JSON.stringify(payload),
+      signal,
     });
 
     if (!response.ok) {
@@ -46,10 +53,6 @@ async function callSimulateTransaction(xdr) {
   });
 }
 
-/**
- * POST /api/v1/simulate/fee
- * Soroban RPC Gas & Resource Footprint Estimator Endpoint
- */
 router.post(
   '/fee',
   rateLimitMiddleware('read'),
@@ -69,23 +72,7 @@ router.post(
       try {
         rpcResult = await callSimulateTransaction(xdrToSimulate);
       } catch {
-        // Fallback / simulated estimation if RPC endpoint unavailable
-        const xdrLength = xdrToSimulate.length;
-        const estimatedCpu = Math.min(10_000_000, 150_000 + xdrLength * 120);
-        const estimatedMem = Math.min(5_000_000, 65_536 + xdrLength * 32);
-        const minFee = 1_000 + Math.ceil(xdrLength * 1.5);
-        const totalFee = String(minFee + Math.ceil(estimatedCpu / 100));
-
-        rpcResult = {
-          minResourceFee: String(minFee),
-          cost: {
-            cpuInsns: String(estimatedCpu),
-            memBytes: String(estimatedMem),
-          },
-          results: [{ auth: [], xdr: xdrToSimulate }],
-          events: [],
-          latestLedger: 100000,
-        };
+        rpcResult = estimateFallback(xdrToSimulate);
       }
 
       const minResourceFee = String(rpcResult.minResourceFee || rpcResult.minFee || '1000');
@@ -96,7 +83,6 @@ router.post(
       const ledgerReadBytes = parseInt(rpcResult.ledgerReadBytes || '1024', 10);
       const ledgerWriteBytes = parseInt(rpcResult.ledgerWriteBytes || '512', 10);
 
-      // Estimate total fee including base fee + minResourceFee
       const baseFee = 100;
       const estimatedTotalFee = String(parseInt(minResourceFee, 10) + baseFee);
 

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 StellarDevTools
-// SPDX-License-Identifier: MIT
-
 import config from '../config/index.js';
 import { createSpan, getTraceId } from '../utils/tracing.js';
 
@@ -8,7 +5,6 @@ const DEFAULT_FALLBACK_ENDPOINTS = [
   process.env.SOROBAN_RPC_URL || config?.soroban?.rpcUrl || 'https://soroban-testnet.stellar.org',
   'https://rpc-futurenet.stellar.org',
   'https://stellar-community.org/rpc',
-  'http://localhost:8000/soroban/rpc',
 ];
 
 export const CIRCUIT_STATES = {
@@ -17,13 +13,14 @@ export const CIRCUIT_STATES = {
   HALF_OPEN: 'HALF_OPEN',
 };
 
+const RPC_TIMEOUT_MS = Number.parseInt(process.env.RPC_TIMEOUT_MS || '15000', 10);
+
 class SorobanRpcManager {
   constructor() {
     const rawFallbacks = process.env.SOROBAN_RPC_FALLBACK_URLS
       ? process.env.SOROBAN_RPC_FALLBACK_URLS.split(',').map((u) => u.trim())
       : DEFAULT_FALLBACK_ENDPOINTS;
 
-    // Deduplicate endpoints
     this.endpoints = Array.from(new Set(rawFallbacks)).map((url) => ({
       url,
       state: CIRCUIT_STATES.CLOSED,
@@ -54,15 +51,25 @@ class SorobanRpcManager {
     }
   }
 
+  tripCircuitBreaker(ep) {
+    ep.state = CIRCUIT_STATES.OPEN;
+    ep.isHealthy = false;
+    console.warn(
+      `[RPC Circuit Breaker] Tripped OPEN for endpoint ${ep.url} (failures: ${ep.failCount})`
+    );
+  }
+
   async executeRpcCall(callFn) {
     this.checkCircuitStates();
 
-    const span = createSpan('soroban_rpc_call', {
-      'rpc.active_endpoint': this.activeEndpoint.url,
-      'rpc.circuit_state': this.activeEndpoint.state,
-    });
-
     const activeTraceId = getTraceId();
+    const span = activeTraceId
+      ? createSpan('soroban_rpc_call', {
+          'rpc.active_endpoint': this.activeEndpoint.url,
+          'rpc.circuit_state': this.activeEndpoint.state,
+        })
+      : null;
+
     const traceHeaders = activeTraceId
       ? {
           'x-trace-id': activeTraceId,
@@ -73,53 +80,52 @@ class SorobanRpcManager {
     let lastError = null;
     const startIndex = this.activeEndpointIndex;
 
-    try {
-      for (let i = 0; i < this.endpoints.length; i++) {
-        const idx = (startIndex + i) % this.endpoints.length;
-        const ep = this.endpoints[idx];
+    for (let i = 0; i < this.endpoints.length; i++) {
+      const idx = (startIndex + i) % this.endpoints.length;
+      const ep = this.endpoints[idx];
 
-        if (ep.state === CIRCUIT_STATES.OPEN) {
-          continue;
-        }
+      if (ep.state === CIRCUIT_STATES.OPEN) {
+        continue;
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
 
         try {
-          const hasTrace = Object.keys(traceHeaders).length > 0;
-          const result = hasTrace
-            ? await callFn(ep.url, traceHeaders)
-            : await callFn(ep.url);
+          const result = await callFn(ep.url, {
+            ...traceHeaders,
+            signal: controller.signal,
+          });
 
-          // Success: reset failures and set state to CLOSED
           ep.failCount = 0;
           ep.state = CIRCUIT_STATES.CLOSED;
           ep.isHealthy = true;
           this.activeEndpointIndex = idx;
 
-          span?.setStatus({ code: 1 }); // OK
+          span?.setStatus({ code: 1 });
           return result;
-        } catch (err) {
-          lastError = err;
-          ep.failCount += 1;
-          ep.lastFailureTime = Date.now();
+        } finally {
+          clearTimeout(timeout);
+        }
+      } catch (err) {
+        lastError = err;
+        ep.failCount += 1;
+        ep.lastFailureTime = Date.now();
 
-          if (ep.failCount >= this.failureThreshold || ep.state === CIRCUIT_STATES.HALF_OPEN) {
-            ep.state = CIRCUIT_STATES.OPEN;
-            ep.isHealthy = false;
-            console.warn(
-              `[RPC Circuit Breaker] Tripped OPEN for endpoint ${ep.url} (failures: ${ep.failCount})`
-            );
-          }
+        if (ep.failCount >= this.failureThreshold || ep.state === CIRCUIT_STATES.HALF_OPEN) {
+          this.tripCircuitBreaker(ep);
         }
       }
-
-      const errorMsg = `All Soroban RPC endpoints failed or are circuit breaker OPEN. Last error: ${
-        lastError?.message || 'Unknown error'
-      }`;
-      span?.setStatus({ code: 2, message: errorMsg }); // ERROR
-      span?.recordException(lastError || new Error(errorMsg));
-      throw new Error(errorMsg);
-    } finally {
-      span?.end();
     }
+
+    const errorMsg = `All Soroban RPC endpoints failed or are circuit breaker OPEN. Last error: ${
+      lastError?.message || 'Unknown error'
+    }`;
+    span?.setStatus({ code: 2, message: errorMsg });
+    span?.recordException(lastError || new Error(errorMsg));
+    span?.end();
+    throw new Error(errorMsg);
   }
 
   getStatus() {
