@@ -1568,18 +1568,8 @@ fn test_get_registered_assets_lists_symbols() {
     let (env, client, _admin, _, _) = setup_contract();
     let sym_a = Symbol::new(&env, "sAAA");
     let sym_b = Symbol::new(&env, "sBBB");
-    client.register_synthetic_asset(
-        &sym_a,
-        &String::from_str(&env, "A"),
-        &7u32,
-        &100i128,
-    );
-    client.register_synthetic_asset(
-        &sym_b,
-        &String::from_str(&env, "B"),
-        &7u32,
-        &200i128,
-    );
+    client.register_synthetic_asset(&sym_a, &String::from_str(&env, "A"), &7u32, &100i128);
+    client.register_synthetic_asset(&sym_b, &String::from_str(&env, "B"), &7u32, &200i128);
     let assets = client.get_registered_assets();
     assert_eq!(assets.len(), 2);
 }
