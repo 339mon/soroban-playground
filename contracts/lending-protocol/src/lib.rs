@@ -231,6 +231,17 @@ impl LendingProtocol {
         ensure_initialized(&env)?;
         liquidator.require_auth();
         validate_amount(amount)?;
+        if liquidator == user {
+            // Without this, a borrower could "liquidate" themselves: the
+            // collateral seized from `user` and the collateral credited to
+            // `liquidator` are the same storage slot when they're the same
+            // address, so the seizure nets to zero while the debt reduction
+            // is real — erasing debt for free with no actual repayment.
+            return Err(Error::SelfLiquidationNotAllowed);
+        }
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
 
         let mut pos = get_position(&env, &user);
 
