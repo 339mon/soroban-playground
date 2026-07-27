@@ -24,9 +24,9 @@ use crate::storage::{
     set_fee_bps, set_last_ts, set_lp, set_price_a_cum, set_price_b_cum, set_reserve_a,
     set_reserve_b, set_token_a, set_token_b, set_total_lp, set_nft_collection,
     get_total_volume, set_total_volume, get_total_fees, set_total_fees, get_collection_stats,
-    set_collection_stats, get_floor_price, set_floor_price,
+    set_collection_stats, get_floor_price, set_floor_price, get_nft_collection,
 };
-use crate::types::Error;
+use crate::types::{CollectionStats, Error};
 
 /// Minimum liquidity permanently locked on first deposit.
 const MIN_LIQUIDITY: i128 = 1_000;
@@ -73,9 +73,8 @@ impl AmmPool {
             Self::initialize(env.clone(), admin, token_a, token_b, fee_bps)?;
         }
         set_nft_collection(&env, nft_collection.clone());
-        
-        // Initialize collection stats
-        let stats = types::CollectionStats {
+
+        let stats = CollectionStats {
             floor_price: 0,
             ceiling_price: 0,
             total_volume: 0,
@@ -197,15 +196,7 @@ impl AmmPool {
             return Err(Error::ZeroAmount);
         }
 
-        let ta = get_token_a(&env)?;
-        let tb = get_token_b(&env)?;
-        let (ra, rb, a_to_b) = if token_in == ta {
-            (get_reserve_a(&env), get_reserve_b(&env), true)
-        } else if token_in == tb {
-            (get_reserve_b(&env), get_reserve_a(&env), false)
-        } else {
-            return Err(Error::InvalidToken);
-        };
+        let (ra, rb, a_to_b) = reserves_for_token_in(&env, &token_in)?;
 
         if ra == 0 || rb == 0 {
             return Err(Error::InsufficientLiquidity);
@@ -232,9 +223,7 @@ impl AmmPool {
         update_twap(&env, ra, rb);
 
         // Track volume and fees for NFT analytics
-        let fee_amount = amount_in.checked_mul(get_fee_bps(&env)).ok_or(Error::Overflow)? / 10_000;
-        set_total_volume(&env, get_total_volume(&env) + amount_in);
-        set_total_fees(&env, get_total_fees(&env) + fee_amount);
+        record_swap_metrics(&env, amount_in)?;
 
         env.events().publish((symbol_short!("swap"),), amount_out);
         Ok(amount_out)
@@ -249,15 +238,7 @@ impl AmmPool {
         token_in: Address,
     ) -> Result<i128, Error> {
         ensure_initialized(&env)?;
-        let ta = get_token_a(&env)?;
-        let tb = get_token_b(&env)?;
-        let (ra, rb) = if token_in == ta {
-            (get_reserve_a(&env), get_reserve_b(&env))
-        } else if token_in == tb {
-            (get_reserve_b(&env), get_reserve_a(&env))
-        } else {
-            return Err(Error::InvalidToken);
-        };
+        let (ra, rb, _) = reserves_for_token_in(&env, &token_in)?;
         get_amount_out(amount_in, ra, rb, get_fee_bps(&env))
     }
 
@@ -290,7 +271,7 @@ impl AmmPool {
     // ── NFT Collection Analytics ──────────────────────────────────────────────
 
     /// Get current collection statistics.
-    pub fn get_collection_stats(env: Env) -> Result<types::CollectionStats, Error> {
+    pub fn get_collection_stats(env: Env) -> Result<CollectionStats, Error> {
         ensure_initialized(&env)?;
         get_collection_stats(&env).ok_or(Error::NotInitialized)
     }
@@ -332,6 +313,12 @@ impl AmmPool {
         ensure_initialized(&env)?;
         Ok(get_floor_price(&env))
     }
+
+    /// Returns the NFT collection address when this pool was initialized as an NFT AMM.
+    pub fn get_nft_collection(env: Env) -> Result<Option<Address>, Error> {
+        ensure_initialized(&env)?;
+        Ok(get_nft_collection(&env))
+    }
 }
 
 // ── Private helpers ───────────────────────────────────────────────────────────
@@ -340,6 +327,33 @@ fn ensure_initialized(env: &Env) -> Result<(), Error> {
     if !is_initialized(env) {
         return Err(Error::NotInitialized);
     }
+    Ok(())
+}
+
+/// Resolve live reserve balances for a swap input token.
+fn reserves_for_token_in(
+    env: &Env,
+    token_in: &Address,
+) -> Result<(i128, i128, bool), Error> {
+    let token_a = get_token_a(env)?;
+    let token_b = get_token_b(env)?;
+    if token_in == &token_a {
+        Ok((get_reserve_a(env), get_reserve_b(env), true))
+    } else if token_in == &token_b {
+        Ok((get_reserve_b(env), get_reserve_a(env), false))
+    } else {
+        Err(Error::InvalidToken)
+    }
+}
+
+fn record_swap_metrics(env: &Env, amount_in: i128) -> Result<(), Error> {
+    let fee_bps = get_fee_bps(env);
+    let fee_amount = amount_in
+        .checked_mul(fee_bps)
+        .ok_or(Error::Overflow)?
+        / 10_000;
+    set_total_volume(env, get_total_volume(env) + amount_in);
+    set_total_fees(env, get_total_fees(env) + fee_amount);
     Ok(())
 }
 
