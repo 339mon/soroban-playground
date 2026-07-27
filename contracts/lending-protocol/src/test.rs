@@ -6,7 +6,7 @@
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _, Events},
-    vec, IntoVal, symbol_short, Env,
+    vec, IntoVal, symbol_short, Env, Symbol, TryFromVal,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -19,6 +19,45 @@ fn setup() -> (Env, Address, LendingProtocolClient<'static>) {
     let admin = Address::generate(&env);
     client.initialize(&admin);
     (env, admin, client)
+}
+
+/// Force `user`'s position directly into an under-collateralized
+/// (deposited, borrowed) state, bypassing `borrow()`'s 150% collateral
+/// check via the crate-internal storage functions.
+///
+/// This contract has no price-oracle or interest-accrual mechanism that
+/// could otherwise cause a position to drift under-collateralized after a
+/// valid borrow (that happens in reality when collateral's market value
+/// drops) — so `deposit()` + `borrow()` alone can never construct one:
+/// `borrow()` always enforces the 150% ratio at call time. Liquidation
+/// tests need this helper to reach a state the public API can't produce.
+fn force_position(
+    env: &Env,
+    contract_id: &Address,
+    user: &Address,
+    deposited: i128,
+    borrowed: i128,
+) {
+    env.as_contract(contract_id, || {
+        crate::storage::set_position(
+            env,
+            user,
+            &UserPosition {
+                deposited,
+                borrowed,
+                last_updated: env.ledger().timestamp(),
+                credit_score: 0,
+            },
+        );
+        crate::storage::set_total_deposited(
+            env,
+            crate::storage::get_total_deposited(env) + deposited,
+        );
+        crate::storage::set_total_borrowed(
+            env,
+            crate::storage::get_total_borrowed(env) + borrowed,
+        );
+    });
 }
 
 // ── Initialisation ────────────────────────────────────────────────────────────
@@ -269,15 +308,20 @@ fn test_repay_emits_event() {
     client2.borrow(&user, &100);
     client2.repay(&user, &20);
 
+    // soroban_sdk::Val (the type of raw event topics/data) doesn't implement
+    // PartialEq in this SDK version, so comparing the event tuple directly
+    // (as the previous version of this test did) is a compile error —
+    // decode each Val back into a concrete, comparable type instead.
     let last_event = env.events().all().last().unwrap();
-    assert_eq!(
-        last_event,
-        (
-            contract_id.clone(),
-            (symbol_short!("repayment"), user.clone()).into_val(&env),
-            (20i128, 5i128).into_val(&env)
-        )
-    );
+    assert_eq!(last_event.0, contract_id);
+
+    let topic0 = Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
+    assert_eq!(topic0, symbol_short!("repayment"));
+    let topic1 = Address::try_from_val(&env, &last_event.1.get(1).unwrap()).unwrap();
+    assert_eq!(topic1, user);
+
+    let data = <(i128, i128)>::try_from_val(&env, &last_event.2).unwrap();
+    assert_eq!(data, (20i128, 5i128));
 }
 
 // ── Liquidate ─────────────────────────────────────────────────────────────────
@@ -288,9 +332,10 @@ fn test_liquidate_undercollateralised_position() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
-    // Deposit 100, borrow 100 → borrowed * 110 = 11000 > deposited * 100 = 10000.
-    client.deposit(&user, &100);
-    client.borrow(&user, &100);
+    // deposited=100, borrowed=100 → borrowed * 110 = 11000 > deposited * 100 = 10000.
+    // borrow()'s own 150% check can never leave a position this thin, so
+    // this is forced directly — see force_position's doc comment.
+    force_position(&env, &client.address, &user, 100, 100);
 
     let seized = client.liquidate(&liquidator, &user, &50);
     // 50 * 110 / 100 = 55 collateral seized.
@@ -335,8 +380,7 @@ fn test_liquidate_exceeds_borrow_fails() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
-    client.deposit(&user, &100);
-    client.borrow(&user, &100);
+    force_position(&env, &client.address, &user, 100, 100);
 
     // Try to liquidate more than the outstanding debt.
     let result = client.try_liquidate(&liquidator, &user, &200);
@@ -349,8 +393,7 @@ fn test_liquidate_zero_amount_fails() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
-    client.deposit(&user, &100);
-    client.borrow(&user, &100);
+    force_position(&env, &client.address, &user, 100, 100);
 
     let result = client.try_liquidate(&liquidator, &user, &0);
     assert_eq!(result, Err(Ok(Error::InvalidAmount)));
@@ -362,8 +405,7 @@ fn test_liquidate_updates_pool_stats() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
-    client.deposit(&user, &100);
-    client.borrow(&user, &100);
+    force_position(&env, &client.address, &user, 100, 100);
     client.liquidate(&liquidator, &user, &50);
 
     let stats = client.get_stats();
@@ -410,4 +452,24 @@ fn test_credit_score_accumulates_across_repayments() {
 
     let pos = client.get_user_position(&user);
     assert_eq!(pos.credit_score, 15); // 3 × 5
+}
+
+#[test]
+fn test_liquidate_rejects_self_liquidation() {
+    // Before the fix: a borrower could pass their own address as both
+    // `liquidator` and `user`. Collateral seized from `user` and collateral
+    // credited to `liquidator` are the same storage slot when the two
+    // addresses are equal, so the seizure netted to zero while the debt
+    // reduction was real — erasing debt for free with no actual repayment.
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+    force_position(&env, &client.address, &user, 100, 100);
+
+    let result = client.try_liquidate(&user, &user, &50);
+    assert_eq!(result, Err(Ok(Error::SelfLiquidationNotAllowed)));
+
+    // Position must be completely untouched by the rejected attempt.
+    let pos = client.get_user_position(&user);
+    assert_eq!(pos.borrowed, 100);
+    assert_eq!(pos.deposited, 100);
 }
