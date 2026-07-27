@@ -2181,6 +2181,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "price_feed_adapter"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "primeorder"
 version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
