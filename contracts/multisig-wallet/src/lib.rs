@@ -33,11 +33,12 @@ mod types;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Vec};
 
 use crate::storage::{
-    get_max_delay, get_min_delay, get_threshold, get_tx, get_tx_count, has_owner, is_confirmed,
-    is_initialized, record_confirmation, remove_confirmation, set_initialized, set_max_delay,
-    set_min_delay, set_threshold, set_tx, set_tx_count,
+    get_max_delay, get_min_delay, get_owner_at, get_owner_count, get_threshold, get_tx,
+    get_tx_count, has_owner, is_confirmed, is_initialized, record_confirmation,
+    remove_confirmation, remove_is_owner, remove_owner_at, set_initialized, set_is_owner,
+    set_max_delay, set_min_delay, set_owner_at, set_owner_count, set_threshold, set_tx, set_tx_count,
 };
-use crate::types::{DataKey, Error, InstanceKey, Transaction, TxStatus};
+use crate::types::{Error, Transaction, TxStatus};
 
 // ── Contract entry point ──────────────────────────────────────────────────────
 
@@ -83,16 +84,10 @@ impl MultisigWallet {
         }
 
         // Persist owners.
-        env.storage()
-            .instance()
-            .set(&InstanceKey::OwnerCount, &seen.len());
+        set_owner_count(&env, seen.len());
         for (i, owner) in seen.iter().enumerate() {
-            env.storage()
-                .persistent()
-                .set(&DataKey::OwnerAt(i as u32), &owner);
-            env.storage()
-                .persistent()
-                .set(&DataKey::IsOwner(owner.clone()), &true);
+            set_owner_at(&env, i as u32, &owner);
+            set_is_owner(&env, &owner);
         }
 
         set_threshold(&env, threshold);
@@ -118,20 +113,10 @@ impl MultisigWallet {
             return Err(Error::OwnerExists);
         }
 
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&InstanceKey::OwnerCount)
-            .unwrap_or(0);
-        env.storage()
-            .persistent()
-            .set(&DataKey::OwnerAt(count), &new_owner);
-        env.storage()
-            .persistent()
-            .set(&DataKey::IsOwner(new_owner.clone()), &true);
-        env.storage()
-            .instance()
-            .set(&InstanceKey::OwnerCount, &(count + 1));
+        let count = get_owner_count(&env);
+        set_owner_at(&env, count, &new_owner);
+        set_is_owner(&env, &new_owner);
+        set_owner_count(&env, count + 1);
 
         env.events()
             .publish((symbol_short!("OwnerAdd"),), (caller, new_owner));
@@ -152,11 +137,7 @@ impl MultisigWallet {
             return Err(Error::SelfRemoval);
         }
 
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&InstanceKey::OwnerCount)
-            .unwrap_or(0);
+        let count = get_owner_count(&env);
         if count - 1 < get_threshold(&env) {
             return Err(Error::InvalidThreshold);
         }
@@ -164,36 +145,24 @@ impl MultisigWallet {
         // Find owner's index and swap with last.
         let mut idx: Option<u32> = None;
         for i in 0..count {
-            let cur: Address = env
-                .storage()
-                .persistent()
-                .get(&DataKey::OwnerAt(i))
-                .unwrap();
-            if cur == owner {
-                idx = Some(i);
-                break;
+            if let Some(cur) = get_owner_at(&env, i) {
+                if cur == owner {
+                    idx = Some(i);
+                    break;
+                }
             }
         }
         if let Some(i) = idx {
             let last_idx = count - 1;
             if i != last_idx {
-                let last: Address = env
-                    .storage()
-                    .persistent()
-                    .get(&DataKey::OwnerAt(last_idx))
-                    .unwrap();
-                env.storage().persistent().set(&DataKey::OwnerAt(i), &last);
+                if let Some(last) = get_owner_at(&env, last_idx) {
+                    set_owner_at(&env, i, &last);
+                }
             }
-            env.storage()
-                .persistent()
-                .remove(&DataKey::OwnerAt(last_idx));
+            remove_owner_at(&env, last_idx);
         }
-        env.storage()
-            .persistent()
-            .remove(&DataKey::IsOwner(owner.clone()));
-        env.storage()
-            .instance()
-            .set(&InstanceKey::OwnerCount, &(count - 1));
+        remove_is_owner(&env, &owner);
+        set_owner_count(&env, count - 1);
 
         env.events()
             .publish((symbol_short!("OwnerRem"),), (caller, owner));
@@ -209,11 +178,7 @@ impl MultisigWallet {
         if new_threshold == 0 {
             return Err(Error::InvalidThreshold);
         }
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&InstanceKey::OwnerCount)
-            .unwrap_or(0);
+        let count = get_owner_count(&env);
         if new_threshold > count {
             return Err(Error::InvalidThreshold);
         }
@@ -411,30 +376,19 @@ impl MultisigWallet {
 
     pub fn get_owners(env: Env) -> Result<Vec<Address>, Error> {
         ensure_initialized(&env)?;
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&InstanceKey::OwnerCount)
-            .unwrap_or(0);
+        let count = get_owner_count(&env);
         let mut out: Vec<Address> = Vec::new(&env);
         for i in 0..count {
-            let a: Address = env
-                .storage()
-                .persistent()
-                .get(&DataKey::OwnerAt(i))
-                .unwrap();
-            out.push_back(a);
+            if let Some(a) = get_owner_at(&env, i) {
+                out.push_back(a);
+            }
         }
         Ok(out)
     }
 
     pub fn get_owner_count(env: Env) -> Result<u32, Error> {
         ensure_initialized(&env)?;
-        Ok(env
-            .storage()
-            .instance()
-            .get(&InstanceKey::OwnerCount)
-            .unwrap_or(0))
+        Ok(get_owner_count(&env))
     }
 
     pub fn is_owner(env: Env, addr: Address) -> Result<bool, Error> {

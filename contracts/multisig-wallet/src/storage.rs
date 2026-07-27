@@ -56,10 +56,47 @@ pub fn get_max_delay(env: &Env) -> u64 {
 
 // ── Owners ────────────────────────────────────────────────────────────────────
 
+pub fn get_owner_count(env: &Env) -> u32 {
+    env.storage()
+        .instance()
+        .get(&InstanceKey::OwnerCount)
+        .unwrap_or(0)
+}
+
+pub fn set_owner_count(env: &Env, count: u32) {
+    env.storage().instance().set(&InstanceKey::OwnerCount, &count);
+}
+
+pub fn get_owner_at(env: &Env, idx: u32) -> Option<Address> {
+    env.storage().persistent().get(&DataKey::OwnerAt(idx))
+}
+
+pub fn set_owner_at(env: &Env, idx: u32, owner: &Address) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::OwnerAt(idx), owner);
+}
+
+pub fn remove_owner_at(env: &Env, idx: u32) {
+    env.storage().persistent().remove(&DataKey::OwnerAt(idx));
+}
+
 pub fn has_owner(env: &Env, addr: &Address) -> bool {
     env.storage()
         .persistent()
         .has(&DataKey::IsOwner(addr.clone()))
+}
+
+pub fn set_is_owner(env: &Env, addr: &Address) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::IsOwner(addr.clone()), &true);
+}
+
+pub fn remove_is_owner(env: &Env, addr: &Address) {
+    env.storage()
+        .persistent()
+        .remove(&DataKey::IsOwner(addr.clone()));
 }
 
 // ── Transactions ──────────────────────────────────────────────────────────────
