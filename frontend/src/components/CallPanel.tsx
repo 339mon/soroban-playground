@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Send, Code2, AlertCircle } from "lucide-react";
 import {
   buildAbiArguments,
@@ -97,11 +97,11 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
   const abiValidationError = useMemo(() => validateAbiArguments(abiFunction, formValues), [abiFunction, formValues]);
   const canInvoke = Boolean(contractId && funcName.trim()) && !parseError && (!abiFunction ? !parsedArgs.error : !abiValidationError);
 
-  const handleFieldChange = (name: string, value: unknown) => {
+  const handleFieldChange = useCallback((name: string, value: unknown) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleInvoke = () => {
+  const handleInvoke = useCallback(() => {
     if (!contractId) {
       setParseError("Deploy a contract before invoking a function.");
       return;
@@ -130,7 +130,7 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
     }
 
     onInvoke(trimmedName, parsedArgs.value);
-  };
+  }, [contractId, funcName, abiFunction, formValues, onInvoke, parsedArgs.error, parsedArgs.value]);
 
   return (
     <div className="flex flex-col space-y-4 p-5 bg-gray-900 border border-gray-800 rounded-xl shadow-lg mt-4">
