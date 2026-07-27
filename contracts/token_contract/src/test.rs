@@ -237,12 +237,7 @@ fn test_burn_from_with_allowance() {
     let owner = Address::generate(&env);
     let spender = Address::generate(&env);
     client.mint(&admin, &owner, &1_000i128);
-    client.approve(
-        &owner,
-        &spender,
-        &400i128,
-        &(env.ledger().sequence() + 50),
-    );
+    client.approve(&owner, &spender, &400i128, &(env.ledger().sequence() + 50));
     client.burn_from(&spender, &owner, &250i128);
     assert_eq!(client.balance(&owner), 750);
     assert_eq!(client.total_supply(), 750);
@@ -255,12 +250,7 @@ fn test_burn_from_exceeds_allowance_fails() {
     let owner = Address::generate(&env);
     let spender = Address::generate(&env);
     client.mint(&admin, &owner, &1_000i128);
-    client.approve(
-        &owner,
-        &spender,
-        &100i128,
-        &(env.ledger().sequence() + 50),
-    );
+    client.approve(&owner, &spender, &100i128, &(env.ledger().sequence() + 50));
     let result = client.try_burn_from(&spender, &owner, &200i128);
     assert!(matches!(result, Err(Ok(Error::InsufficientAllowance))));
 }
