@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 StellarDevTools
+// Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
 #![cfg(test)]
@@ -6,6 +6,7 @@
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _, Events},
+    Env,
     vec, IntoVal, symbol_short, Env, Symbol, TryFromVal,
 };
 
@@ -64,7 +65,7 @@ fn force_position(
 
 #[test]
 fn test_initialize_ok() {
-    let (_env, _admin, client) = setup();
+    let (_env, _admin, _client) = setup();
     // If we get here without panic the contract initialised correctly.
 }
 
@@ -297,16 +298,17 @@ fn test_repay_nothing_borrowed_fails() {
 
 #[test]
 fn test_repay_emits_event() {
-    let (env, _admin, client) = setup();
+    let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, LendingProtocol);
-    let client2 = LendingProtocolClient::new(&env, &contract_id);
-    let admin2 = Address::generate(&env);
-    client2.initialize(&admin2);
+    let client = LendingProtocolClient::new(&env, &contract_id);
+    let admin = Address::generate(&env);
+    client.initialize(&admin);
 
     let user = Address::generate(&env);
-    client2.deposit(&user, &300);
-    client2.borrow(&user, &100);
-    client2.repay(&user, &20);
+    client.deposit(&user, &300);
+    client.borrow(&user, &100);
+    client.repay(&user, &20);
 
     // soroban_sdk::Val (the type of raw event topics/data) doesn't implement
     // PartialEq in this SDK version, so comparing the event tuple directly
@@ -314,6 +316,22 @@ fn test_repay_emits_event() {
     // decode each Val back into a concrete, comparable type instead.
     let last_event = env.events().all().last().unwrap();
     assert_eq!(last_event.0, contract_id);
+    let (repaid, credit): (i128, i128) = soroban_sdk::FromVal::from_val(&env, &last_event.2);
+    assert_eq!(repaid, 20);
+    assert_eq!(credit, 5);
+}
+
+fn setup_position(env: &Env, contract_id: &Address, user: &Address, deposited: i128, borrowed: i128) {
+    env.as_contract(contract_id, || {
+        set_position(env, user, &UserPosition {
+            deposited,
+            borrowed,
+            last_updated: env.ledger().timestamp(),
+            credit_score: 0,
+        });
+        set_total_deposited(env, get_total_deposited(env) + deposited);
+        set_total_borrowed(env, get_total_borrowed(env) + borrowed);
+    });
 
     let topic0 = Symbol::try_from_val(&env, &last_event.1.get(0).unwrap()).unwrap();
     assert_eq!(topic0, symbol_short!("repayment"));
@@ -332,6 +350,8 @@ fn test_liquidate_undercollateralised_position() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
+    // Setup 100 deposited, 100 borrowed → borrowed * 110 = 11000 > deposited * 100 = 10000.
+    setup_position(&env, &client.address, &user, 100, 100);
     // deposited=100, borrowed=100 → borrowed * 110 = 11000 > deposited * 100 = 10000.
     // borrow()'s own 150% check can never leave a position this thin, so
     // this is forced directly — see force_position's doc comment.
@@ -380,6 +400,7 @@ fn test_liquidate_exceeds_borrow_fails() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
+    setup_position(&env, &client.address, &user, 100, 100);
     force_position(&env, &client.address, &user, 100, 100);
 
     // Try to liquidate more than the outstanding debt.
@@ -393,6 +414,7 @@ fn test_liquidate_zero_amount_fails() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
+    setup_position(&env, &client.address, &user, 100, 100);
     force_position(&env, &client.address, &user, 100, 100);
 
     let result = client.try_liquidate(&liquidator, &user, &0);
@@ -405,6 +427,7 @@ fn test_liquidate_updates_pool_stats() {
     let user = Address::generate(&env);
     let liquidator = Address::generate(&env);
 
+    setup_position(&env, &client.address, &user, 100, 100);
     force_position(&env, &client.address, &user, 100, 100);
     client.liquidate(&liquidator, &user, &50);
 
@@ -452,6 +475,63 @@ fn test_credit_score_accumulates_across_repayments() {
 
     let pos = client.get_user_position(&user);
     assert_eq!(pos.credit_score, 15); // 3 × 5
+}
+
+// ── Uninitialized & Borrow Edge Cases ─────────────────────────────────────────
+
+#[test]
+fn test_uninitialized_contract_fails() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, LendingProtocol);
+    let client = LendingProtocolClient::new(&env, &contract_id);
+    let user = Address::generate(&env);
+
+    assert_eq!(client.try_deposit(&user, &100), Err(Ok(Error::NotInitialized)));
+    assert_eq!(client.try_borrow(&user, &50), Err(Ok(Error::NotInitialized)));
+    assert_eq!(client.try_withdraw(&user, &50), Err(Ok(Error::NotInitialized)));
+    assert_eq!(client.try_repay(&user, &50), Err(Ok(Error::NotInitialized)));
+}
+
+#[test]
+fn test_borrow_without_deposit_fails() {
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+
+    let result = client.try_borrow(&user, &100);
+    assert_eq!(result, Err(Ok(Error::InsufficientCollateral)));
+}
+
+#[test]
+fn test_borrow_exact_collateral_boundary() {
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+
+    // Deposit 300, borrow 200: 200 * 150 = 30000 <= 300 * 100 = 30000 -> OK
+    client.deposit(&user, &300);
+    client.borrow(&user, &200);
+
+    let pos = client.get_user_position(&user);
+    assert_eq!(pos.borrowed, 200);
+}
+
+#[test]
+fn test_borrow_successive_accumulating_borrows() {
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+
+    // Deposit 600 -> Max borrowable = 400
+    client.deposit(&user, &600);
+    client.borrow(&user, &150);
+    client.borrow(&user, &150);
+    client.borrow(&user, &100);
+
+    let pos = client.get_user_position(&user);
+    assert_eq!(pos.borrowed, 400);
+
+    // 1 more borrow exceeds 150% collateral ratio
+    let res = client.try_borrow(&user, &1);
+    assert_eq!(res, Err(Ok(Error::InsufficientCollateral)));
 }
 
 #[test]
