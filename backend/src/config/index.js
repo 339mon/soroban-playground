@@ -10,6 +10,8 @@ const DEFAULTS = {
   GLOBAL_RATE_LIMIT_MAX: 1000,
   COMPILE_RATE_LIMIT_WINDOW_MS: 60 * 1000,
   COMPILE_RATE_LIMIT_MAX: 10,
+  DEPLOY_RATE_LIMIT_WINDOW_MS: 60 * 1000,
+  DEPLOY_RATE_LIMIT_MAX: 10,
   COMPILE_COMMAND: 'cargo build --target wasm32-unknown-unknown --release',
   COMPILE_TIMEOUT_MS: 120000,
   COMPILE_MAX_SOURCE_BYTES: 1024 * 1024,
@@ -183,6 +185,22 @@ export function createConfig(env = process.env, options = {}) {
           env.COMPILE_RATE_LIMIT_MAX,
           DEFAULTS.COMPILE_RATE_LIMIT_MAX,
           'COMPILE_RATE_LIMIT_MAX',
+          warnings,
+          { min: 1 }
+        ),
+      },
+      deploy: {
+        windowMs: toInt(
+          env.DEPLOY_RATE_LIMIT_WINDOW_MS,
+          DEFAULTS.DEPLOY_RATE_LIMIT_WINDOW_MS,
+          'DEPLOY_RATE_LIMIT_WINDOW_MS',
+          warnings,
+          { min: 1 }
+        ),
+        max: toInt(
+          env.DEPLOY_RATE_LIMIT_MAX,
+          DEFAULTS.DEPLOY_RATE_LIMIT_MAX,
+          'DEPLOY_RATE_LIMIT_MAX',
           warnings,
           { min: 1 }
         ),
