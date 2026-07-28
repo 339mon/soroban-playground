@@ -20,6 +20,7 @@ const config = {
     '^react/(.*)$': path.resolve(frontendModules, 'react/$1'),
     '^react-dom$': path.resolve(frontendModules, 'react-dom'),
     '^react-dom/(.*)$': path.resolve(frontendModules, 'react-dom/$1'),
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   // Resolve modules from both the frontend and the workspace root.
   modulePaths: [frontendModules, rootModules],

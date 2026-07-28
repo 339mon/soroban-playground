@@ -12,6 +12,14 @@ global.IntersectionObserver = class IntersectionObserver {
   takeRecords() { return []; }
 };
 
+// Mock ResizeObserver for JSDOM
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+};
+
 // Mock crypto.subtle for JSDOM
 const mockDigest = jest.fn();
 Object.defineProperty(global, 'crypto', {
