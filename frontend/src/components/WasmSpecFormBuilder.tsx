@@ -15,7 +15,7 @@ interface WasmSpecFormBuilderProps {
   onChange: (name: string, value: unknown) => void;
 }
 
-export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSpecFormBuilderProps) {
+export default React.memo(function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSpecFormBuilderProps) {
   const { address: activeWalletAddress } = useWallet();
 
   if (!inputs || inputs.length === 0) {
@@ -159,4 +159,4 @@ export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSp
       })}
     </div>
   );
-}
+});
