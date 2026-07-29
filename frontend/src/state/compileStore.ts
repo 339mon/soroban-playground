@@ -1,15 +1,7 @@
 import { create } from 'zustand';
+import { classifyError, truncateMessage, type CompileError, type CompileErrorType } from '@/utils/compileErrors';
 
-const MAX_ERROR_LENGTH = 500;
-
-export type CompileErrorType = 'compilation' | 'network' | 'timeout' | 'rate-limit' | 'unknown';
-
-export interface CompileError {
-  message: string;
-  type: CompileErrorType;
-  code?: string;
-  retryable: boolean;
-}
+export type { CompileErrorType, CompileError };
 
 export interface CompileProgressState {
   isCompiling: boolean;
@@ -21,7 +13,6 @@ export interface CompileProgressState {
   queueLength: number;
   estimatedWaitTimeMs: number;
   error: CompileError | null;
-  // Setters
   startCompile: () => void;
   updateProgress: (payload: {
     status?: string;
@@ -35,36 +26,13 @@ export interface CompileProgressState {
   successCompile: (msg?: string) => void;
   failCompile: (errorMsg: string, errorType?: CompileErrorType) => void;
   reset: () => void;
+  retryCompile: () => void;
 }
 
-function truncateMessage(msg: string): string {
-  if (msg.length > MAX_ERROR_LENGTH) {
-    return msg.slice(0, MAX_ERROR_LENGTH) + '...';
-  }
-  return msg;
-}
-
-function classifyError(msg: string): { type: CompileErrorType; retryable: boolean } {
-  const lower = msg.toLowerCase();
-  if (lower.includes('timeout') || lower.includes('timed out')) {
-    return { type: 'timeout', retryable: true };
-  }
-  if (lower.includes('rate limit') || lower.includes('too many requests') || lower.includes('429')) {
-    return { type: 'rate-limit', retryable: true };
-  }
-  if (
-    lower.includes('network') ||
-    lower.includes('econnrefused') ||
-    lower.includes('enotfound') ||
-    lower.includes('fetch failed')
-  ) {
-    return { type: 'network', retryable: true };
-  }
-  if (lower.includes('syntax') || lower.includes('error[E') || lower.includes('compilation')) {
-    return { type: 'compilation', retryable: false };
-  }
-  return { type: 'unknown', retryable: false };
-}
+export const selectIsCompiling = (state: CompileProgressState) => state.isCompiling;
+export const selectStatus = (state: CompileProgressState) => state.status;
+export const selectProgress = (state: CompileProgressState) => state.progress;
+export const selectError = (state: CompileProgressState) => state.error;
 
 export const useCompileStore = create<CompileProgressState>((set) => ({
   isCompiling: false,
@@ -137,4 +105,12 @@ export const useCompileStore = create<CompileProgressState>((set) => ({
     estimatedWaitTimeMs: 0,
     error: null,
   }),
+
+  retryCompile: () => set((state) => ({
+    isCompiling: true,
+    status: 'queued',
+    message: 'Retrying compilation...',
+    progress: state.progress > 0 ? state.progress : 0,
+    error: null,
+  })),
 }));
