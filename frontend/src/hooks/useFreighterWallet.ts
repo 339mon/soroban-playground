@@ -12,6 +12,8 @@ export interface WalletState {
   connect: () => Promise<void>;
   disconnect: () => void;
   signTransaction: (xdr: string) => Promise<string | null>;
+  retry: () => Promise<void>;
+  lastAttemptedWallet: string | null;
 }
 
 export function useFreighterWallet(): WalletState {
@@ -25,5 +27,7 @@ export function useFreighterWallet(): WalletState {
     connect: () => wallet.connect("freighter"),
     disconnect: wallet.disconnect,
     signTransaction: wallet.signTransaction,
+    retry: () => wallet.retry(),
+    lastAttemptedWallet: wallet.lastAttemptedWallet,
   };
 }
