@@ -356,12 +356,11 @@ function PoolCard({
               <p className="text-xs text-gray-500">NFTs in Pool</p>
               <p className="mt-0.5 text-gray-300">{pool.nftCount}</p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">Token Balance</p>
-              <p className="mt-0.5 text-gray-300">
-                {stroopsToXlm(pool.tokenBalance)} XLM
-              </p>
-            </div>
+            <TokenBalanceDisplay
+              balance={pool.tokenBalance}
+              spotPrice={pool.spotPrice}
+              poolType={pool.poolType}
+            />
             <div>
               <p className="text-xs text-gray-500">Total Volume</p>
               <p className="mt-0.5 text-gray-300">
