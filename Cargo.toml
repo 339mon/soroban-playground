@@ -42,6 +42,7 @@ members = [
     "contracts/multisig-wallet",
     "contracts/yield-optimizer",
     "contracts/insurance-protocol",
+    "contracts/identity-registry",
     "contracts/reputation-system",
     "contracts/bug-bounty",
 ]
