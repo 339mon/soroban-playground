@@ -192,8 +192,7 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
     appendEvents(parsed);
   }, [appendEvents]);
 
-  // ── REST fallback polling ───────────────────────────────────────────────────
-
+  // REST fallback polling
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startPolling = useCallback(() => {
@@ -206,11 +205,17 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
         if (contractId) params.set("contract_id", contractId);
         if (eventType) params.set("event_type", eventType);
         const res = await fetch(`${fallbackRestUrl}?${params}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          setStatus("error");
+          return;
+        }
         const data = (await res.json()) as { events?: WsEvent[] };
-        if (data.events) appendEvents(data.events);
+        if (data.events) {
+          appendEvents(data.events);
+          setStatus("fallback");
+        }
       } catch {
-        // Silently retry on next interval.
+        setStatus("error");
       }
     }, pollIntervalMs);
   }, [fallbackRestUrl, contractId, eventType, pollIntervalMs, appendEvents]);
@@ -264,10 +269,14 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
           break;
 
         case "disconnected":
-          setStatus("reconnecting");
-          // If the worker exhausted reconnect attempts (code 1006 = abnormal closure
-          // after many retries), fall back to REST.
-          if (fallbackRestUrl) startPolling();
+          // If we have a REST fallback, we go to reconnecting / fallback polling.
+          // Otherwise, we are offline and set status to error.
+          if (fallbackRestUrl) {
+            setStatus("reconnecting");
+            startPolling();
+          } else {
+            setStatus("error");
+          }
           break;
 
         case "fallback_events":

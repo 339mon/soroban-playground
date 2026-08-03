@@ -14,7 +14,7 @@ interface WalletOption {
 }
 
 export default function WalletConnectionWizard() {
-  const { connect, disconnect, activeWallet, activeAccount, allAccounts, switchAccount, status, error, isWalletDetected } = useWallet();
+  const { connect, disconnect, activeWallet, activeAccount, allAccounts, switchAccount, status, error, isWalletDetected, retry, lastAttemptedWallet } = useWallet();
 
   const wallets: WalletOption[] = [
     {
@@ -172,9 +172,20 @@ export default function WalletConnectionWizard() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm" role="alert" aria-live="assertive">
           <AlertCircle className="shrink-0 mt-0.5" size={18} />
-          <p>{error}</p>
+          <div className="flex-1">
+            <p>{error}</p>
+            {lastAttemptedWallet && status === "error" && (
+              <button
+                onClick={retry}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-rose-200 hover:text-rose-100 transition-colors"
+              >
+                <RefreshCw size={14} />
+                Retry {lastAttemptedWallet}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

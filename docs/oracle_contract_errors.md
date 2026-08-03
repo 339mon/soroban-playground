@@ -1,3 +1,9 @@
-﻿# Oracle Contract Error Handling
+# Robust Error Handling in Oracle Contract Specification
 
-Handle stale feed, missing price and aggregator failure cases. Surface typed OracleError to callers.
+Specification and architecture guide for Robust Error Handling in Oracle Contract on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #984
+

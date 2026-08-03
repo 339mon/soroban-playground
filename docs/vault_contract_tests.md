@@ -1,4 +1,9 @@
-﻿# Vault Contract Test Suite
+# Implement Test Suite for Vault Contract Specification
 
-Adds deposit/withdrawal happy paths, reentrancy guard verification,
-and share price calculation edge cases.
+Specification and architecture guide for Implement Test Suite for Vault Contract on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #988
+

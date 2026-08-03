@@ -1,3 +1,9 @@
-﻿# Subscription Manager Error Handling
+# Robust Error Handling in Subscription Manager Specification
 
-Add SubscriptionError enum. Handle expired plan gracefully. Validate billing cycle parameters at entry point.
+Specification and architecture guide for Robust Error Handling in Subscription Manager on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #1002
+

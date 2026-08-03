@@ -1,3 +1,9 @@
-﻿# Bounty Board Error Handling
+# Robust Error Handling in Bounty Board Specification
 
-Add BountyError enum with InvalidReward, AlreadyClaimed variants. Validate hunter eligibility before state mutation.
+Specification and architecture guide for Robust Error Handling in Bounty Board on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #1005
+

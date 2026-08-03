@@ -1,3 +1,9 @@
-﻿# Governance Token Test Suite
+# Implement Test Suite for Governance Token Specification
 
-Cover mint, burn, delegation and voting power transfer scenarios. Add edge cases for zero-balance delegation.
+Specification and architecture guide for Implement Test Suite for Governance Token on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #997
+

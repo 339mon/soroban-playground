@@ -1,3 +1,9 @@
-﻿# Identity Registry Test Suite
+# Implement Test Suite for Identity Registry Specification
 
-Cover registration, lookup, revocation and transfer flows. Add duplicate registration rejection tests.
+Specification and architecture guide for Implement Test Suite for Identity Registry on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #1003
+

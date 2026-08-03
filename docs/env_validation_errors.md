@@ -1,3 +1,9 @@
-﻿# Environment Variable Validation Error Handling
+# Robust Error Handling in Environment Variable Validation Specification
 
-Add EnvError enum. Fail fast on missing required vars. Group validation errors before exiting.
+Specification and architecture guide for Robust Error Handling in Environment Variable Validation on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #978
+

@@ -1,3 +1,9 @@
-﻿# Token Contract Test Suite
+# Implement Test Suite for Token Contract Specification
 
-Cover mint, burn, transfer, allowance and permit flows. Add overflow boundary tests.
+Specification and architecture guide for Implement Test Suite for Token Contract on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #982
+

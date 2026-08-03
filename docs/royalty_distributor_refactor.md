@@ -1,3 +1,9 @@
-﻿# Royalty Distributor Refactor
+# Optimize and Clean Up Royalty Distributor Specification
 
-Merge duplicate payout logic into single dispatch function. Remove O(n^2) recipient iteration.
+Specification and architecture guide for Optimize and Clean Up Royalty Distributor on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #1001
+
