@@ -1,3 +1,9 @@
-﻿# CI/CD Pipeline Test Suite
+# Implement Test Suite for CI/CD Pipeline Setup Specification
 
-Add workflow validation tests, artifact upload checks and deployment gate tests.
+Specification and architecture guide for Implement Test Suite for CI/CD Pipeline Setup on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #979
+
