@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFreighterWallet } from "@/hooks/useFreighterWallet";
@@ -48,6 +48,65 @@ type NavGroup = {
   items: NavItem[];
 };
 
+const NAVIGATION: NavGroup[] = [
+  {
+    groupName: "Core IDE & Ops",
+    items: [
+      { name: "IDE Playground", href: "/playground", icon: Code2 },
+      { name: "Compile Dashboard", href: "/compile-dashboard", icon: Zap },
+      { name: "Template Library", href: "/template-library", icon: LayoutGrid },
+      { name: "Docs & Reference", href: "/docs", icon: BookOpen },
+      { name: "Audit Explorer", href: "/audit", icon: Shield },
+      { name: "Storage Browser", href: "/storage-browser", icon: Database },
+      { name: "Search Utility", href: "/search", icon: Search },
+      { name: "Ledger Migration", href: "/migration", icon: Send },
+      { name: "XDR Inspector", href: "/xdr-decoder", icon: Code2 },
+      { name: "Rate Limits", href: "/rate-limits", icon: Sliders }
+    ]
+  },
+  {
+    groupName: "DeFi Suite",
+    items: [
+      { name: "Synthetic Assets", href: "/", icon: Coins },
+      { name: "Limit Order Book", href: "/orderbook", icon: Boxes },
+      { name: "Stablecoin Peg", href: "/stablecoin", icon: Waves },
+      { name: "Yield Optimizer", href: "/yield-optimizer", icon: TrendingUp },
+      { name: "NFT AMM Pool", href: "/nft-amm", icon: Activity }
+    ]
+  },
+  {
+    groupName: "Governance & Trust",
+    items: [
+      { name: "Governance Portal", href: "/governance/history", icon: Users },
+      { name: "Quadratic Voting", href: "/quadratic-voting", icon: Fingerprint },
+      { name: "Treasury Panel", href: "/treasury", icon: Wallet },
+      { name: "Bug Bounty Program", href: "/bug-bounty", icon: AlertTriangle }
+    ]
+  },
+  {
+    groupName: "Real World Assets",
+    items: [
+      { name: "Tokenized REIT", href: "/reit", icon: Building2 },
+      { name: "Patent Registry", href: "/patents", icon: FileText },
+      { name: "Music Licensing", href: "/music-licensing", icon: Music },
+      { name: "Data Marketplace", href: "/data-marketplace", icon: Database },
+      { name: "Content Publishing", href: "/content-publishing", icon: Globe }
+    ]
+  },
+  {
+    groupName: "Gaming & Sports",
+    items: [
+      { name: "Sports Dashboard", href: "/sports", icon: Trophy },
+      { name: "Sports Prediction", href: "/sports-prediction", icon: Target }
+    ]
+  }
+];
+
+const formatAddress = (addr: string | null) => {
+  if (!addr) return "";
+  return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
+};
+
 export default function SidebarShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const wallet = useFreighterWallet();
@@ -61,66 +120,12 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
     "Gaming & Sports": false
   });
 
-  const navigation: NavGroup[] = [
-    {
-      groupName: "Core IDE & Ops",
-      items: [
-        { name: "IDE Playground", href: "/playground", icon: Code2 },
-        { name: "Compile Dashboard", href: "/compile-dashboard", icon: Zap },
-        { name: "Template Library", href: "/template-library", icon: LayoutGrid },
-        { name: "Docs & Reference", href: "/docs", icon: BookOpen },
-        { name: "Audit Explorer", href: "/audit", icon: Shield },
-        { name: "Storage Browser", href: "/storage-browser", icon: Database },
-        { name: "Search Utility", href: "/search", icon: Search },
-        { name: "Ledger Migration", href: "/migration", icon: Send },
-        { name: "XDR Inspector", href: "/xdr-decoder", icon: Code2 },
-        { name: "Rate Limits", href: "/rate-limits", icon: Sliders }
-      ]
-    },
-    {
-      groupName: "DeFi Suite",
-      items: [
-        { name: "Synthetic Assets", href: "/", icon: Coins },
-        { name: "Limit Order Book", href: "/orderbook", icon: Boxes },
-        { name: "Stablecoin Peg", href: "/stablecoin", icon: Waves },
-        { name: "Yield Optimizer", href: "/yield-optimizer", icon: TrendingUp },
-        { name: "NFT AMM Pool", href: "/nft-amm", icon: Activity }
-      ]
-    },
-    {
-      groupName: "Governance & Trust",
-      items: [
-        { name: "Governance Portal", href: "/governance/history", icon: Users },
-        { name: "Quadratic Voting", href: "/quadratic-voting", icon: Fingerprint },
-        { name: "Treasury Panel", href: "/treasury", icon: Wallet },
-        { name: "Bug Bounty Program", href: "/bug-bounty", icon: AlertTriangle }
-      ]
-    },
-    {
-      groupName: "Real World Assets",
-      items: [
-        { name: "Tokenized REIT", href: "/reit", icon: Building2 },
-        { name: "Patent Registry", href: "/patents", icon: FileText },
-        { name: "Music Licensing", href: "/music-licensing", icon: Music },
-        { name: "Data Marketplace", href: "/data-marketplace", icon: Database },
-        { name: "Content Publishing", href: "/content-publishing", icon: Globe }
-      ]
-    },
-    {
-      groupName: "Gaming & Sports",
-      items: [
-        { name: "Sports Dashboard", href: "/sports", icon: Trophy },
-        { name: "Sports Prediction", href: "/sports-prediction", icon: Target }
-      ]
-    }
-  ];
-
-  const toggleGroup = (groupName: string) => {
+  const toggleGroup = useCallback((groupName: string) => {
     setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
-  };
+  }, []);
 
-  const getActiveItemName = () => {
-    for (const group of navigation) {
+  const activeItemName = useMemo(() => {
+    for (const group of NAVIGATION) {
       const active = group.items.find(item => item.href === pathname);
       if (active) return active.name;
     }
@@ -128,19 +133,14 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
     if (pathname.startsWith("/music-licensing")) return "Music Licensing";
     if (pathname.startsWith("/governance")) return "Governance Portal";
     return "Stellar Playground";
-  };
+  }, [pathname]);
 
-  const formatAddress = (addr: string | null) => {
-    if (!addr) return "";
-    return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
-  };
-
-  const isActive = (href: string) => {
+  const isActive = useCallback((href: string) => {
     if (href === "/") {
       return pathname === "/";
     }
     return pathname.startsWith(href);
-  };
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen bg-[#060c18] text-[#e6edf7] font-sans antialiased selection:bg-teal-500/30 selection:text-teal-200">
@@ -186,7 +186,7 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
 
         {/* Navigation list */}
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
-          {navigation.map((group) => (
+          {NAVIGATION.map((group) => (
             <div key={group.groupName} className="space-y-1">
               {!collapsed && (
                 <button
@@ -308,7 +308,7 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
-          {navigation.map((group) => (
+          {NAVIGATION.map((group) => (
             <div key={group.groupName} className="space-y-1">
               <p className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">
                 {group.groupName}
@@ -386,7 +386,7 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
               </span>
               <span className="hidden sm:inline text-slate-600 font-light">/</span>
               <h1 className="text-xs sm:text-sm font-semibold tracking-wider text-white uppercase bg-slate-800/60 border border-slate-700/40 px-2.5 py-1 rounded-lg">
-                {getActiveItemName()}
+                {activeItemName}
               </h1>
             </div>
           </div>

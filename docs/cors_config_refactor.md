@@ -1,3 +1,9 @@
-﻿# CORS Configuration Refactor
+# Optimize and Clean Up CORS Configuration Specification
 
-Centralize allowed origins into a single config struct. Remove per-handler CORS overrides.
+Specification and architecture guide for Optimize and Clean Up CORS Configuration on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #977
+

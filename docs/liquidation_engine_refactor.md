@@ -1,3 +1,9 @@
-﻿# Liquidation Engine Refactor
+# Optimize and Clean Up Liquidation Engine Specification
 
-Consolidate liquidation threshold checks. Remove redundant balance queries. Add structured logging for liquidation events.
+Specification and architecture guide for Optimize and Clean Up Liquidation Engine on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #995
+

@@ -43,4 +43,5 @@ members = [
     "contracts/yield-optimizer",
     "contracts/insurance-protocol",
     "contracts/reputation-system",
+    "contracts/bug-bounty",
 ]

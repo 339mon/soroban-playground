@@ -73,20 +73,23 @@ function EventRow({ event }: { event: WsEvent }) {
   const [expanded, setExpanded] = useState(false);
 
   const parsedData = useMemo(() => {
+    if (!event) return "";
     if (event.type === "quorum_update") {
       return JSON.stringify(event, null, 2);
     }
     try {
-      return JSON.stringify(JSON.parse(event.data), null, 2);
+      return JSON.stringify(JSON.parse(event.data || "{}"), null, 2);
     } catch {
-      return event.data;
+      return event.data || "";
     }
   }, [event]);
 
-  const eventType = event.type === "event" ? event.event_type : event.type;
-  const contractId = event.type === "event" ? event.contract_id : event.id;
-  const ledger = event.type === "event" ? event.ledger : 0;
-  const timestamp = event.type === "event" ? event.ledger_closed_at : event.created_at;
+  if (!event) return null;
+
+  const eventType = event.type === "event" ? (event.event_type || "unknown") : (event.type || "unknown");
+  const contractId = event.type === "event" ? (event.contract_id || "") : (event.id || "");
+  const ledger = event.type === "event" ? (event.ledger || 0) : 0;
+  const timestamp = event.type === "event" ? (event.ledger_closed_at || new Date().toISOString()) : (event.created_at || new Date().toISOString());
 
   return (
     <div
@@ -207,14 +210,36 @@ export function EventsPanel({
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto min-h-[200px] max-h-[360px]"
       >
-        {capped.length === 0 ? (
+        {status === "error" ? (
+          <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+            <p className="text-[13px] text-rose-400 mb-2">
+              Failed to connect to the event stream.
+            </p>
+            <button
+              onClick={reconnect}
+              className="px-3 py-1 text-xs font-semibold rounded bg-rose-500/20 text-rose-300 border border-rose-700/40 hover:bg-rose-500/30 transition-colors"
+              type="button"
+            >
+              Retry Connection
+            </button>
+          </div>
+        ) : capped.length === 0 ? (
           <p className="px-4 py-6 text-center text-[13px] text-slate-600 italic">
             {status === "connecting" || status === "reconnecting"
               ? "Connecting to event stream…"
-              : "No events yet. Waiting for on-chain activity."}
+              : status === "fallback"
+                ? "WebSocket disconnected. Polling for events…"
+                : "No events yet. Waiting for on-chain activity."}
           </p>
         ) : (
-          capped.map((event) => <EventRow key={event.id} event={event} />)
+          <div className="flex flex-col">
+            {status === "fallback" && (
+              <div className="px-4 py-1.5 text-[10px] text-center text-blue-300 bg-blue-500/10 border-b border-white/5">
+                WebSocket disconnected. Falling back to REST polling.
+              </div>
+            )}
+            {capped.map((event) => <EventRow key={event.id} event={event} />)}
+          </div>
         )}
       </div>
     </div>

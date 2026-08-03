@@ -34,6 +34,9 @@ impl BugBountyContract {
         if is_initialized(&env) {
             return Err(Error::AlreadyInitialized);
         }
+        if initial_pool < 0 {
+            return Err(Error::NegativeInitialPool);
+        }
         admin.require_auth();
         set_admin(&env, &admin);
         set_pool_balance(&env, initial_pool);
@@ -61,8 +64,12 @@ impl BugBountyContract {
     /// Top up the reward pool (admin only).
     pub fn fund_pool(env: Env, admin: Address, amount: i128) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
+        if amount <= 0 {
+            return Err(Error::NonPositiveFundAmount);
+        }
         let balance = get_pool_balance(&env);
-        set_pool_balance(&env, balance + amount);
+        let new_balance = balance.checked_add(amount).ok_or(Error::PoolOverflow)?;
+        set_pool_balance(&env, new_balance);
         Ok(())
     }
 
@@ -71,6 +78,10 @@ impl BugBountyContract {
         Self::assert_admin(&env, &admin)?;
         if amount == 0 {
             return Err(Error::ZeroReward);
+        }
+        // Cap at 10 000 XLM (100_000_000_000 stroops) per single payout tier
+        if amount > 100_000_000_000 {
+            return Err(Error::RewardTooLarge);
         }
         set_reward_for_severity(&env, severity, amount);
         Ok(())
@@ -93,8 +104,14 @@ impl BugBountyContract {
         if title.len() == 0 {
             return Err(Error::EmptyTitle);
         }
+        if title.len() > 128 {
+            return Err(Error::TitleTooLong);
+        }
         if description_hash.len() == 0 {
             return Err(Error::EmptyDescriptionHash);
+        }
+        if description_hash.len() > 256 {
+            return Err(Error::DescriptionHashTooLong);
         }
         if has_open_report(&env, &reporter) {
             return Err(Error::AlreadyHasOpenReport);

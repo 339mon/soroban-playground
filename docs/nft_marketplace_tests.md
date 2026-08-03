@@ -1,3 +1,9 @@
-﻿# NFT Marketplace Test Suite
+# Implement Test Suite for NFT Marketplace Specification
 
-Cover listing creation, bid submission, auction settlement and royalty distribution. Add cancellation flow tests.
+Specification and architecture guide for Implement Test Suite for NFT Marketplace on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #1000
+

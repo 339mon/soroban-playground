@@ -1,3 +1,9 @@
-﻿# AMM Contract Refactor
+# Optimize and Clean Up AMM Contract Specification
 
-Extract swap math into a pure library. Remove dead slippage fallback code.
+Specification and architecture guide for Optimize and Clean Up AMM Contract on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #983
+
