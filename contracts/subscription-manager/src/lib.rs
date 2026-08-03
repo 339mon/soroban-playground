@@ -70,11 +70,22 @@ impl SubscriptionManagerContract {
         let admin = get_admin(&env)?;
         admin.require_auth();
 
+        if name.len() == 0 {
+            return Err(Error::EmptyPlanName);
+        }
         if price <= 0 {
             return Err(Error::InvalidAmount);
         }
+        // Guard against prices so large they overflow multi-cycle accounting
+        if price > i128::MAX / 2 {
+            return Err(Error::PriceTooLarge);
+        }
         if interval == 0 {
             return Err(Error::InvalidInterval);
+        }
+        // 10 years = 315_360_000 seconds – prevents runaway next_payment_due schedules
+        if interval > 315_360_000 {
+            return Err(Error::IntervalTooLarge);
         }
 
         let plan_id = next_plan_id(&env)?;
@@ -233,6 +244,11 @@ impl SubscriptionManagerContract {
         }
 
         let token_client = token::Client::new(&env, &token);
+        let contract_balance = token_client.balance(&env.current_contract_address());
+        if amount > contract_balance {
+            return Err(Error::InsufficientContractBalance);
+        }
+
         token_client.transfer(&env.current_contract_address(), &admin, &amount);
         Ok(())
     }
