@@ -27,6 +27,16 @@ pub enum Error {
     InvalidInterval = 12,
     InsufficientBalance = 13,
     Overflow = 14,
+
+    // Additional edge-case errors
+    /// Plan name must not be empty
+    EmptyPlanName = 15,
+    /// Withdraw amount exceeds contract balance
+    InsufficientContractBalance = 16,
+    /// Plan price must not exceed i128::MAX / 2 to prevent overflow in multi-cycle accounting
+    PriceTooLarge = 17,
+    /// Interval must not exceed 10 years (315 360 000 s) to prevent runaway schedules
+    IntervalTooLarge = 18,
 }
 
 /// A billing plan defined by the contract admin
