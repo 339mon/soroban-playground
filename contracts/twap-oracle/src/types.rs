@@ -18,6 +18,10 @@ pub enum Error {
     EmptyAssetId = 9,
     MaxObservationsExceeded = 10,
     OraclePaused = 11,
+    /// Asset symbol already registered.
+    DuplicateSymbol = 12,
+    /// Latest observation is older than the asset's staleness window.
+    StaleObservation = 13,
 }
 
 /// A single price observation recorded by a feeder.

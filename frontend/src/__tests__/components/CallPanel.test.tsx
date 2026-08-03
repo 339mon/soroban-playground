@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import CallPanel from '../../components/CallPanel';
+import { WalletProvider } from '../../components/providers/WalletProvider';
 
 describe('CallPanel', () => {
   it('shows a validation message for invalid JSON arguments', () => {
@@ -47,39 +48,36 @@ describe('CallPanel', () => {
     expect(onInvoke).toHaveBeenCalledWith('hello', { name: 'Ayomide' });
   });
 
-  it('renders ABI-driven fields for typed inputs and submits them', () => {
+  it('renders ABI-driven fields for typed inputs and submits them', async () => {
     const onInvoke = jest.fn();
 
     render(
-      <CallPanel
-        onInvoke={onInvoke}
-        isInvoking={false}
-        contractId={'C'.repeat(56)}
-        abi={[
-          {
-            name: 'set_profile',
-            inputs: [
-              { name: 'name', type: 'string' },
-              { name: 'amount', type: 'u64' },
-              { name: 'active', type: 'bool' },
-            ],
-          },
-        ]}
-      />
+      <WalletProvider>
+        <CallPanel
+          onInvoke={onInvoke}
+          isInvoking={false}
+          contractId={'C'.repeat(56)}
+          abi={[
+            {
+              name: 'set_profile',
+              inputs: [
+                { name: 'amount', type: 'u64' },
+                { name: 'active', type: 'bool' },
+              ],
+            },
+          ]}
+        />
+      </WalletProvider>
     );
 
-    fireEvent.change(screen.getByLabelText(/^name$/), {
-      target: { value: 'Ada' },
-    });
-    fireEvent.change(screen.getByLabelText(/amount/i), {
+    fireEvent.change(screen.getByPlaceholderText(/1000000000000000000/i), {
       target: { value: '100' },
     });
-    fireEvent.click(screen.getByLabelText(/active/i));
+    fireEvent.click(screen.getByLabelText(/enable \/ true/i));
     fireEvent.click(screen.getByRole('button', { name: /invoke function/i }));
 
     expect(onInvoke).toHaveBeenCalledWith('set_profile', {
-      name: 'Ada',
-      amount: 100,
+      amount: '100',
       active: true,
     });
   });

@@ -94,6 +94,9 @@ impl BridgeContract {
     /// Update the daily volume cap (in stroops).
     pub fn set_daily_limit(env: Env, admin: Address, limit: i128) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
+        if limit < 0 {
+            return Err(Error::InvalidAmount);
+        }
         set_daily_limit(&env, limit);
         Ok(())
     }
@@ -146,13 +149,23 @@ impl BridgeContract {
         }
 
         let fee_bps = get_fee_bps(&env);
-        let fee = (amount * fee_bps as i128) / 10_000;
-        let net_amount = amount - fee;
+        let fee = amount
+            .checked_mul(fee_bps as i128)
+            .ok_or(Error::ArithmeticOverflow)?
+            .checked_div(10_000)
+            .ok_or(Error::ArithmeticOverflow)?;
+        let net_amount = amount
+            .checked_sub(fee)
+            .ok_or(Error::ArithmeticOverflow)?;
 
         let now = env.ledger().timestamp();
-        let expiry = now + get_expiry_seconds(&env);
+        let expiry = now
+            .checked_add(get_expiry_seconds(&env))
+            .ok_or(Error::ArithmeticOverflow)?;
 
-        let id = get_deposit_count(&env) + 1;
+        let id = get_deposit_count(&env)
+            .checked_add(1)
+            .ok_or(Error::ArithmeticOverflow)?;
         let deposit = Deposit {
             depositor: depositor.clone(),
             token: token.clone(),
@@ -169,9 +182,18 @@ impl BridgeContract {
         set_deposit_count(&env, id);
 
         let mut stats = get_stats(&env);
-        stats.total_locked += net_amount;
-        stats.deposit_count += 1;
-        stats.active_deposits += 1;
+        stats.total_locked = stats
+            .total_locked
+            .checked_add(net_amount)
+            .ok_or(Error::ArithmeticOverflow)?;
+        stats.deposit_count = stats
+            .deposit_count
+            .checked_add(1)
+            .ok_or(Error::ArithmeticOverflow)?;
+        stats.active_deposits = stats
+            .active_deposits
+            .checked_add(1)
+            .ok_or(Error::ArithmeticOverflow)?;
         set_stats(&env, &stats);
 
         env.events().publish(
@@ -214,7 +236,10 @@ impl BridgeContract {
         set_deposit(&env, deposit_id, &deposit);
 
         let mut stats = get_stats(&env);
-        stats.total_minted += deposit.amount;
+        stats.total_minted = stats
+            .total_minted
+            .checked_add(deposit.amount)
+            .ok_or(Error::ArithmeticOverflow)?;
         stats.active_deposits = stats.active_deposits.saturating_sub(1);
         set_stats(&env, &stats);
 
@@ -251,7 +276,10 @@ impl BridgeContract {
         let refund_amount = deposit.amount; // fee is not refunded
 
         let mut stats = get_stats(&env);
-        stats.total_refunded += refund_amount;
+        stats.total_refunded = stats
+            .total_refunded
+            .checked_add(refund_amount)
+            .ok_or(Error::ArithmeticOverflow)?;
         stats.active_deposits = stats.active_deposits.saturating_sub(1);
         set_stats(&env, &stats);
 
@@ -419,7 +447,10 @@ impl BridgeContract {
         set_deposit(&env, deposit_id, &deposit);
 
         let mut stats = get_stats(&env);
-        stats.total_minted += deposit.amount;
+        stats.total_minted = stats
+            .total_minted
+            .checked_add(deposit.amount)
+            .ok_or(Error::ArithmeticOverflow)?;
         stats.active_deposits = stats.active_deposits.saturating_sub(1);
         set_stats(&env, &stats);
 
