@@ -131,7 +131,7 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
     }
 
     onInvoke(trimmedName, parsedArgs.value);
-  }, [contractId, funcName, abiFunction, formValues, parsedArgs, onInvoke]);
+  }, [contractId, funcName, abiFunction, formValues, onInvoke, parsedArgs.error, parsedArgs.value]);
 
   return (
     <div className="flex flex-col space-y-4 p-5 bg-gray-900 border border-gray-800 rounded-xl shadow-lg mt-4">
