@@ -583,3 +583,79 @@ fn test_full_proposal_lifecycle() {
     client.execute(&proposer, &id);
     assert_eq!(client.get_proposal(&id).status, ProposalStatus::Executed);
 }
+
+// ── Delegation — resolution edge cases ─────────────────────────────────────────
+//
+// test_delegation_transfers_vote above only has the *delegate* call vote()
+// with their own balance — it never actually exercises resolve_delegate's
+// redirect (a *delegator* calling vote() themselves), its multi-hop chain
+// walk, or its cycle handling, despite the module doc explicitly advertising
+// "Recursive delegation (up to depth 8)" as a supported feature.
+
+#[test]
+fn test_vote_via_delegator_uses_delegates_balance() {
+    let (env, admin, client) = setup();
+    let delegator = Address::generate(&env);
+    let delegate = Address::generate(&env);
+    client.mint(&admin, &delegator, &1_000_000);
+    client.mint(&admin, &delegate, &300_000);
+    client.delegate(&delegator, &Some(delegate.clone()));
+
+    let id = client.propose(
+        &delegator,
+        &String::from_str(&env, "title"),
+        &String::from_str(&env, "desc"),
+        &0,
+    );
+
+    // The delegator calls vote() directly (not the delegate). resolve_delegate
+    // redirects to `delegate`, so the vote is cast with the delegate's own
+    // balance (300_000), not the delegator's (1_000_000) — delegation moves
+    // *who* can cast the vote, it doesn't pool balances together.
+    client.vote(&delegator, &id, &VoteChoice::For);
+    let p = client.get_proposal(&id);
+    assert_eq!(p.votes_for, 300_000);
+
+    // The vote is recorded against the resolved delegate, so the delegate
+    // themselves is now blocked from voting again on this proposal too.
+    let result = client.try_vote(&delegate, &id, &VoteChoice::Against);
+    assert_eq!(result, Err(Ok(Error::AlreadyVoted)));
+}
+
+#[test]
+fn test_delegation_chain_resolves_through_multiple_hops() {
+    let (env, admin, client) = setup();
+    let a = Address::generate(&env);
+    let b = Address::generate(&env);
+    let c = Address::generate(&env);
+    client.mint(&admin, &a, &100);
+    client.mint(&admin, &c, &900);
+
+    // a -> b -> c: resolving from `a` must walk both hops to reach `c`.
+    client.delegate(&a, &Some(b.clone()));
+    client.delegate(&b, &Some(c.clone()));
+
+    assert_eq!(client.get_delegate(&a), c);
+    assert_eq!(client.get_voting_power(&a), 100); // own balance, unaffected by delegating out
+}
+
+#[test]
+fn test_delegation_cycle_resolves_without_panicking() {
+    // Mutual delegation (a -> b -> a) must not infinite-loop or panic;
+    // resolve_delegate is bounded to 8 iterations specifically so a cycle
+    // like this terminates deterministically instead of hanging.
+    let (env, admin, client) = setup();
+    let a = Address::generate(&env);
+    let b = Address::generate(&env);
+    client.mint(&admin, &a, &100);
+    client.mint(&admin, &b, &200);
+
+    client.delegate(&a, &Some(b.clone()));
+    client.delegate(&b, &Some(a.clone()));
+
+    // Must resolve to *some* address in the cycle without panicking, and
+    // resolving repeatedly must be stable (same input state, same output).
+    let resolved_first = client.get_delegate(&a);
+    assert!(resolved_first == a || resolved_first == b);
+    assert_eq!(client.get_delegate(&a), resolved_first);
+}

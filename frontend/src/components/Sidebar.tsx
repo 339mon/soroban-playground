@@ -73,6 +73,7 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
         { name: "Storage Browser", href: "/storage-browser", icon: Database },
         { name: "Search Utility", href: "/search", icon: Search },
         { name: "Ledger Migration", href: "/migration", icon: Send },
+        { name: "XDR Inspector", href: "/xdr-decoder", icon: Code2 },
         { name: "Rate Limits", href: "/rate-limits", icon: Sliders }
       ]
     },

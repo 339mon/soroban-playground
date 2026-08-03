@@ -90,9 +90,9 @@ fn test_submit_price_zero_fails() {
 #[test]
 fn test_submit_price_records_observation() {
     let (_env, client, _admin, feeder, asset_id) = setup();
-    client.submit_price(&feeder, &asset_id, &50_000_0000000i128);
+    client.submit_price(&feeder, &asset_id, &50_000_000_000i128);
     let latest = client.get_latest_price(&asset_id);
-    assert_eq!(latest, 50_000_0000000i128);
+    assert_eq!(latest, 50_000_000_000i128);
 }
 
 #[test]
@@ -159,4 +159,51 @@ fn test_non_admin_cannot_register_asset() {
     let stranger = Address::generate(&env);
     let result = client.try_register_asset(&stranger, &String::from_str(&env, "ADA"), &3_600u64);
     assert!(matches!(result, Err(Ok(Error::Unauthorized))));
+}
+
+#[test]
+fn test_register_duplicate_symbol_fails() {
+    let (env, client, admin, ..) = setup();
+    let result = client.try_register_asset(&admin, &String::from_str(&env, "BTC"), &3_600u64);
+    assert!(matches!(result, Err(Ok(Error::DuplicateSymbol))));
+}
+
+#[test]
+fn test_register_zero_staleness_fails() {
+    let (env, client, admin, ..) = setup();
+    let result = client.try_register_asset(&admin, &String::from_str(&env, "SOL"), &0u64);
+    assert!(matches!(result, Err(Ok(Error::InvalidWindow))));
+}
+
+#[test]
+fn test_get_latest_price_stale_fails() {
+    let (env, client, _admin, feeder, asset_id) = setup();
+    client.submit_price(&feeder, &asset_id, &100i128);
+    env.ledger().with_mut(|l| l.timestamp += 3_601);
+    let result = client.try_get_latest_price(&asset_id);
+    assert!(matches!(result, Err(Ok(Error::StaleObservation))));
+}
+
+#[test]
+fn test_get_asset_id_before_init_fails() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, TwapOracle);
+    let client = TwapOracleClient::new(&env, &contract_id);
+    let result = client.try_get_asset_id(&String::from_str(&env, "BTC"));
+    assert!(matches!(result, Err(Ok(Error::NotInitialized))));
+}
+
+#[test]
+fn test_get_observations_unknown_asset_fails() {
+    let (_env, client, ..) = setup();
+    let result = client.try_get_observations(&999u32);
+    assert!(matches!(result, Err(Ok(Error::AssetNotFound))));
+}
+
+#[test]
+fn test_submit_price_negative_fails() {
+    let (_env, client, _admin, feeder, asset_id) = setup();
+    let result = client.try_submit_price(&feeder, &asset_id, &-1i128);
+    assert!(matches!(result, Err(Ok(Error::InvalidPrice))));
 }

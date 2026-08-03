@@ -182,8 +182,10 @@ async function checkRedis() {
 
 async function checkSorobanRpc() {
   const start = Date.now();
-  const { default: config } = await import('../config/index.js');
-  const rpcUrl = config.indexer?.rpcUrl || process.env.SOROBAN_RPC_URL;
+  const { sorobanRpcManager } = await import('./sorobanRpcManager.js');
+  const rpcStatus = sorobanRpcManager.getStatus();
+  const rpcUrl = rpcStatus.activeEndpoint;
+
   try {
     const { SorobanRpc } = await import('@stellar/stellar-sdk');
     const server = new SorobanRpc.Server(rpcUrl);
@@ -199,6 +201,7 @@ async function checkSorobanRpc() {
       status: 'healthy',
       latencyMs,
       endpoint: rpcUrl,
+      circuitBreakerState: rpcStatus.circuitBreakerState,
       message: 'Soroban RPC reachable',
     };
   } catch (error) {
@@ -209,6 +212,7 @@ async function checkSorobanRpc() {
       status: 'unhealthy',
       latencyMs,
       endpoint: rpcUrl,
+      circuitBreakerState: rpcStatus.circuitBreakerState,
       message: error.message,
     };
   }

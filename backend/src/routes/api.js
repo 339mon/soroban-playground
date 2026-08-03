@@ -7,6 +7,7 @@ import v1Compile from './v1/compile.js';
 import v1Deploy from './v1/deploy.js';
 import v1Invoke from './v1/invoke.js';
 import v1Identity from './v1/identity.js';
+import v1Simulate from './v1/simulate.js';
 import v2Compile from './v2/compile.js';
 import v2Deploy from './v2/deploy.js';
 import v2Invoke from './v2/invoke.js';
@@ -46,6 +47,7 @@ v1Router.use('/compile', v1Compile);
 v1Router.use('/deploy', v1Deploy);
 v1Router.use('/invoke', v1Invoke);
 v1Router.use('/identity', v1Identity);
+v1Router.use('/simulate', v1Simulate);
 v1Router.use('/lottery', v2Lottery);
 
 // v2 Routes
@@ -56,6 +58,7 @@ v2Router.use('/compile', v2Compile);
 v2Router.use('/deploy', v2Deploy);
 v2Router.use('/invoke', v2Invoke);
 v2Router.use('/identity', v2Identity);
+v2Router.use('/simulate', v1Simulate);
 v2Router.use('/lottery', v2Lottery);
 
 const versionRouters = {
@@ -68,6 +71,7 @@ const headerVersionedPaths = [
   '/deploy',
   '/invoke',
   '/identity',
+  '/simulate',
   '/lottery',
 ];
 
@@ -131,4 +135,23 @@ router.use('/music-licensing', musicLicensingRoutes);
 router.use('/warranty', warrantyRoutes);
 router.use('/favorites', favoritesRoutes);
 router.use('/projects', projectsRoutes);
+
+import sorobanRpcManager from '../services/sorobanRpcManager.js';
+
+router.get('/rpc/status', (_req, res) => {
+  res.json({
+    success: true,
+    data: sorobanRpcManager.getStatus(),
+  });
+});
+
+router.post('/rpc/reset', (_req, res) => {
+  sorobanRpcManager.reset();
+  res.json({
+    success: true,
+    message: 'Soroban RPC circuit breaker reset cleanly',
+    data: sorobanRpcManager.getStatus(),
+  });
+});
+
 export default router;

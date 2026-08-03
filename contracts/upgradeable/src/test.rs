@@ -225,3 +225,93 @@ fn test_ledger_sequence_advances() {
     }
     // An InvokeError (host error) also means timelock was passed → test passes.
 }
+
+// ── cancel_upgrade (issue #998) ───────────────────────────────────────────────
+
+#[test]
+fn test_cancel_upgrade_clears_pending() {
+    let (env, admin, client) = setup();
+    client.try_initialize(&admin, &Some(100u32)).unwrap();
+
+    let hash = BytesN::from_array(&env, &[7u8; 32]);
+    client.try_propose_upgrade(&admin, &hash).unwrap();
+    assert!(client.get_pending_upgrade().is_some());
+
+    client.try_cancel_upgrade(&admin).unwrap();
+
+    // A withdrawn proposal must not remain executable once the timelock lapses.
+    assert!(client.get_pending_upgrade().is_none());
+}
+
+#[test]
+fn test_cancel_upgrade_without_pending_fails() {
+    let (_env, admin, client) = setup();
+    client.try_initialize(&admin, &Some(100u32)).unwrap();
+
+    assert_eq!(
+        client.try_cancel_upgrade(&admin).unwrap_err().unwrap(),
+        Error::NoPendingUpgrade
+    );
+}
+
+#[test]
+fn test_non_admin_cannot_cancel_upgrade() {
+    let (env, admin, client) = setup();
+    client.try_initialize(&admin, &Some(100u32)).unwrap();
+
+    let hash = BytesN::from_array(&env, &[7u8; 32]);
+    client.try_propose_upgrade(&admin, &hash).unwrap();
+
+    let other = Address::generate(&env);
+    assert_eq!(
+        client.try_cancel_upgrade(&other).unwrap_err().unwrap(),
+        Error::Unauthorized
+    );
+    assert!(client.get_pending_upgrade().is_some(), "proposal was cleared by a non-admin");
+}
+
+#[test]
+fn test_cancel_upgrade_allowed_while_paused() {
+    let (env, admin, client) = setup();
+    client.try_initialize(&admin, &Some(100u32)).unwrap();
+
+    let hash = BytesN::from_array(&env, &[7u8; 32]);
+    client.try_propose_upgrade(&admin, &hash).unwrap();
+    client.try_pause(&admin).unwrap();
+
+    // Cancelling only removes a pending action, so blocking it during an
+    // emergency halt would be exactly backwards.
+    client.try_cancel_upgrade(&admin).unwrap();
+    assert!(client.get_pending_upgrade().is_none());
+}
+
+#[test]
+fn test_cancel_upgrade_before_init_fails() {
+    let (env, _admin, client) = setup();
+    let caller = Address::generate(&env);
+
+    assert_eq!(
+        client.try_cancel_upgrade(&caller).unwrap_err().unwrap(),
+        Error::NotInitialized
+    );
+}
+
+// ── Timelock deadline arithmetic (issue #998) ─────────────────────────────────
+
+#[test]
+fn test_execute_does_not_overflow_with_max_timelock() {
+    let (env, admin, client) = setup();
+    // A timelock near u32::MAX makes `proposed_at + timelock` overflow. With
+    // overflow-checks enabled in release that aborts the invocation instead of
+    // returning an error code; saturating_add keeps it a normal rejection.
+    client.try_initialize(&admin, &Some(u32::MAX)).unwrap();
+
+    let hash = BytesN::from_array(&env, &[9u8; 32]);
+    client.try_propose_upgrade(&admin, &hash).unwrap();
+
+    assert_eq!(
+        client.try_execute_upgrade(&admin).unwrap_err().unwrap(),
+        Error::TimelockNotElapsed,
+        "an unreachable deadline should never elapse, not panic"
+    );
+}
