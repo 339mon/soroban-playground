@@ -313,3 +313,111 @@ impl CrossContractUtils {
         Ok(())
     }
 }
+
+#![no_std]
+
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, IntoVal,
+    Symbol, Val, Vec,
+};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum GuardError {
+    NotAuthorized = 1,
+    UnauthorizedInvoker = 2,
+    AlreadyInitialized = 3,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    AllowedInvoker(Address),
+}
+
+#[contract]
+pub struct CrossContractGuard;
+
+#[contractimpl]
+impl CrossContractGuard {
+    /// Initializes the contract with an admin account.
+    pub fn initialize(env: Env, admin: Address) -> Result<(), GuardError> {
+        if env.storage().instance().has(&DataKey::Admin) {
+            return Err(GuardError::AlreadyInitialized);
+        }
+        admin.require_auth();
+        env.storage().instance().set(&DataKey::Admin, &admin);
+        Ok(())
+    }
+
+    /// Whitelists or unlists a contract address as an allowed invoker.
+    pub fn set_invoker_status(
+        env: Env,
+        invoker: Address,
+        allowed: bool,
+    ) -> Result<(), GuardError> {
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(GuardError::NotAuthorized)?;
+
+        admin.require_auth();
+
+        if allowed {
+            env.storage()
+                .persistent()
+                .set(&DataKey::AllowedInvoker(invoker), &true);
+        } else {
+            env.storage()
+                .persistent()
+                .remove(&DataKey::AllowedInvoker(invoker));
+        }
+
+        Ok(())
+    }
+
+    /// Protected action enforcing that caller is both authenticated AND an authorized invoker contract.
+    pub fn execute_guarded_action(
+        env: Env,
+        caller: Address,
+        invoker_contract: Address,
+    ) -> Result<u64, GuardError> {
+        // 1. Require cryptographic signature/authorization of original caller
+        caller.require_auth();
+
+        // 2. Verify invoker_contract is whitelisted in persistent storage
+        let is_allowed: bool = env
+            .storage()
+            .persistent()
+            .get(&DataKey::AllowedInvoker(invoker_contract.clone()))
+            .unwrap_or(false);
+
+        if !is_allowed {
+            return Err(GuardError::UnauthorizedInvoker);
+        }
+
+        // Return execution status/ledger timestamp as arbitrary success metric
+        Ok(env.ledger().timestamp())
+    }
+
+    /// Invokes another target Soroban contract using `authorize_as_current_contract`.
+    pub fn invoke_target_contract(
+        env: Env,
+        target_contract: Address,
+        fn_name: Symbol,
+        args: Vec<Val>,
+    ) -> Val {
+        // Authorize sub-invocations on behalf of this contract's identity
+        env.authorize_as_current_contract(
+            soroban_sdk::vec![
+                &env,
+                // Optional auth sub-call configurations can be appended here
+            ],
+        );
+
+        env.invoke_contract(&target_contract, &fn_name, args)
+    }
+}
