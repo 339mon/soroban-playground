@@ -1,3 +1,9 @@
-﻿# Time-Lock Controller Refactor
+# Optimize and Clean Up Time-Lock Controller Specification
 
-Extract delay validation logic into a pure helper. Simplify queued operation lookup with a hash map.
+Specification and architecture guide for Optimize and Clean Up Time-Lock Controller on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #998
+
