@@ -35,6 +35,7 @@ fn test_dutch_auction_price_discovery() {
 
     // Initial price should be starting price
     assert_eq!(client.get_price(), 1000);
+    assert_eq!(client.current_price(), 1000);
 
     // Advance time by 10 seconds
     env.ledger().with_mut(|li| {
@@ -43,6 +44,7 @@ fn test_dutch_auction_price_discovery() {
 
     // Price should be 1000 - (10 * 10) = 900
     assert_eq!(client.get_price(), 900);
+    assert_eq!(client.current_price(), 900);
 
     // Advance time by 60 seconds (total 60)
     env.ledger().with_mut(|li| {
@@ -51,10 +53,12 @@ fn test_dutch_auction_price_discovery() {
 
     // Price should be 1000 - (60 * 10) = 400, but floor is 500
     assert_eq!(client.get_price(), 500);
+    assert_eq!(client.current_price(), 500);
 
     // Buy
     client.mock_all_auths().buy(&buyer);
 
     // After sold, price is 0
     assert_eq!(client.get_price(), 0);
+    assert_eq!(client.current_price(), 0);
 }

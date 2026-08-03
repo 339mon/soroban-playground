@@ -834,3 +834,76 @@ fn test_get_threshold_before_init_fails() {
     let err = client.get_threshold_fn(&env).unwrap_err();
     assert_eq!(err, Error::NotFound);
 }
+
+#![cfg(test)]
+
+use super::*;
+use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, Address, Env};
+
+#[test]
+fn test_oracle_median_computation_and_staleness() {
+    let env = Env::default();
+    env.mock_all_signatures();
+
+    let contract_id = env.register_contract(None, InsuranceOracleAggregator);
+    let client = InsuranceOracleAggregatorClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter1 = Address::generate(&env);
+    let reporter2 = Address::generate(&env);
+    let reporter3 = Address::generate(&env);
+
+    // Initialize with 300s (5 minutes) staleness threshold
+    client.initialize(&admin, &300);
+
+    // Authorize reporters
+    client.set_reporter_status(&reporter1, &true);
+    client.set_reporter_status(&reporter2, &true);
+    client.set_reporter_status(&reporter3, &true);
+
+    env.ledger().set_timestamp(1000);
+
+    // Submit price reports: 100, 105, 110
+    client.submit_price(&reporter1, &100_000_000);
+    client.submit_price(&reporter2, &105_000_000);
+    client.submit_price(&reporter3, &110_000_000);
+
+    // Median of [100, 105, 110] = 105
+    let median = client.get_median_price();
+    assert_eq!(median, 105_000_000);
+
+    // Advance time beyond staleness window for reporter1 and reporter2
+    env.ledger().set_timestamp(1400); // 400 seconds later (> 300s limit)
+
+    // Submit fresh price for reporter3 only
+    client.submit_price(&reporter3, &115_000_000);
+
+    // Only reporter3 is non-stale -> median = 115_000_000
+    let new_median = client.get_median_price();
+    assert_eq!(new_median, 115_000_000);
+}
+
+#[test]
+#[should_panic(expected = "HostError: Error(Contract, #4)")]
+fn test_all_stale_prices_fail() {
+    let env = Env::default();
+    env.mock_all_signatures();
+
+    let contract_id = env.register_contract(None, InsuranceOracleAggregator);
+    let client = InsuranceOracleAggregatorClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+
+    client.initialize(&admin, &300);
+    client.set_reporter_status(&reporter, &true);
+
+    env.ledger().set_timestamp(1000);
+    client.submit_price(&reporter, &100_000_000);
+
+    // Advance ledger timestamp beyond 5 minutes
+    env.ledger().set_timestamp(1500);
+
+    // Should fail with NoValidPriceFeeds (Error #4)
+    client.get_median_price();
+}

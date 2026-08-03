@@ -76,6 +76,15 @@ const MAX_COMPILATION_MEMORY_MB = Number.parseInt(
   process.env.COMPILE_MEMORY_LIMIT_MB || '512',
   10
 );
+const MAX_SOURCE_BYTES = Number.parseInt(
+  process.env.COMPILE_MAX_SOURCE_BYTES || `${512 * 1024}`,
+  10
+);
+const MAX_DEPENDENCIES = Number.parseInt(
+  process.env.COMPILE_MAX_DEPENDENCIES || '64',
+  10
+);
+const MAX_BATCH_JOBS = 4;
 
 const queueBus = new EventEmitter();
 const queue = [];
@@ -104,6 +113,67 @@ async function ensureDirs() {
   await fs.mkdir(CACHE_ROOT, { recursive: true });
   await fs.mkdir(ARTIFACT_ROOT, { recursive: true });
   await fs.mkdir(path.dirname(STATE_FILE), { recursive: true });
+}
+
+// Raised when a compile job is rejected before any worker is spawned.
+// `code` is a stable, machine-readable reason so routes can map the failure
+// onto an HTTP status instead of surfacing an opaque 500.
+export class CompileValidationError extends Error {
+  constructor(message, { code = 'INVALID_COMPILE_JOB', details = [] } = {}) {
+    super(message);
+    this.name = 'CompileValidationError';
+    this.code = code;
+    this.details = details;
+    this.statusCode = 400;
+  }
+}
+
+// Validates a compile job up-front so malformed input fails fast with a clear
+// message instead of blowing up inside a worker thread. Returns the job so it
+// can be used inline.
+export function validateCompileJob(job) {
+  const details = [];
+
+  if (!job || typeof job !== 'object') {
+    throw new CompileValidationError('compile job must be an object', {
+      code: 'INVALID_COMPILE_JOB',
+    });
+  }
+
+  const { code, dependencies } = job;
+
+  if (typeof code !== 'string') {
+    details.push('code is required and must be a string');
+  } else if (code.trim().length === 0) {
+    details.push('code must not be empty');
+  } else if (Buffer.byteLength(code, 'utf8') > MAX_SOURCE_BYTES) {
+    details.push(`code exceeds the ${MAX_SOURCE_BYTES} byte limit`);
+  }
+
+  if (dependencies !== undefined) {
+    if (
+      dependencies === null ||
+      typeof dependencies !== 'object' ||
+      Array.isArray(dependencies)
+    ) {
+      details.push('dependencies must be a plain object');
+    } else if (Object.keys(dependencies).length > MAX_DEPENDENCIES) {
+      details.push(`dependencies exceed the limit of ${MAX_DEPENDENCIES}`);
+    }
+  }
+
+  if (job.requestId !== undefined && typeof job.requestId !== 'string') {
+    details.push('requestId must be a string when provided');
+  }
+
+  if (details.length > 0) {
+    throw new CompileValidationError(
+      `Invalid compile job: ${details.join('; ')}`,
+      { details }
+    );
+  }
+
+  return job;
 }
 
 export function hashSource(code, dependencies = {}) {
@@ -458,6 +528,10 @@ function estimateQueueTime() {
 }
 
 export async function compileQueued(job) {
+  // Reject bad input before it reaches the queue so a malformed job can never
+  // occupy a worker slot or leave the queue counters inconsistent.
+  validateCompileJob(job);
+
   const span = createSpan('soroban.compile', {
     'compile.request_id': job.requestId,
     'compile.hash': hashSource(job.code, job.dependencies),
@@ -533,13 +607,31 @@ function pump() {
 }
 
 export async function compileBatch(jobs) {
-  const ordered = jobs.slice(0, 4);
+  if (!Array.isArray(jobs) || jobs.length === 0) {
+    throw new CompileValidationError('jobs must be a non-empty array', {
+      code: 'INVALID_COMPILE_BATCH',
+    });
+  }
+
+  const ordered = jobs.slice(0, MAX_BATCH_JOBS);
   const settled = await Promise.allSettled(
     ordered.map((job) => compileQueued(job))
   );
+
+  // Errors are Error instances, which serialize to `{}` over JSON — flatten
+  // them into a readable shape so batch callers can tell what went wrong.
   return settled.map((result, index) => ({
     contractIndex: index,
     ...result,
+    ...(result.status === 'rejected'
+      ? {
+          error: {
+            message: result.reason?.message || 'Unknown compile error',
+            code: result.reason?.code || 'COMPILE_FAILED',
+            details: result.reason?.details || [],
+          },
+        }
+      : {}),
   }));
 }
 
