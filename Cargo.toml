@@ -51,4 +51,5 @@ members = [
     "contracts/profile-registry",
     "contracts/lending-protocol",
     "contracts/staking",
+    "contracts/amm-pool",
 ]
