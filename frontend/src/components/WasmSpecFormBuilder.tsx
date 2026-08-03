@@ -15,7 +15,7 @@ interface WasmSpecFormBuilderProps {
   onChange: (name: string, value: unknown) => void;
 }
 
-export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSpecFormBuilderProps) {
+export default React.memo(function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSpecFormBuilderProps) {
   const { address: activeWalletAddress } = useWallet();
 
   if (!inputs || inputs.length === 0) {
@@ -32,7 +32,8 @@ export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSp
         const inputId = `wasm-spec-input-${input.name}`;
         const rawValue = values[input.name];
         const kind = normalizeType(input.type);
-        const fieldError = validateSorobanType(input.name, input.type, rawValue);
+        const isEmpty = rawValue === undefined || rawValue === null || rawValue === "";
+        const fieldError = isEmpty ? null : validateSorobanType(input.name, input.type, rawValue);
 
         return (
           <div key={input.name} className="space-y-1.5 p-3 rounded-xl bg-slate-950/50 border border-white/5">
@@ -159,4 +160,4 @@ export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSp
       })}
     </div>
   );
-}
+});
