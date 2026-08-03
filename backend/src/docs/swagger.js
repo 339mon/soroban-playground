@@ -104,14 +104,14 @@ const options = {
   apis: ['./src/routes/**/*.js', './src/docs/*.doc.js'],
 };
 
-function cloneOperation(operation, version) {
+export function cloneOperation(operation, version) {
   const cloned = JSON.parse(JSON.stringify(operation));
   const tags = new Set([`API ${version}`, ...(cloned.tags || [])]);
   cloned.tags = Array.from(tags);
   return cloned;
 }
 
-function clonePathItem(pathItem, version) {
+export function clonePathItem(pathItem, version) {
   const cloned = JSON.parse(JSON.stringify(pathItem));
   for (const [method, operation] of Object.entries(cloned)) {
     if (operation && typeof operation === 'object') {
@@ -121,7 +121,7 @@ function clonePathItem(pathItem, version) {
   return cloned;
 }
 
-function isVersionablePath(pathName) {
+export function isVersionablePath(pathName) {
   if (!pathName.startsWith('/api/')) return false;
   const pathWithoutApiPrefix = pathName.slice('/api'.length);
   return versionedRoutePrefixes.some(
@@ -131,7 +131,7 @@ function isVersionablePath(pathName) {
   );
 }
 
-function withVersionedDocumentation(spec) {
+export function withVersionedDocumentation(spec) {
   const documentedSpec = {
     ...spec,
     paths: { ...(spec.paths || {}) },

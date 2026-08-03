@@ -62,6 +62,7 @@ function stripLifetimeAnnotations(rawType: string): string {
 }
 
 export function normalizeType(type: string): string {
+  if (!type || typeof type !== "string") return "string";
   const normalized = type.trim().toLowerCase();
 
   if (RUST_TYPE_ALIASES[normalized]) {
@@ -116,9 +117,16 @@ export function validateSorobanType(
     if (!/^-?\d+$/.test(str)) {
       return `Field '${name}' must be a valid 128-bit integer string or number.`;
     }
+    const num = BigInt(str);
+    if (num < BigInt("-170141183460469231731687303715884105728") || num > BigInt("340282366920938463463374607431768211455")) {
+      return `Field '${name}' is out of range for a 128-bit integer.`;
+    }
   }
 
   if (kind === "number") {
+    if (value === "" || value === null || value === undefined) {
+      return `Field '${name}' (${type}) is required.`;
+    }
     if (Number.isNaN(Number(value))) {
       return `Field '${name}' must be a valid numeric value.`;
     }
