@@ -263,3 +263,193 @@ impl InsuranceOracle {
         Ok(get_sources(&env))
     }
 }
+
+#![no_std]
+
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Vec,
+};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum OracleError {
+    NotAuthorized = 1,
+    AlreadyInitialized = 2,
+    ReporterNotFound = 3,
+    NoValidPriceFeeds = 4,
+    StalePriceFeed = 5,
+    InsufficientReporters = 6,
+    InvalidPrice = 7,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PriceData {
+    pub price: i128,
+    pub timestamp: u64,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    StalenessThreshold,
+    Reporter(Address),
+    ReportersList,
+    PriceReport(Address),
+}
+
+#[contract]
+pub struct InsuranceOracleAggregator;
+
+#[contractimpl]
+impl InsuranceOracleAggregator {
+    /// Initializes oracle aggregator with admin and max price staleness window (seconds).
+    pub fn initialize(env: Env, admin: Address, staleness_threshold_secs: u64) -> Result<(), OracleError> {
+        if env.storage().instance().has(&DataKey::Admin) {
+            return Err(OracleError::AlreadyInitialized);
+        }
+        admin.require_auth();
+
+        env.storage().instance().set(&DataKey::Admin, &admin);
+        env.storage()
+            .instance()
+            .set(&DataKey::StalenessThreshold, &staleness_threshold_secs);
+        env.storage()
+            .instance()
+            .set(&DataKey::ReportersList, &Vec::<Address>::new(&env));
+
+        Ok(())
+    }
+
+    /// Admin function to grant or revoke oracle reporter privileges.
+    pub fn set_reporter_status(
+        env: Env,
+        reporter: Address,
+        authorized: bool,
+    ) -> Result<(), OracleError> {
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(OracleError::NotAuthorized)?;
+        admin.require_auth();
+
+        let mut reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::ReportersList)
+            .unwrap_or_else(|| Vec::new(&env));
+
+        if authorized {
+            if !env.storage().persistent().has(&DataKey::Reporter(reporter.clone())) {
+                env.storage()
+                    .persistent()
+                    .set(&DataKey::Reporter(reporter.clone()), &true);
+                reporters.push_back(reporter);
+            }
+        } else {
+            env.storage()
+                .persistent()
+                .remove(&DataKey::Reporter(reporter.clone()));
+            
+            let mut updated_reporters = Vec::new(&env);
+            for r in reporters.iter() {
+                if r != reporter {
+                    updated_reporters.push_back(r);
+                }
+            }
+            reporters = updated_reporters;
+        }
+
+        env.storage().instance().set(&DataKey::ReportersList, &reporters);
+        Ok(())
+    }
+
+    /// Submits a price feed update from an authorized reporter.
+    pub fn submit_price(env: Env, reporter: Address, price: i128) -> Result<(), OracleError> {
+        reporter.require_auth();
+
+        let is_reporter: bool = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Reporter(reporter.clone()))
+            .unwrap_or(false);
+
+        if !is_reporter {
+            return Err(OracleError::NotAuthorized);
+        }
+
+        if price <= 0 {
+            return Err(OracleError::InvalidPrice);
+        }
+
+        let report = PriceData {
+            price,
+            timestamp: env.ledger().timestamp(),
+        };
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::PriceReport(reporter), &report);
+
+        Ok(())
+    }
+
+    /// Computes and returns the median price across non-stale authorized reporters.
+    pub fn get_median_price(env: Env) -> Result<i128, OracleError> {
+        let reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::ReportersList)
+            .ok_or(OracleError::InsufficientReporters)?;
+
+        let staleness_threshold: u64 = env
+            .storage()
+            .instance()
+            .get(&DataKey::StalenessThreshold)
+            .unwrap_or(300); // Default 5 mins
+
+        let current_time = env.ledger().timestamp();
+        let mut valid_prices: Vec<i128> = Vec::new(&env);
+
+        for reporter in reporters.iter() {
+            if let Some(report) = env
+                .storage()
+                .persistent()
+                .get::<_, PriceData>(&DataKey::PriceReport(reporter))
+            {
+                if current_time.saturating_sub(report.timestamp) <= staleness_threshold {
+                    valid_prices.push_back(report.price);
+                }
+            }
+        }
+
+        let len = valid_prices.len();
+        if len == 0 {
+            return Err(OracleError::NoValidPriceFeeds);
+        }
+
+        // Insertion sort to compute median safely in WASM environment
+        let mut prices_arr = valid_prices;
+        for i in 1..len {
+            let key = prices_arr.get(i).unwrap();
+            let mut j = i;
+            while j > 0 && prices_arr.get(j - 1).unwrap() > key {
+                prices_arr.set(j, prices_arr.get(j - 1).unwrap());
+                j -= 1;
+            }
+            prices_arr.set(j, key);
+        }
+
+        // Compute median
+        if len % 2 == 1 {
+            Ok(prices_arr.get(len / 2).unwrap())
+        } else {
+            let mid1 = prices_arr.get((len / 2) - 1).unwrap();
+            let mid2 = prices_arr.get(len / 2).unwrap();
+            Ok((mid1 + mid2) / 2)
+        }
+    }
+}

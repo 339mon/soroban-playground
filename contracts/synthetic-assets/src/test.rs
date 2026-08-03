@@ -1540,3 +1540,68 @@ fn test_asset_registration_bounds() {
     let asset = client.get_asset(&symbol);
     assert_eq!(asset.decimals, 8u32);
 }
+
+#[test]
+fn test_get_core_addresses_after_init() {
+    let (_env, client, admin, oracle, collateral_token) = setup_contract();
+    assert_eq!(client.get_admin(), admin);
+    assert_eq!(client.get_oracle(), oracle);
+    assert_eq!(client.get_collateral_token_address(), collateral_token);
+}
+
+#[test]
+fn test_get_validated_asset_price_success() {
+    let (env, client, _admin, _, _) = setup_contract();
+    let symbol = Symbol::new(&env, "sETH");
+    client.register_synthetic_asset(
+        &symbol,
+        &String::from_str(&env, "Synthetic ETH"),
+        &7u32,
+        &2_000_000_000i128,
+    );
+    let price = client.get_validated_asset_price(&symbol);
+    assert_eq!(price, 2_000_000_000i128);
+}
+
+#[test]
+fn test_get_registered_assets_lists_symbols() {
+    let (env, client, _admin, _, _) = setup_contract();
+    let sym_a = Symbol::new(&env, "sAAA");
+    let sym_b = Symbol::new(&env, "sBBB");
+    client.register_synthetic_asset(&sym_a, &String::from_str(&env, "A"), &7u32, &100i128);
+    client.register_synthetic_asset(&sym_b, &String::from_str(&env, "B"), &7u32, &200i128);
+    let assets = client.get_registered_assets();
+    assert_eq!(assets.len(), 2);
+}
+
+#[test]
+fn test_estimate_trading_fee_and_notional_helpers() {
+    let (_env, client, _admin, _, _) = setup_contract();
+    let fee = client.estimate_trading_fee(&1_000_000i128);
+    assert!(fee > 0);
+    let notional = client.estimate_effective_notional(&1_000_000i128, &5u32);
+    assert!(notional > 0);
+}
+
+#[test]
+fn test_get_price_deviation_helpers() {
+    let (env, client, _admin, _, _) = setup_contract();
+    let symbol = Symbol::new(&env, "sDEV");
+    client.register_synthetic_asset(
+        &symbol,
+        &String::from_str(&env, "Dev Asset"),
+        &7u32,
+        &100i128,
+    );
+    let bps = client.get_price_deviation_bps(&symbol, &110i128);
+    assert_eq!(bps, 1000);
+    assert!(client.is_price_deviation_valid(&symbol, &105i128, &1000u32));
+}
+
+#[test]
+fn test_get_safe_leverage_static_helper() {
+    let env = Env::default();
+    let contract_id = env.register_contract(None, SyntheticAssetsContract);
+    let client = SyntheticAssetsContractClient::new(&env, &contract_id);
+    assert_eq!(client.get_safe_leverage(&100u32), 10_000);
+}
