@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFreighterWallet } from "@/hooks/useFreighterWallet";
+import NetworkSwitcher from "@/components/NetworkSwitcher";
 import {
   Activity,
   AlertTriangle,
@@ -482,13 +483,8 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Network indicator */}
-            {wallet.status === "connected" && wallet.network && (
-              <span className="hidden xs:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-semibold tracking-wider uppercase">
-                <Compass size={11} />
-                {wallet.network}
-              </span>
-            )}
+            {/* Multi-Network RPC Switcher with Latency Monitor */}
+            <NetworkSwitcher />
 
             {/* Main Action Wallet Button */}
             {wallet.status === "connected" && wallet.address ? (

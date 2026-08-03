@@ -379,3 +379,32 @@ fn test_counters_increment() {
     client.buy_policy(&holder, &1);
     assert_eq!(client.policy_count(), 1);
 }
+
+// ── enhanced error handling tests ─────────────────────────────────────────────
+
+#[test]
+fn test_file_claim_empty_description_fails() {
+    let (env, admin, client) = setup();
+    let product_id = add_product(&env, &client, &admin);
+    let holder = Address::generate(&env);
+    let policy_id = client.buy_policy(&holder, &product_id);
+    let result = client.try_file_claim(&holder, &policy_id, &String::from_str(&env, ""));
+    assert_eq!(result, Err(Ok(Error::EmptyDescription)));
+}
+
+#[test]
+fn test_claimant_cannot_vote_on_own_claim_fails() {
+    let (env, admin, client) = setup();
+    let (claimant, _policy_id, claim_id) = buy_and_claim(&env, &client, &admin);
+    let result = client.try_vote_claim(&claimant, &claim_id, &true);
+    assert_eq!(result, Err(Ok(Error::ClaimantCannotVote)));
+}
+
+#[test]
+fn test_deactivate_product_already_inactive_fails() {
+    let (env, admin, client) = setup();
+    let id = add_product(&env, &client, &admin);
+    client.deactivate_product(&admin, &id);
+    let result = client.try_deactivate_product(&admin, &id);
+    assert_eq!(result, Err(Ok(Error::ProductAlreadyInactive)));
+}
