@@ -1,4 +1,9 @@
-﻿# Escrow Contract Test Suite
+# Implement Test Suite for Escrow Contract Specification
 
-Full deposit-release lifecycle and dispute resolution flow.
-Refund path on timeout expiry covered.
+Specification and architecture guide for Implement Test Suite for Escrow Contract on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #991
+
