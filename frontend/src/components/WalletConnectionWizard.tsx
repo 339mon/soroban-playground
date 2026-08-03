@@ -1,36 +1,113 @@
 "use client";
 
 import React from "react";
-import { Wallet, CheckCircle2, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
+import { Wallet, CheckCircle2, AlertCircle, ExternalLink, Loader2, ShieldCheck, RefreshCw, KeyRound } from "lucide-react";
 import { useWallet, WalletType } from "./providers/WalletProvider";
 
 interface WalletOption {
   id: WalletType;
   name: string;
+  description: string;
   icon: React.ReactNode;
   installUrl: string;
+  typeBadge: string;
 }
 
 export default function WalletConnectionWizard() {
-  const { connect, activeWallet, status, error, isWalletDetected } = useWallet();
+  const { connect, disconnect, activeWallet, activeAccount, allAccounts, switchAccount, status, error, isWalletDetected } = useWallet();
 
   const wallets: WalletOption[] = [
     {
       id: "freighter",
       name: "Freighter",
-      icon: <Wallet className="text-cyan-400" size={20} />,
+      description: "Official browser extension for Stellar & Soroban smart contracts",
+      icon: <Wallet className="text-cyan-400" size={22} />,
       installUrl: "https://freighter.app",
+      typeBadge: "Extension",
+    },
+    {
+      id: "albedo",
+      name: "Albedo Link",
+      description: "Web-based non-custodial wallet & intent signer",
+      icon: <ShieldCheck className="text-purple-400" size={22} />,
+      installUrl: "https://albedo.link",
+      typeBadge: "Web Link",
+    },
+    {
+      id: "xbull",
+      name: "xBull Wallet",
+      description: "Cross-platform Stellar & Soroban power wallet",
+      icon: <KeyRound className="text-emerald-400" size={22} />,
+      installUrl: "https://xbull.app",
+      typeBadge: "Extension / Mobile",
+    },
+    {
+      id: "rango",
+      name: "Rango Suite",
+      description: "Cross-chain Stellar & Soroban multi-wallet gateway",
+      icon: <RefreshCw className="text-blue-400" size={22} />,
+      installUrl: "https://rango.exchange",
+      typeBadge: "Web Suite",
     },
     {
       id: "soroban-wallet",
       name: "Soroban Wallet",
-      icon: <Wallet className="text-orange-400" size={20} />,
-      installUrl: "https://sorobanwallet.com", // Placeholder
+      description: "Developer-focused browser extension for local testing",
+      icon: <Wallet className="text-orange-400" size={22} />,
+      installUrl: "https://soroban.stellar.org",
+      typeBadge: "Dev Tools",
     },
   ];
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div>
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <Wallet className="text-cyan-400" size={20} />
+            Unified Stellar Wallet Suite
+          </h2>
+          <p className="text-xs text-slate-400">Connect your preferred wallet to sign transactions and interact with Soroban contracts.</p>
+        </div>
+        {status === "connected" && (
+          <button
+            onClick={disconnect}
+            className="px-3 py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs font-semibold hover:bg-rose-500/20 transition-all"
+          >
+            Disconnect Wallet
+          </button>
+        )}
+      </div>
+
+      {status === "connected" && activeAccount && (
+        <div className="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-950/30 space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-cyan-300 uppercase tracking-wider">Active Wallet Connection</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold uppercase text-[10px]">Connected</span>
+          </div>
+          <div className="font-mono text-xs text-slate-200 bg-slate-950 p-2.5 rounded-xl border border-white/5 truncate">
+            {activeAccount}
+          </div>
+
+          {allAccounts.length > 1 && (
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Switch Account / Signature Key</label>
+              <select
+                value={activeAccount}
+                onChange={(e) => switchAccount(e.target.value)}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500"
+              >
+                {allAccounts.map((acc) => (
+                  <option key={acc.address} value={acc.address}>
+                    {acc.name ? `${acc.name} (${acc.address.slice(0, 8)}...)` : acc.address}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         {wallets.map((wallet) => {
           const isDetected = isWalletDetected(wallet.id);
@@ -46,40 +123,47 @@ export default function WalletConnectionWizard() {
                   : "bg-white/5 border-white/10 hover:border-white/20"
               }`}
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-3">
                 <div className={`p-3 rounded-xl ${isActive ? "bg-cyan-500/20" : "bg-white/5"}`}>
                   {wallet.icon}
                 </div>
-                {isActive && <CheckCircle2 className="text-cyan-400" size={20} />}
-                {isConnecting && <Loader2 className="text-cyan-400 animate-spin" size={20} />}
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-white/5">
+                  {wallet.typeBadge}
+                </span>
               </div>
 
-              <h3 className="text-lg font-semibold text-white mb-1">{wallet.name}</h3>
+              <h3 className="text-base font-bold text-white mb-1 flex items-center gap-1.5">
+                {wallet.name}
+                {isActive && <CheckCircle2 className="text-cyan-400 shrink-0" size={18} />}
+                {isConnecting && <Loader2 className="text-cyan-400 animate-spin shrink-0" size={18} />}
+              </h3>
               
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">{wallet.description}</p>
+
               {!isDetected ? (
-                <div className="mt-auto space-y-3">
-                  <p className="text-xs text-slate-400">Not detected in your browser.</p>
+                <div className="mt-auto space-y-3 pt-2">
+                  <p className="text-[11px] text-slate-500">Not detected in browser.</p>
                   <a
                     href={wallet.installUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
                   >
                     <ExternalLink size={14} />
-                    Install Extension
+                    Get {wallet.name}
                   </a>
                 </div>
               ) : (
                 <button
                   onClick={() => connect(wallet.id)}
                   disabled={status === "connecting"}
-                  className={`mt-auto w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  className={`mt-auto w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                     isActive
-                      ? "bg-cyan-500/20 text-cyan-200 cursor-default"
-                      : "bg-white/10 text-white hover:bg-white/20 active:scale-95"
+                      ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 cursor-default"
+                      : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:brightness-110 active:scale-95 shadow-md shadow-cyan-500/20"
                   }`}
                 >
-                  {isActive ? "Connected" : isConnecting ? "Connecting..." : "Connect Wallet"}
+                  {isActive ? "Connected" : isConnecting ? "Connecting..." : `Connect ${wallet.name}`}
                 </button>
               )}
             </div>

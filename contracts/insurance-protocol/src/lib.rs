@@ -95,6 +95,9 @@ impl InsuranceProtocol {
     pub fn deactivate_product(env: Env, admin: Address, product_id: u32) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         let mut product = get_product(&env, product_id)?;
+        if !product.is_active {
+            return Err(Error::ProductAlreadyInactive);
+        }
         product.is_active = false;
         set_product(&env, product_id, &product);
         Ok(())
@@ -152,6 +155,10 @@ impl InsuranceProtocol {
         Self::assert_initialized(&env)?;
         claimant.require_auth();
 
+        if description.len() == 0 {
+            return Err(Error::EmptyDescription);
+        }
+
         let policy = get_policy(&env, policy_id)?;
         if !policy.is_active {
             return Err(Error::PolicyInactive);
@@ -198,6 +205,9 @@ impl InsuranceProtocol {
 
         if claim.status != ClaimStatus::Pending {
             return Err(Error::ClaimNotVotable);
+        }
+        if claim.claimant == voter {
+            return Err(Error::ClaimantCannotVote);
         }
         if has_voted(&env, claim_id, &voter) {
             return Err(Error::AlreadyVoted);

@@ -394,3 +394,164 @@ fn test_list_strategies() {
     let list = client.list_strategies();
     assert_eq!(list.len(), 2);
 }
+
+// ── Additional Edge & Validation Tests ────────────────────────────────────────
+
+#[test]
+fn test_add_strategy_empty_name_fails() {
+    let (env, admin, client) = setup();
+    assert_eq!(
+        client.add_strategy(&admin, &String::from_str(&env, ""), &500),
+        Err(Ok(Error::EmptyName))
+    );
+}
+
+#[test]
+fn test_configure_advanced_strategy_invalid_fee() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    assert_eq!(
+        client.configure_advanced_strategy(
+            &admin,
+            &sid,
+            &String::from_str(&env, "Protocol"),
+            &10_001, // Fee > 10,000 bps
+            &0,
+            &0,
+            &10,
+        ),
+        Err(Ok(Error::InvalidFee))
+    );
+}
+
+#[test]
+fn test_configure_advanced_strategy_invalid_risk() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    assert_eq!(
+        client.configure_advanced_strategy(
+            &admin,
+            &sid,
+            &String::from_str(&env, "Protocol"),
+            &500,
+            &0,
+            &0,
+            &101, // Risk > 100
+        ),
+        Err(Ok(Error::InvalidRiskScore))
+    );
+}
+
+#[test]
+fn test_deposit_zero_amount_fails() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    assert_eq!(
+        client.deposit(&user, &sid, &0),
+        Err(Ok(Error::ZeroAmount))
+    );
+}
+
+#[test]
+fn test_withdraw_zero_amount_fails() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    client.deposit(&user, &sid, &1_000).unwrap();
+    assert_eq!(
+        client.withdraw(&user, &sid, &0),
+        Err(Ok(Error::ZeroAmount))
+    );
+}
+
+#[test]
+fn test_withdraw_full_clears_position() {
+    let (env, admin, client) = setup();
+    let sid = add_strategy(&env, &client, &admin, 500);
+    let user = Address::generate(&env);
+    client.deposit(&user, &sid, &1_000_000).unwrap();
+    let withdrawn = client.withdraw(&user, &sid, &1_000_000).unwrap();
+    assert_eq!(withdrawn, 1_000_000);
+    assert_eq!(
+        client.get_position(&user, &sid),
+        Err(Ok(Error::PositionNotFound))
+    );
+}
+
+#[test]
+fn test_non_existent_strategy_fails() {
+    let (env, _admin, client) = setup();
+    let user = Address::generate(&env);
+    assert_eq!(
+        client.get_strategy(&999),
+        Err(Ok(Error::StrategyNotFound))
+    );
+    assert_eq!(
+        client.deposit(&user, &999, &1_000),
+        Err(Ok(Error::StrategyNotFound))
+    );
+}
+
+#[test]
+fn test_best_strategy_no_strategies() {
+    let (_env, _admin, client) = setup();
+    assert_eq!(
+        client.best_strategy(),
+        Err(Ok(Error::NoOptimizableStrategy))
+    );
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{YieldOptimizerVault, YieldOptimizerVaultClient};
+    use soroban_sdk::{
+        testutils::Address as _, token, Address, Env,
+    };
+
+    #[test]
+    fn test_vault_deposit_withdraw_harvest() {
+        let env = Env::default();
+        env.mock_all_signatures();
+
+        let admin = Address::generate(&env);
+        let user = Address::generate(&env);
+
+        // Setup mock underlying token contract
+        let token_admin = Address::generate(&env);
+        let token_id = env.register_stellar_asset_contract(token_admin.clone());
+        let token_client = token::Client::new(&env, &token_id);
+        let token_admin_client = token::StellarAssetClient::new(&env, &token_id);
+
+        // Register vault contract
+        let vault_id = env.register_contract(None, YieldOptimizerVault);
+        let vault_client = YieldOptimizerVaultClient::new(&env, &vault_id);
+
+        // Initialize vault with 5% performance fee (500 BPS)
+        vault_client.initialize(&admin, &token_id, &500);
+
+        // Mint initial tokens to user
+        token_admin_client.mint(&user, &1_000);
+
+        // 1. User deposits 1,000 tokens into vault
+        let shares = vault_client.deposit(&user, &1_000);
+        assert_eq!(shares, 1_000);
+        assert_eq!(vault_client.balance_of_shares(&user), 1_000);
+        assert_eq!(token_client.balance(&vault_id), 1_000);
+
+        // 2. Simulate yield harvest (e.g. 200 tokens yield generated)
+        token_admin_client.mint(&vault_id, &200);
+        vault_client.harvest(&200);
+
+        // Admin should receive 5% fee (10 tokens), leaving 1,190 in vault
+        assert_eq!(token_client.balance(&admin), 10);
+        assert_eq!(vault_client.total_assets(), 1_190);
+
+        // 3. User withdraws all shares and receives principal + net yield
+        let returned_assets = vault_client.withdraw(&user, &1_000);
+        assert_eq!(returned_assets, 1_190);
+        assert_eq!(token_client.balance(&user), 1_190);
+        assert_eq!(vault_client.balance_of_shares(&user), 0);
+    }
+}

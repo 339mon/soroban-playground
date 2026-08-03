@@ -1,7 +1,7 @@
 // Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
-use soroban_sdk::{contracterror, contracttype, Address};
+use soroban_sdk::{contracterror, contracttype};
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 
@@ -27,6 +27,8 @@ pub enum Error {
     LiquidationExceedsBorrow       = 9,
     /// Borrower has no outstanding debt to liquidate.
     NothingToLiquidate             = 10,
+    /// A position cannot liquidate itself.
+    SelfLiquidationNotAllowed      = 11,
 }
 
 // ── Data types ────────────────────────────────────────────────────────────────

@@ -70,18 +70,19 @@ export async function createSubscription({
   events = [],
   secret,
 }) {
-  if (!url || !secret) throw new Error('url and secret are required');
+  if (!url) throw new Error('url is required');
   if (!tenantId) throw new Error('tenantId is required');
+  const finalSecret = secret || crypto.randomBytes(32).toString('hex');
   const db = getDatabase();
   const id = newId();
   const eventsJson = JSON.stringify(Array.isArray(events) ? events : [events]);
   await db.run(
     `INSERT INTO webhook_subscriptions (id, tenant_id, url, events, secret)
      VALUES (?, ?, ?, ?, ?)`,
-    [id, tenantId, url, eventsJson, secret]
+    [id, tenantId, url, eventsJson, finalSecret]
   );
   return db.get(
-    'SELECT id, tenant_id, url, events, active, created_at FROM webhook_subscriptions WHERE id = ? AND tenant_id = ?',
+    'SELECT id, tenant_id, url, events, secret, active, created_at FROM webhook_subscriptions WHERE id = ? AND tenant_id = ?',
     [id, tenantId]
   );
 }
