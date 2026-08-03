@@ -12,6 +12,7 @@ pub enum Error {
     InsufficientBalance = 3,
     Unauthorized = 4,
     InvalidAmount = 5,
+    ArithmeticOverflow = 6,
 }
 
 #[contracttype]
