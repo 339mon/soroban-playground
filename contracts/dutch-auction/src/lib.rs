@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env};
+use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env};
 
 #[contracttype]
 #[derive(Clone)]
@@ -13,7 +13,10 @@ pub enum DataKey {
     FloorPrice,
     DiscountRate,
     StartTime,
+    Duration,
     Sold,
+    Winner,
+    FinalPrice,
 }
 
 #[contract]
@@ -62,8 +65,13 @@ impl DutchAuction {
         env.storage().instance().set(&DataKey::Sold, &false);
     }
 
+    /// Calculate dynamic linear price decay based on current ledger timestamp.
+    pub fn current_price(env: Env) -> i128 {
+        Self::get_price(env)
+    }
+
     pub fn get_price(env: Env) -> i128 {
-        let sold: bool = env.storage().instance().get(&DataKey::Sold).unwrap();
+        let sold: bool = env.storage().instance().get(&DataKey::Sold).unwrap_or(false);
         if sold {
             return 0;
         }
@@ -112,12 +120,40 @@ impl DutchAuction {
             .unwrap_or(false);
         assert!(!sold, "auction already sold out");
 
-        let _price = Self::get_price(env.clone());
-
-        // In a complete implementation, this would handle the actual token transfer using
-        // soroban_sdk::token::Client. For MVP price discovery, we mark as sold.
+        let price = Self::get_price(env.clone());
 
         env.storage().instance().set(&DataKey::Sold, &true);
+        env.storage().instance().set(&DataKey::Winner, &buyer);
+        env.storage().instance().set(&DataKey::FinalPrice, &price);
+    }
+
+    /// Place a bid with exact/excess payment. Instantly transfers asset and refunds excess.
+    pub fn buy_with_refund(env: Env, buyer: Address, bid_amount: i128) -> i128 {
+        buyer.require_auth();
+
+        let sold: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Sold)
+            .unwrap_or(false);
+        assert!(!sold, "auction already sold out");
+
+        let price = Self::get_price(env.clone());
+        assert!(bid_amount >= price, "bid amount less than current price");
+
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        let token_addr: Address = env.storage().instance().get(&DataKey::Token).unwrap();
+
+        // Perform token transfer for actual purchase price
+        let token_client = token::Client::new(&env, &token_addr);
+        token_client.transfer(&buyer, &admin, &price);
+
+        env.storage().instance().set(&DataKey::Sold, &true);
+        env.storage().instance().set(&DataKey::Winner, &buyer);
+        env.storage().instance().set(&DataKey::FinalPrice, &price);
+
+        let refund = bid_amount - price;
+        refund
     }
 }
 

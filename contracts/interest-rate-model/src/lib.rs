@@ -62,6 +62,10 @@ impl InterestRateModel {
     }
 
     pub fn set_tiered_rates(env: Env, admin: Address, tiers: Vec<RateTier>) {
+        let stored_admin = get_admin(&env).expect("Not initialized");
+        if admin != stored_admin {
+            panic!("Unauthorized: caller is not the admin");
+        }
         admin.require_auth();
         // basic validation
         let max = tiers.len();
