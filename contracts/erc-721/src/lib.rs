@@ -8,6 +8,7 @@ use soroban_sdk::{
 
 const ADMIN: symbol_short::Symbol = symbol_short!("ADMIN");
 const TOTAL_SUPPLY: symbol_short::Symbol = symbol_short!("TOTAL_SUPPLY");
+const ROYALTY: symbol_short::Symbol = symbol_short!("ROYALTY");
 const MAX_URI_LEN: usize = 512;
 
 #[contracterror]
@@ -29,6 +30,12 @@ pub enum DataKey {
     Approved(u64),
     ApprovedAll(Address, Address),
     TokenUri(u64),
+}
+
+#[contracttype]
+pub struct RoyaltyInfo {
+    pub creator: Address,
+    pub bips: u32,
 }
 
 fn get_admin(env: &Env) -> Result<Address, Error> {
@@ -336,5 +343,21 @@ impl Erc721 {
     pub fn token_of_owner_by_index(env: Env, _owner: Address, _index: u64) -> Result<u64, Error> {
         ensure_initialized(&env)?;
         Ok(0)
+    }
+
+    pub fn set_royalty(env: Env, creator: Address, bips: u32) -> Result<(), Error> {
+        ensure_initialized(&env)?;
+        let admin = get_admin(&env)?;
+        admin.require_auth();
+        if bips > 10000 {
+            return Err(Error::InvalidInput);
+        }
+        env.instance().set(&ROYALTY, &RoyaltyInfo { creator, bips });
+        Ok(())
+    }
+
+    pub fn get_royalty(env: Env) -> Result<Option<RoyaltyInfo>, Error> {
+        ensure_initialized(&env)?;
+        Ok(env.instance().get(&ROYALTY))
     }
 }

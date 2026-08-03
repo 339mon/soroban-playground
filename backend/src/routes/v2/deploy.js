@@ -7,6 +7,7 @@ import {
   createHttpError,
 } from '../../middleware/errorHandler.js';
 import { deployBatchContracts } from '../../services/deployService.js';
+import { rateLimitMiddleware } from '../../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ function validateDeployRequest(body) {
 
 router.post(
   '/',
+  rateLimitMiddleware('deploy'),
   asyncHandler(async (req, res, next) => {
     const validationError = validateDeployRequest(req.body);
     if (validationError) {
@@ -71,6 +73,7 @@ router.post(
 
 router.post(
   '/batch',
+  rateLimitMiddleware('deploy'),
   asyncHandler(async (req, res, next) => {
     const { contracts, batch_id } = req.body || {};
     if (!Array.isArray(contracts) || contracts.length === 0) {

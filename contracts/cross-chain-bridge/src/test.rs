@@ -556,3 +556,11 @@ fn test_daily_limit_resets_after_window() {
     let id = client.lock(&depositor, &token, &500i128, &eth_dest(&env));
     assert_eq!(id, 2);
 }
+
+#[test]
+fn test_set_negative_daily_limit_fails() {
+    let (_env, client, admin, _relayer) = setup();
+    let result = client.try_set_daily_limit(&admin, &-100i128);
+    assert!(matches!(result, Err(Ok(Error::InvalidAmount))));
+}
+
