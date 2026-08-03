@@ -47,6 +47,19 @@ impl FlashLoanProvider {
         Ok(())
     }
 
+    /// Calculate the flash loan fee for a given loan amount.
+    pub fn calculate_fee(_env: Env, amount: i128) -> Result<i128, Error> {
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let fee = amount
+            .checked_mul(FEE_NUMERATOR)
+            .ok_or(Error::ArithmeticOverflow)?
+            .checked_div(FEE_DENOMINATOR)
+            .ok_or(Error::ArithmeticOverflow)?;
+        Ok(fee)
+    }
+
     // ── Liquidity management ──────────────────────────────────────────────────
 
     /// Deposit liquidity into the pool (admin only).
@@ -56,7 +69,10 @@ impl FlashLoanProvider {
             return Err(Error::InvalidAmount);
         }
         let balance = get_balance(&env);
-        set_balance(&env, balance + amount);
+        let new_balance = balance
+            .checked_add(amount)
+            .ok_or(Error::ArithmeticOverflow)?;
+        set_balance(&env, new_balance);
         env.events().publish((symbol_short!("deposit"),), amount);
         Ok(())
     }
@@ -71,7 +87,10 @@ impl FlashLoanProvider {
         if balance < amount {
             return Err(Error::InsufficientBalance);
         }
-        set_balance(&env, balance - amount);
+        let new_balance = balance
+            .checked_sub(amount)
+            .ok_or(Error::ArithmeticOverflow)?;
+        set_balance(&env, new_balance);
         env.events().publish((symbol_short!("withdraw"),), amount);
         Ok(())
     }
@@ -96,16 +115,22 @@ impl FlashLoanProvider {
             return Err(Error::InsufficientBalance);
         }
 
-        let fee = (amount * FEE_NUMERATOR) / FEE_DENOMINATOR;
+        let fee = Self::calculate_fee(env.clone(), amount)?;
 
         // Disburse funds to receiver (simulated).
-        set_balance(&env, balance - amount);
+        let balance_after_disburse = balance
+            .checked_sub(amount)
+            .ok_or(Error::ArithmeticOverflow)?;
+        set_balance(&env, balance_after_disburse);
 
         // Receiver executes arbitrary logic here (simulated in playground).
 
         // Repayment: receiver returns amount + fee.
         // For the playground we enforce repayment by restoring balance + fee.
-        set_balance(&env, balance + fee);
+        let new_balance = balance
+            .checked_add(fee)
+            .ok_or(Error::ArithmeticOverflow)?;
+        set_balance(&env, new_balance);
 
         increment_loans(&env);
         add_fees(&env, fee);
