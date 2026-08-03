@@ -4,7 +4,10 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::Address as _, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Env, String,
+};
 
 const STRIKE: i128 = 100_000_000;
 const PREMIUM: i128 = 5_000_000;
@@ -18,7 +21,7 @@ fn setup() -> (Env, OptionsProtocolClient<'static>, Address, Address, Address) {
     let admin = Address::generate(&env);
     let writer = Address::generate(&env);
     let holder = Address::generate(&env);
-    client.initialize(&admin).unwrap();
+    client.initialize(&admin);
     (env, client, admin, writer, holder)
 }
 
@@ -29,7 +32,7 @@ fn future(env: &Env) -> u64 {
 #[test]
 fn test_initialize_sets_admin() {
     let (_env, client, admin, ..) = setup();
-    assert_eq!(client.get_admin().unwrap(), admin);
+    assert_eq!(client.get_admin(), admin);
 }
 
 #[test]
@@ -41,9 +44,16 @@ fn test_initialize_twice_fails() {
 #[test]
 fn test_write_call_option() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client
-        .write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call)
-        .unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
     assert_eq!(id, 1);
     assert_eq!(client.option_count(), 1);
 }
@@ -51,57 +61,135 @@ fn test_write_call_option() {
 #[test]
 fn test_write_put_option() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client
-        .write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Put)
-        .unwrap();
-    assert_eq!(client.get_option(&id).unwrap().kind, OptionKind::Put);
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Put,
+    );
+    assert_eq!(client.get_option(&id).kind, OptionKind::Put);
 }
 
 #[test]
 fn test_write_zero_strike_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    assert!(client.try_write_option(&writer, &holder, &String::from_str(&env, "XLM"), &0i128, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).is_err());
+    assert!(client
+        .try_write_option(
+            &writer,
+            &holder,
+            &String::from_str(&env, "XLM"),
+            &0i128,
+            &PREMIUM,
+            &AMOUNT,
+            &future(&env),
+            &OptionKind::Call
+        )
+        .is_err());
 }
 
 #[test]
 fn test_write_zero_amount_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    assert!(client.try_write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &0i128, &future(&env), &OptionKind::Call).is_err());
+    assert!(client
+        .try_write_option(
+            &writer,
+            &holder,
+            &String::from_str(&env, "XLM"),
+            &STRIKE,
+            &PREMIUM,
+            &0i128,
+            &future(&env),
+            &OptionKind::Call
+        )
+        .is_err());
 }
 
 #[test]
 fn test_write_past_expiry_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    assert!(client.try_write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &0u64, &OptionKind::Call).is_err());
+    assert!(client
+        .try_write_option(
+            &writer,
+            &holder,
+            &String::from_str(&env, "XLM"),
+            &STRIKE,
+            &PREMIUM,
+            &AMOUNT,
+            &0u64,
+            &OptionKind::Call
+        )
+        .is_err());
 }
 
 #[test]
 fn test_write_writer_equals_holder_fails() {
     let (env, client, _admin, writer, _holder) = setup();
-    assert!(client.try_write_option(&writer, &writer, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).is_err());
+    assert!(client
+        .try_write_option(
+            &writer,
+            &writer,
+            &String::from_str(&env, "XLM"),
+            &STRIKE,
+            &PREMIUM,
+            &AMOUNT,
+            &future(&env),
+            &OptionKind::Call
+        )
+        .is_err());
 }
 
 #[test]
 fn test_exercise_success() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
-    let settlement = client.exercise(&holder, &id).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    let settlement = client.exercise(&holder, &id);
     assert_eq!(settlement, STRIKE);
-    assert_eq!(client.get_option(&id).unwrap().status, OptionStatus::Exercised);
+    assert_eq!(client.get_option(&id).status, OptionStatus::Exercised);
 }
 
 #[test]
 fn test_exercise_by_non_holder_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
     assert!(client.try_exercise(&writer, &id).is_err());
 }
 
 #[test]
 fn test_exercise_twice_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
-    client.exercise(&holder, &id).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    client.exercise(&holder, &id);
     assert!(client.try_exercise(&holder, &id).is_err());
 }
 
@@ -109,7 +197,16 @@ fn test_exercise_twice_fails() {
 fn test_exercise_expired_fails() {
     let (env, client, _admin, writer, holder) = setup();
     let expiry = env.ledger().timestamp() + 1;
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &expiry, &OptionKind::Call).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &expiry,
+        &OptionKind::Call,
+    );
     env.ledger().with_mut(|l| l.timestamp = expiry + 1);
     assert!(client.try_exercise(&holder, &id).is_err());
 }
@@ -117,23 +214,50 @@ fn test_exercise_expired_fails() {
 #[test]
 fn test_cancel_by_writer() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
-    client.cancel_option(&writer, &id).unwrap();
-    assert_eq!(client.get_option(&id).unwrap().status, OptionStatus::Cancelled);
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    client.cancel_option(&writer, &id);
+    assert_eq!(client.get_option(&id).status, OptionStatus::Cancelled);
 }
 
 #[test]
 fn test_cancel_by_non_writer_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
     assert!(client.try_cancel_option(&holder, &id).is_err());
 }
 
 #[test]
 fn test_cancel_twice_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
-    client.cancel_option(&writer, &id).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    client.cancel_option(&writer, &id);
     assert!(client.try_cancel_option(&writer, &id).is_err());
 }
 
@@ -141,32 +265,71 @@ fn test_cancel_twice_fails() {
 fn test_expire_after_expiry() {
     let (env, client, _admin, writer, holder) = setup();
     let expiry = env.ledger().timestamp() + 1;
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &expiry, &OptionKind::Call).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &expiry,
+        &OptionKind::Call,
+    );
     env.ledger().with_mut(|l| l.timestamp = expiry + 1);
-    client.expire_option(&id).unwrap();
-    assert_eq!(client.get_option(&id).unwrap().status, OptionStatus::Expired);
+    client.expire_option(&id);
+    assert_eq!(client.get_option(&id).status, OptionStatus::Expired);
 }
 
 #[test]
 fn test_expire_before_expiry_fails() {
     let (env, client, _admin, writer, holder) = setup();
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
     assert!(client.try_expire_option(&id).is_err());
 }
 
 #[test]
 fn test_pause_blocks_write() {
     let (env, client, admin, writer, holder) = setup();
-    client.set_paused(&admin, &true).unwrap();
-    assert!(client.try_write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).is_err());
+    client.set_paused(&admin, &true);
+    assert!(client
+        .try_write_option(
+            &writer,
+            &holder,
+            &String::from_str(&env, "XLM"),
+            &STRIKE,
+            &PREMIUM,
+            &AMOUNT,
+            &future(&env),
+            &OptionKind::Call
+        )
+        .is_err());
 }
 
 #[test]
 fn test_unpause_allows_write() {
     let (env, client, admin, writer, holder) = setup();
-    client.set_paused(&admin, &true).unwrap();
-    client.set_paused(&admin, &false).unwrap();
-    assert!(client.write_option(&writer, &holder, &String::from_str(&env, "XLM"), &STRIKE, &PREMIUM, &AMOUNT, &future(&env), &OptionKind::Call).is_ok());
+    client.set_paused(&admin, &true);
+    client.set_paused(&admin, &false);
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    assert_eq!(id, 1);
 }
 
 #[test]
@@ -185,8 +348,17 @@ fn test_get_option_not_found() {
 fn test_option_fields_stored_correctly() {
     let (env, client, _admin, writer, holder) = setup();
     let expiry = future(&env);
-    let id = client.write_option(&writer, &holder, &String::from_str(&env, "USDC"), &STRIKE, &PREMIUM, &AMOUNT, &expiry, &OptionKind::Put).unwrap();
-    let opt = client.get_option(&id).unwrap();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "USDC"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &expiry,
+        &OptionKind::Put,
+    );
+    let opt = client.get_option(&id);
     assert_eq!(opt.writer, writer);
     assert_eq!(opt.holder, holder);
     assert_eq!(opt.strike_price, STRIKE);
@@ -195,4 +367,129 @@ fn test_option_fields_stored_correctly() {
     assert_eq!(opt.expiry, expiry);
     assert_eq!(opt.kind, OptionKind::Put);
     assert_eq!(opt.status, OptionStatus::Active);
+}
+
+#[test]
+fn test_write_negative_premium_fails() {
+    let (env, client, _admin, writer, holder) = setup();
+    assert!(client
+        .try_write_option(
+            &writer,
+            &holder,
+            &String::from_str(&env, "XLM"),
+            &STRIKE,
+            &-1i128,
+            &AMOUNT,
+            &future(&env),
+            &OptionKind::Call
+        )
+        .is_err());
+}
+
+#[test]
+fn test_pause_blocks_exercise() {
+    let (env, client, admin, writer, holder) = setup();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    client.set_paused(&admin, &true);
+    assert!(client.try_exercise(&holder, &id).is_err());
+}
+
+#[test]
+fn test_exercise_cancelled_option_fails() {
+    let (env, client, _admin, writer, holder) = setup();
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    client.cancel_option(&writer, &id);
+    assert!(client.try_exercise(&holder, &id).is_err());
+}
+
+#[test]
+fn test_expire_already_exercised_fails() {
+    let (env, client, _admin, writer, holder) = setup();
+    let expiry = env.ledger().timestamp() + 1;
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &expiry,
+        &OptionKind::Call,
+    );
+    client.exercise(&holder, &id);
+    env.ledger().with_mut(|l| l.timestamp = expiry + 1);
+    assert!(client.try_expire_option(&id).is_err());
+}
+
+#[test]
+fn test_expire_already_cancelled_fails() {
+    let (env, client, _admin, writer, holder) = setup();
+    let expiry = env.ledger().timestamp() + 1;
+    let id = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &expiry,
+        &OptionKind::Call,
+    );
+    client.cancel_option(&writer, &id);
+    env.ledger().with_mut(|l| l.timestamp = expiry + 1);
+    assert!(client.try_expire_option(&id).is_err());
+}
+
+#[test]
+fn test_multiple_options_sequential_ids() {
+    let (env, client, _admin, writer, holder) = setup();
+    let id1 = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "XLM"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Call,
+    );
+    let id2 = client.write_option(
+        &writer,
+        &holder,
+        &String::from_str(&env, "USDC"),
+        &STRIKE,
+        &PREMIUM,
+        &AMOUNT,
+        &future(&env),
+        &OptionKind::Put,
+    );
+    assert_eq!(id1, 1);
+    assert_eq!(id2, 2);
+    assert_eq!(client.option_count(), 2);
+}
+
+#[test]
+fn test_is_paused_getter() {
+    let (_env, client, admin, ..) = setup();
+    assert!(!client.is_paused());
+    client.set_paused(&admin, &true);
+    assert!(client.is_paused());
 }
