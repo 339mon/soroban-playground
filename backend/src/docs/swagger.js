@@ -31,6 +31,9 @@ const options = {
     ],
     tags: [
       { name: 'Versioning', description: 'API version discovery and routing' },
+      { name: 'Contract Compiler', description: 'Synchronous and Asynchronous WASM Compilation' },
+      { name: 'Deploy & Invoke', description: 'Contract deployment and invocation operations' },
+      { name: 'RPC Network Manager', description: 'Circuit breaker & RPC health status' },
       ...Object.keys(versions).map((version) => ({
         name: `API ${version}`,
         description: `${version.toUpperCase()} endpoints`,
@@ -52,20 +55,63 @@ const options = {
             message: { type: 'string' },
           },
         },
+        CompileRequest: {
+          type: 'object',
+          required: ['source'],
+          properties: {
+            source: { type: 'string', description: 'Rust source code for Soroban smart contract' },
+            contractName: { type: 'string', description: 'Optional name of the contract' },
+          },
+        },
+        AsyncCompileResponse: {
+          type: 'object',
+          properties: {
+            jobId: { type: 'string', description: 'Unique background compilation job ID' },
+            status: { type: 'string', example: 'queued' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        CompileJobStatus: {
+          type: 'object',
+          properties: {
+            jobId: { type: 'string' },
+            status: { type: 'string', enum: ['queued', 'processing', 'completed', 'failed'] },
+            result: { type: 'object' },
+            error: { type: 'string' },
+          },
+        },
+        RpcStatusResponse: {
+          type: 'object',
+          properties: {
+            activeEndpoint: { type: 'string' },
+            circuitBreakerState: { type: 'string', enum: ['CLOSED', 'OPEN', 'HALF_OPEN'] },
+            endpoints: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  url: { type: 'string' },
+                  isHealthy: { type: 'boolean' },
+                  failCount: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
   apis: ['./src/routes/**/*.js', './src/docs/*.doc.js'],
 };
 
-function cloneOperation(operation, version) {
+export function cloneOperation(operation, version) {
   const cloned = JSON.parse(JSON.stringify(operation));
   const tags = new Set([`API ${version}`, ...(cloned.tags || [])]);
   cloned.tags = Array.from(tags);
   return cloned;
 }
 
-function clonePathItem(pathItem, version) {
+export function clonePathItem(pathItem, version) {
   const cloned = JSON.parse(JSON.stringify(pathItem));
   for (const [method, operation] of Object.entries(cloned)) {
     if (operation && typeof operation === 'object') {
@@ -75,7 +121,7 @@ function clonePathItem(pathItem, version) {
   return cloned;
 }
 
-function isVersionablePath(pathName) {
+export function isVersionablePath(pathName) {
   if (!pathName.startsWith('/api/')) return false;
   const pathWithoutApiPrefix = pathName.slice('/api'.length);
   return versionedRoutePrefixes.some(
@@ -85,7 +131,7 @@ function isVersionablePath(pathName) {
   );
 }
 
-function withVersionedDocumentation(spec) {
+export function withVersionedDocumentation(spec) {
   const documentedSpec = {
     ...spec,
     paths: { ...(spec.paths || {}) },
