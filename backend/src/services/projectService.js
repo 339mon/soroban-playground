@@ -9,6 +9,8 @@ import { getDatabase } from '../database/connection.js';
 
 function parseTags(row) {
   if (!row || row.tags == null) return [];
+  if (Array.isArray(row.tags)) return row.tags;
+  if (typeof row.tags !== 'string') return [];
   try {
     const parsed = JSON.parse(row.tags);
     return Array.isArray(parsed) ? parsed : [];
@@ -50,12 +52,14 @@ export async function listProjects() {
  * passed. Returns a Map<number, project> so DataLoader can re-key by input id.
  */
 export async function getProjectsByIds(ids) {
-  if (!ids.length) return new Map();
-  const placeholders = ids.map(() => '?').join(',');
+  if (!ids || !ids.length) return new Map();
+  const validIds = ids.filter((id) => id != null && !isNaN(Number(id)));
+  if (!validIds.length) return new Map();
+  const placeholders = validIds.map(() => '?').join(',');
   const db = getDatabase();
   const rows = await db.all(
     `SELECT * FROM projects WHERE id IN (${placeholders})`,
-    ids
+    validIds
   );
   const byId = new Map();
   for (const row of rows) {
