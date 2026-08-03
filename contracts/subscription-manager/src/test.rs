@@ -410,3 +410,148 @@ fn test_transfer_admin() {
     client.transfer_admin(&new_admin);
     assert_eq!(client.get_admin(), new_admin);
 }
+
+// ── Enhanced error handling tests ─────────────────────────────────────────────
+
+#[test]
+fn test_create_plan_empty_name_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, _) = create_token(&env, &admin);
+
+    let result = client.try_create_plan(&String::from_str(&env, ""), &PRICE, &INTERVAL, &token);
+    assert_eq!(result, Err(Ok(Error::EmptyPlanName)));
+}
+
+#[test]
+fn test_create_plan_negative_price_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, _) = create_token(&env, &admin);
+
+    let result =
+        client.try_create_plan(&String::from_str(&env, "Bad"), &(-1i128), &INTERVAL, &token);
+    assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+}
+
+#[test]
+fn test_create_plan_price_too_large_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, _) = create_token(&env, &admin);
+
+    let result = client.try_create_plan(
+        &String::from_str(&env, "Huge"),
+        &(i128::MAX / 2 + 1),
+        &INTERVAL,
+        &token,
+    );
+    assert_eq!(result, Err(Ok(Error::PriceTooLarge)));
+}
+
+#[test]
+fn test_create_plan_interval_too_large_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, _) = create_token(&env, &admin);
+
+    // 315_360_001 seconds > 10 years
+    let result = client.try_create_plan(
+        &String::from_str(&env, "Eternity"),
+        &PRICE,
+        &315_360_001u64,
+        &token,
+    );
+    assert_eq!(result, Err(Ok(Error::IntervalTooLarge)));
+}
+
+#[test]
+fn test_withdraw_exceeds_balance_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, asset_client) = create_token(&env, &admin);
+
+    let plan_id = client.create_plan(
+        &String::from_str(&env, "Monthly"),
+        &PRICE,
+        &INTERVAL,
+        &token,
+    );
+
+    let subscriber = Address::generate(&env);
+    asset_client.mint(&subscriber, &(PRICE * 10));
+    client.subscribe(&subscriber, &plan_id);
+
+    // Try to withdraw more than PRICE (the only cycle collected)
+    let result = client.try_withdraw(&token, &(PRICE * 2));
+    assert_eq!(result, Err(Ok(Error::InsufficientContractBalance)));
+}
+
+#[test]
+fn test_withdraw_zero_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, _) = create_token(&env, &admin);
+
+    let result = client.try_withdraw(&token, &0i128);
+    assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+}
+
+#[test]
+fn test_get_plan_not_found() {
+    let (_, _, _, client) = setup();
+    let result = client.try_get_plan(&999u64);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_get_subscription_not_found() {
+    let (_, _, _, client) = setup();
+    let result = client.try_get_subscription(&999u64);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_charge_cancelled_subscription_fails() {
+    let (env, admin, _, client) = setup();
+    let (token, _, asset_client) = create_token(&env, &admin);
+
+    let plan_id = client.create_plan(
+        &String::from_str(&env, "Monthly"),
+        &PRICE,
+        &INTERVAL,
+        &token,
+    );
+
+    let subscriber = Address::generate(&env);
+    asset_client.mint(&subscriber, &(PRICE * 10));
+
+    let sub_id = client.subscribe(&subscriber, &plan_id);
+    client.cancel(&subscriber, &sub_id);
+
+    let result = client.try_charge(&sub_id);
+    assert_eq!(result, Err(Ok(Error::SubscriptionCancelled)));
+}
+
+#[test]
+fn test_subscribe_to_nonexistent_plan_fails() {
+    let (env, _, _, client) = setup();
+
+    let subscriber = Address::generate(&env);
+    let result = client.try_subscribe(&subscriber, &999u64);
+    assert_eq!(result, Err(Ok(Error::PlanNotFound)));
+}
+
+#[test]
+fn test_deactivate_plan_blocks_new_subscriptions() {
+    let (env, admin, _, client) = setup();
+    let (token, _, asset_client) = create_token(&env, &admin);
+
+    let plan_id = client.create_plan(
+        &String::from_str(&env, "Premium"),
+        &PRICE,
+        &INTERVAL,
+        &token,
+    );
+    client.deactivate_plan(&plan_id);
+
+    let subscriber = Address::generate(&env);
+    asset_client.mint(&subscriber, &(PRICE * 5));
+
+    let result = client.try_subscribe(&subscriber, &plan_id);
+    assert_eq!(result, Err(Ok(Error::PlanInactive)));
+}
