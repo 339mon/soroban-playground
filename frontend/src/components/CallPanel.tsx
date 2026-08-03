@@ -1,11 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Send } from "lucide-react";
+"use client";
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Send, Code2, AlertCircle } from "lucide-react";
 import {
   buildAbiArguments,
   buildDefaultInputValue,
   validateAbiArguments,
   type ContractAbiFunction,
 } from "@/utils/contractAbi";
+import WasmSpecFormBuilder from "./WasmSpecFormBuilder";
+import AbiViewer from "./AbiViewer";
 
 interface CallPanelProps {
   onInvoke: (func: string, args: Record<string, unknown>) => void;
@@ -94,11 +98,11 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
   const abiValidationError = useMemo(() => validateAbiArguments(abiFunction, formValues), [abiFunction, formValues]);
   const canInvoke = Boolean(contractId && funcName.trim()) && !parseError && (!abiFunction ? !parsedArgs.error : !abiValidationError);
 
-  const handleFieldChange = (name: string, value: unknown) => {
+  const handleFieldChange = useCallback((name: string, value: unknown) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleInvoke = () => {
+  const handleInvoke = useCallback(() => {
     if (!contractId) {
       setParseError("Deploy a contract before invoking a function.");
       return;
@@ -127,28 +131,31 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
     }
 
     onInvoke(trimmedName, parsedArgs.value);
-  };
+  }, [contractId, funcName, abiFunction, formValues, parsedArgs, onInvoke]);
 
   return (
     <div className="flex flex-col space-y-4 p-5 bg-gray-900 border border-gray-800 rounded-xl shadow-lg mt-4">
       <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-widest flex items-center mb-2">
+        <Code2 size={16} className="mr-2 text-cyan-400" />
         Interact with Contract
       </h3>
 
       {!contractId ? (
         <p className="text-xs text-gray-500 italic">Deploy a contract to enable interactions.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
-            <label htmlFor="call-panel-function-name" className="block text-xs text-gray-400 mb-1 tracking-wide">Function Name</label>
+            <label htmlFor="call-panel-function-name" className="block text-xs font-semibold text-gray-400 mb-1.5 tracking-wide">
+              Function Name
+            </label>
             {abi?.length ? (
               <select
                 id="call-panel-function-name"
                 value={funcName}
                 onChange={(event) => setFuncName(event.target.value)}
-                className="w-full bg-gray-950 border border-gray-800 rounded-md py-2 px-3 text-sm text-gray-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full bg-gray-950 border border-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-200 focus:outline-none focus:border-cyan-500 font-mono"
               >
-                <option value="">Select a function</option>
+                <option value="">Select a contract function</option>
                 {abi.map((entry) => (
                   <option key={entry.name} value={entry.name}>
                     {entry.name}
@@ -161,81 +168,40 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
                 type="text"
                 value={funcName}
                 onChange={(event) => setFuncName(event.target.value)}
-                className="w-full bg-gray-950 border border-gray-800 rounded-md py-2 px-3 text-sm text-gray-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full bg-gray-950 border border-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-200 focus:outline-none focus:border-cyan-500 font-mono"
                 placeholder="e.g. hello"
               />
             )}
           </div>
 
           {abiFunction && (
-            <div className="space-y-3 rounded-lg border border-gray-800 bg-gray-950/40 p-3">
-              {abiFunction.inputs?.length ? (
-                abiFunction.inputs.map((input) => {
-                  const inputId = `call-panel-${input.name}`;
-                  const value = formValues[input.name];
-                  const inputType = input.type.toLowerCase();
-                  const isBoolean = inputType === "bool";
-                  const isNumber = ["u8", "u16", "u32", "u64", "u128", "i8", "i16", "i32", "i64", "i128", "f32", "f64"].includes(inputType);
-
-                  return (
-                    <div key={input.name}>
-                      <label htmlFor={inputId} className="mb-1 block text-xs tracking-wide text-gray-400">
-                        {input.name}
-                      </label>
-                      {isBoolean ? (
-                        <label htmlFor={inputId} className="flex items-center gap-2 rounded-md border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-200">
-                          <input
-                            id={inputId}
-                            type="checkbox"
-                            checked={Boolean(value)}
-                            onChange={(event) => handleFieldChange(input.name, event.target.checked)}
-                            className="h-4 w-4 rounded border-gray-700 bg-gray-900"
-                          />
-                          <span>{input.name}</span>
-                        </label>
-                      ) : isNumber ? (
-                        <input
-                          id={inputId}
-                          type="number"
-                          value={value === undefined || value === null || value === "" ? "" : String(value)}
-                          onChange={(event) => handleFieldChange(input.name, event.target.value)}
-                          className="w-full rounded-md border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                        />
-                      ) : (
-                        <input
-                          id={inputId}
-                          type="text"
-                          value={value === undefined || value === null ? "" : String(value)}
-                          onChange={(event) => handleFieldChange(input.name, event.target.value)}
-                          className="w-full rounded-md border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                        />
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-xs text-gray-500">This function does not require arguments.</p>
-              )}
-            </div>
+            <AbiViewer
+              abiFunction={abiFunction}
+              values={formValues}
+              onFieldChange={handleFieldChange}
+            />
           )}
 
           {!abiFunction && (
             <div>
-              <label htmlFor="call-panel-arguments" className="mb-1 block text-xs tracking-wide text-gray-400">Arguments (JSON)</label>
+              <label htmlFor="call-panel-arguments" className="mb-1 block text-xs tracking-wide text-gray-400">
+                Arguments (JSON)
+              </label>
               <textarea
                 id="call-panel-arguments"
                 value={argsRaw}
                 onChange={(event) => setArgsRaw(event.target.value)}
                 aria-invalid={Boolean(parsedArgs.error || parseError)}
                 aria-describedby={parsedArgs.error || parseError ? "call-panel-args-error" : undefined}
-                className="h-24 w-full resize-none rounded-md border border-gray-800 bg-gray-950 px-3 py-2 font-mono text-sm text-gray-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="{\n  &quot;name&quot;: &quot;Ayomide&quot;\n}"
+                className="h-24 w-full resize-none rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 font-mono text-sm text-gray-200 focus:outline-none focus:border-cyan-500"
+                placeholder='{\n  "to": "G...",\n  "amount": 100\n}'
               />
             </div>
           )}
 
           {(parseError || parsedArgs.error) && (
-            <p id="call-panel-args-error" className="text-xs text-rose-300">
+            <p id="call-panel-args-error" className="flex items-center gap-1.5 text-xs text-rose-300">
+              <AlertCircle size={14} className="shrink-0" />
               {parseError || parsedArgs.error}
             </p>
           )}
@@ -243,10 +209,10 @@ export default function CallPanel({ onInvoke, isInvoking, contractId, abi }: Cal
           <button
             onClick={handleInvoke}
             disabled={!canInvoke || isInvoking}
-            className={`flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+            className={`flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
               !canInvoke || isInvoking
                 ? "cursor-not-allowed bg-gray-800 text-gray-600"
-                : "bg-blue-600 text-white shadow-lg hover:bg-blue-500"
+                : "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg hover:brightness-110 active:scale-98"
             }`}
           >
             {isInvoking ? (

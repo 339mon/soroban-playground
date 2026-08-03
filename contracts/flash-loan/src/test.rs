@@ -98,3 +98,12 @@ fn test_multiple_loans_accumulate_stats() {
     // fees: 500 + 1000 = 1500
     assert_eq!(stats.total_fees_collected, 1_500);
 }
+
+#[test]
+fn test_calculate_fee() {
+    let (_env, client, _admin) = setup();
+    let fee = client.calculate_fee(&100_000i128).unwrap();
+    assert_eq!(fee, 500);
+    assert!(client.try_calculate_fee(&0i128).is_err());
+}
+

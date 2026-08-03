@@ -8,6 +8,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 
 import config from './config/index.js';
@@ -16,7 +17,6 @@ import { applyServerTuning } from './config/http2Config.js';
 import { http2PushMiddleware } from './middleware/http2Push.js';
 import apiRouter from './routes/api.js';
 import authRoute from './routes/auth.js';
-import cookieParser from 'cookie-parser';
 import { startCleanupWorker, stopCleanupWorker } from './cleanupWorker.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { setupWebsocketServer, closeWebsocketServer } from './websocket.js';
@@ -123,7 +123,7 @@ try {
     hasCertificates = true;
   }
 } catch (err) {
-  console.warn('Could not load SSL certificates:', err.message);
+  console.warn('[SSL] Could not load certificates, falling back to HTTP:', err.message);
 }
 
 // Fallback to HTTP if no certs are provided, otherwise use HTTPS
@@ -141,7 +141,6 @@ app.use(compressionMiddleware);
 app.use(http2PushMiddleware);
 
 // Strict Transport Security (HSTS) headers
-// max-age=63072000 is 2 years, required for Qualys SSL Labs A+ and HSTS preload list
 app.use((req, res, next) => {
   res.setHeader(
     'Strict-Transport-Security',
@@ -168,14 +167,11 @@ app.use((req, res, next) => {
       );
       recordHttpRequest(req.method, route, res.statusCode);
     } catch {
-      // metrics are best-effort
+      // Metrics are best-effort
     }
   });
   next();
 });
-
-// Rate limiting
-// app.use(rateLimitMiddleware('global'));
 
 // Routes
 app.use('/api', apiRouter);
@@ -199,17 +195,19 @@ app.use('/api/deploy-queue', deployQueueRoute);
 app.use('/api/backup', backupRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/background-jobs', backgroundJobsRoute);
-if (config.app.env === 'development') {
+
+if (config.app?.env === 'development' || process.env.NODE_ENV === 'development') {
   app.use('/admin/queues', queueDashboard);
 }
+
 app.use('/api/prediction-market', predictionMarketRoute);
 app.use('/metrics', metricsRoute);
 
-// GraphQL Endpoint
+// GraphQL & Swagger
 setupGraphQL(app);
 setupSwagger(app);
 
-// ─── Health Check and Readiness Probes ────────────────────────────────────────
+// Health Check and Readiness Probes
 app.get('/', (_req, res) => {
   res.status(200).send('Soroban Playground Backend API is running.');
 });
@@ -217,18 +215,14 @@ app.get('/', (_req, res) => {
 app.use('/health', healthRouter);
 app.get('/api/health', healthHandler);
 
-
-
-// Error handlers (must be after routes)
+// Error handlers (must be registered after routes)
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Wires runtime secret rotation onto the live DB/Redis connections. Opt-in: only
-// active when a rotation source or encryption key is configured, so default
-// behaviour is unchanged.
+// Secret rotation setup
 function setupCredentialRotation() {
   const { intervalMs, graceMs, sourceFile, encryptionKey } =
-    config.credentialRotation;
+    config.credentialRotation || {};
   if (!sourceFile && !encryptionKey && !intervalMs) return;
 
   credentialRotationService.configure({
@@ -257,11 +251,14 @@ function setupCredentialRotation() {
 
 let ledgerSyncServiceInstance = null;
 
-// WebSocket + compile service + database init
+// Initialize Database & Boot Services
 initializeDatabase()
-  .then((db) => {
+  .then(async (db) => {
     setupWebsocketServer(server);
-    initializeCompileService().catch(console.error);
+    await initializeCompileService().catch((err) =>
+      console.error('[CompileService] Initialization error:', err)
+    );
+
     oracleWorkerPool.start();
     startCleanupWorker();
     startBackupScheduler();
@@ -269,17 +266,17 @@ initializeDatabase()
     startWebhookDispatcher();
     setupCredentialRotation();
     initializeQueues();
+
     if (process.env.LEDGER_SYNC_ENABLED === 'true') {
       ledgerSyncServiceInstance = new LedgerSyncService({ db });
       ledgerSyncServiceInstance.start();
     }
 
-    // Start listening
     if (process.env.NODE_ENV !== 'test') {
       server.listen(PORT, () => {
         const protocol = hasCertificates ? 'https' : 'http';
         console.log(
-          `✅  Backend server running on ${protocol}://localhost:${PORT}`
+          `✅ Backend server running on ${protocol}://localhost:${PORT}`
         );
       });
     }
@@ -289,7 +286,7 @@ initializeDatabase()
     process.exit(1);
   });
 
-// Graceful shutdown
+// Graceful Shutdown Handler
 let isShuttingDown = false;
 const SHUTDOWN_TIMEOUT_MS = 30000;
 
@@ -300,36 +297,42 @@ async function gracefulShutdown(signal) {
 
   const forceExit = setTimeout(() => {
     console.error(
-      '[Shutdown] Graceful shutdown timed out after 30s. Force exiting.'
+      '[Shutdown] Graceful shutdown timed out after 30s. Force exiting process.'
     );
     process.exit(1);
   }, SHUTDOWN_TIMEOUT_MS);
 
+  if (forceExit.unref) forceExit.unref();
+
   try {
-    // 1. Stop background workers
+    // 1. Stop background workers and queue consumers
     console.log('[Shutdown] Stopping background workers...');
     stopCleanupWorker();
     stopWebhookDispatcher();
     if (ledgerSyncServiceInstance) ledgerSyncServiceInstance.stop();
     await oracleWorkerPool.stop();
     credentialRotationService.stop();
+
     try {
       await shutdownQueues();
     } catch (err) {
-      console.error('Error shutting down BullMQ:', err.message);
+      console.error('[Shutdown] Error closing BullMQ queues:', err.message);
     }
 
     // 2. Stop accepting new HTTP requests
     console.log('[Shutdown] Stopping HTTP server...');
     await new Promise((resolve) => server.close(resolve));
 
-    // 3. Stop WebSocket connections
-    console.log('[Shutdown] Closing WebSocket server...');
-    closeWebsocketServer();
+    // 3. Terminate WebSockets cleanly
+    console.log('[Shutdown] Terminating WebSocket connections...');
+    if (typeof closeWebsocketServer === 'function') {
+      await closeWebsocketServer();
+    }
 
-    // 4. Close database and Redis connections
+    // 4. Drain database pool and close Redis connections
     console.log('[Shutdown] Closing database and Redis connections...');
     await closeDatabase();
+
     if (redisService.client) {
       await redisService.client.quit();
     }
@@ -338,7 +341,7 @@ async function gracefulShutdown(signal) {
     clearTimeout(forceExit);
     process.exit(0);
   } catch (err) {
-    console.error('[Shutdown] Error during shutdown:', err);
+    console.error('[Shutdown] Error encountered during execution:', err);
     clearTimeout(forceExit);
     process.exit(1);
   }

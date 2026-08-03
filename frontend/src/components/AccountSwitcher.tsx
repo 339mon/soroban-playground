@@ -8,16 +8,32 @@ export default function AccountSwitcher() {
   const { activeAccount, allAccounts, switchAccount, disconnect, activeWallet } = useWallet();
   const [copied, setCopied] = React.useState(false);
 
-  if (!activeAccount) return null;
+  if (!activeAccount)
+    return (
+      <div className="rounded-2xl border border-white/8 bg-white/5 overflow-hidden p-4">
+        <p className="text-sm text-slate-400">No active account connected.</p>
+      </div>
+    );
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (!navigator?.clipboard || !navigator.clipboard.writeText) {
+        console.warn("Clipboard API not available");
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error("Failed to copy address to clipboard", e);
+    }
   };
 
-  const shortAddress = (address: string) => 
-    `${address.slice(0, 6)}...${address.slice(-6)}`;
+  const shortAddress = (address?: string) => {
+    if (!address || typeof address !== "string") return "-";
+    if (address.length <= 12) return address;
+    return `${address.slice(0, 6)}...${address.slice(-6)}`;
+  };
 
   return (
     <div className="rounded-2xl border border-white/8 bg-white/5 overflow-hidden">
@@ -55,7 +71,7 @@ export default function AccountSwitcher() {
         <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
           Connected Accounts
         </p>
-        {allAccounts.map((account) => (
+        {(Array.isArray(allAccounts) ? allAccounts : []).map((account) => (
           <button
             key={account.address}
             onClick={() => switchAccount(account.address)}
