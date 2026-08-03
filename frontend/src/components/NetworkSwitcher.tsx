@@ -43,6 +43,7 @@ export interface NetworkHealth {
   status: "healthy" | "degraded" | "offline" | "checking";
   latencyMs: number | null;
   lastChecked: number | null;
+  error?: string;
 }
 
 export default function NetworkSwitcher() {
@@ -101,18 +102,26 @@ export default function NetworkSwitcher() {
 
         setHealthMap((prev) => ({
           ...prev,
-          [netId]: { status, latencyMs: latency, lastChecked: Date.now() },
+          [netId]: { status, latencyMs: latency, lastChecked: Date.now(), error: !isHealthy ? "Unhealthy response" : undefined },
         }));
       } else {
         setHealthMap((prev) => ({
           ...prev,
-          [netId]: { status: "offline", latencyMs: latency, lastChecked: Date.now() },
+          [netId]: { status: "offline", latencyMs: latency, lastChecked: Date.now(), error: `HTTP ${res.status}` },
         }));
       }
-    } catch {
+    } catch (err) {
+      let errorMessage = "Network Error";
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          errorMessage = "Timeout";
+        } else {
+          errorMessage = err.message;
+        }
+      }
       setHealthMap((prev) => ({
         ...prev,
-        [netId]: { status: "offline", latencyMs: null, lastChecked: Date.now() },
+        [netId]: { status: "offline", latencyMs: null, lastChecked: Date.now(), error: errorMessage },
       }));
     }
   }, []);
@@ -242,13 +251,26 @@ export default function NetworkSwitcher() {
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0 ml-2">
-                    {health.latencyMs !== null ? (
-                      <span className="font-mono text-[10px] text-teal-300 font-medium">
+                  <div className="text-right shrink-0 ml-2 flex flex-col items-end justify-center">
+                    {health.status === "checking" ? (
+                      <span className="font-mono text-[10px] text-slate-400 font-medium animate-pulse">
+                        Checking...
+                      </span>
+                    ) : health.status === "offline" ? (
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-rose-400 font-medium">Offline</span>
+                        {health.error && (
+                          <span className="text-[9px] text-rose-400/80 max-w-[90px] truncate" title={health.error}>
+                            {health.error}
+                          </span>
+                        )}
+                      </div>
+                    ) : health.latencyMs !== null ? (
+                      <span className={`font-mono text-[10px] font-medium ${health.status === "degraded" ? "text-amber-400" : "text-teal-300"}`}>
                         {health.latencyMs}ms
                       </span>
                     ) : (
-                      <span className="text-[10px] text-rose-400">Offline</span>
+                      <span className="text-[10px] text-slate-500">--</span>
                     )}
                   </div>
                 </button>

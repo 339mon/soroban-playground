@@ -79,11 +79,14 @@ impl TwapOracle {
         max_staleness: u64,
     ) -> Result<u32, Error> {
         Self::assert_admin(&env, &admin)?;
-        if symbol.len() == 0 {
+        if symbol.is_empty() {
             return Err(Error::EmptyAssetId);
         }
         if max_staleness == 0 {
             return Err(Error::InvalidWindow);
+        }
+        if get_asset_id_by_symbol(&env, &symbol).is_some() {
+            return Err(Error::DuplicateSymbol);
         }
         let id = get_asset_count(&env) + 1;
         let config = AssetConfig {
@@ -138,7 +141,7 @@ impl TwapOracle {
 
         let now = env.ledger().timestamp();
         let obs_list = get_observations(&env, asset_id);
-        let cumulative = if obs_list.len() == 0 {
+        let cumulative = if obs_list.is_empty() {
             0
         } else {
             let last = obs_list.last().unwrap();
@@ -215,8 +218,14 @@ impl TwapOracle {
         }
 
         let elapsed = (end.timestamp - start.timestamp) as i128;
-        let cum_delta = end.cumulative_price - start.cumulative_price;
-        let twap_price = cum_delta / elapsed;
+        if elapsed == 0 {
+            return Err(Error::InsufficientObservations);
+        }
+        let cum_delta = end
+            .cumulative_price
+            .checked_sub(start.cumulative_price)
+            .ok_or(Error::InvalidPrice)?;
+        let twap_price = cum_delta.checked_div(elapsed).ok_or(Error::InvalidPrice)?;
 
         Ok(TwapResult {
             price: twap_price,
@@ -228,6 +237,7 @@ impl TwapOracle {
 
     /// Get all stored observations for an asset (up to MAX_OBSERVATIONS).
     pub fn get_observations(env: Env, asset_id: u32) -> Result<Vec<Observation>, Error> {
+        Self::assert_initialized(&env)?;
         let _ = get_asset(&env, asset_id)?;
         Ok(get_observations(&env, asset_id))
     }
@@ -235,20 +245,27 @@ impl TwapOracle {
     /// Get the latest spot price for an asset.
     pub fn get_latest_price(env: Env, asset_id: u32) -> Result<i128, Error> {
         Self::assert_initialized(&env)?;
-        let _ = get_asset(&env, asset_id)?;
+        let config = get_asset(&env, asset_id)?;
         let obs = get_observations(&env, asset_id);
-        if obs.len() == 0 {
+        if obs.is_empty() {
             return Err(Error::InsufficientObservations);
         }
-        Ok(obs.last().unwrap().price)
+        let latest = obs.last().unwrap();
+        let now = env.ledger().timestamp();
+        if now.saturating_sub(latest.timestamp) > config.max_staleness {
+            return Err(Error::StaleObservation);
+        }
+        Ok(latest.price)
     }
 
     /// Look up an asset_id by its symbol string.
     pub fn get_asset_id(env: Env, symbol: String) -> Result<u32, Error> {
+        Self::assert_initialized(&env)?;
         get_asset_id_by_symbol(&env, &symbol).ok_or(Error::AssetNotFound)
     }
 
     pub fn get_asset_config(env: Env, asset_id: u32) -> Result<AssetConfig, Error> {
+        Self::assert_initialized(&env)?;
         get_asset(&env, asset_id)
     }
 
