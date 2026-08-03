@@ -81,6 +81,31 @@ export function setupWebsocketServer(httpServer) {
       safeStringify({ type: 'connected', timestamp: new Date().toISOString() })
     );
 
+    socket.on('message', (data) => {
+      try {
+        const payload = JSON.parse(data);
+        if (payload.type === 'collaboration-join' || payload.type === 'collaboration-cursor') {
+          socket.docId = payload.docId || 'default-doc';
+          if (payload.user) {
+            socket.collaboratorName = payload.user.name;
+            socket.collaboratorColor = payload.user.color;
+          }
+          const peers = Array.from(clients)
+            .filter((s) => s !== socket && s.docId === socket.docId)
+            .map((s, idx) => ({
+              id: `peer-${idx}`,
+              name: s.collaboratorName || `Peer ${idx + 1}`,
+              color: s.collaboratorColor || '#6366f1',
+              cursor: s.cursor,
+              lastActive: new Date().toISOString(),
+            }));
+          safeSend(socket, safeStringify({ type: 'collaboration-presence', docId: socket.docId, peers }));
+        }
+      } catch {
+        // ignore invalid payload
+      }
+    });
+
     socket.on('pong', () => {
       socket.missedPongs = 0;
     });

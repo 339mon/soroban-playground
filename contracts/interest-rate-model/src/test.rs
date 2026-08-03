@@ -403,3 +403,35 @@ fn test_compute_rate_panics_before_init() {
     let (_, _, client) = setup();
     client.compute_rate(&500i128, &1000i128);
 }
+
+// ── Access control ────────────────────────────────────────────────────────────
+//
+// set_tiered_rates used to call `admin.require_auth()` on whatever address
+// was *passed in* as the `admin` parameter, without ever checking that
+// address against the contract's actual stored admin. Under
+// `mock_all_auths()` (used by every test's `setup()`), `require_auth()`
+// unconditionally succeeds for any address, so this was silently
+// unenforced: any caller could pass their own address as `admin` and set
+// the tiered rates. These tests exercise the fix — comparing the passed
+// `admin` against the stored admin — which holds regardless of auth
+// mocking, since it's a plain value check rather than a signature check.
+
+#[test]
+#[should_panic(expected = "Unauthorized")]
+fn test_set_tiered_rates_rejects_non_admin() {
+    let (env, admin, client) = setup();
+    client.initialize(&admin, &100u32, &1000u32, &5000u32, &CurveType::Linear);
+    let attacker = Address::generate(&env);
+    let tiers = vec![&env, RateTier { threshold_bps: 5000, rate_bps: 300 }];
+    client.set_tiered_rates(&attacker, &tiers);
+}
+
+#[test]
+#[should_panic]
+fn test_set_tiered_rates_panics_before_init() {
+    let (env, admin, client) = setup();
+    let tiers = vec![&env, RateTier { threshold_bps: 5000, rate_bps: 300 }];
+    // Not initialized yet — get_admin() returns None, so this must panic
+    // ("Not initialized"), not silently accept the tiers.
+    client.set_tiered_rates(&admin, &tiers);
+}

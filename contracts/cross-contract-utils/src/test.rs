@@ -986,3 +986,50 @@ fn test_validate_return_type_invalid_types() {
         .validate_return_type_fn(&env, 1u64.into(), &make_string(&env, "uint64"))
         .unwrap());
 }
+
+#![cfg(test)]
+
+use super::*;
+use soroban_sdk::{testutils::Address as _, vec, Address, Env, Symbol};
+
+#[test]
+fn test_successful_guarded_execution() {
+    let env = Env::default();
+    env.mock_all_signatures();
+
+    let contract_id = env.register_contract(None, CrossContractGuard);
+    let client = CrossContractGuardClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let caller = Address::generate(&env);
+    let invoker_contract = Address::generate(&env);
+
+    // Initialize
+    client.initialize(&admin);
+
+    // Whitelist invoker contract
+    client.set_invoker_status(&invoker_contract, &true);
+
+    // Execute guarded action
+    let result = client.execute_guarded_action(&caller, &invoker_contract);
+    assert!(result > 0);
+}
+
+#[test]
+#[should_panic(expected = "HostError: Error(Contract, #2)")]
+fn test_unauthorized_invoker_fails() {
+    let env = Env::default();
+    env.mock_all_signatures();
+
+    let contract_id = env.register_contract(None, CrossContractGuard);
+    let client = CrossContractGuardClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let caller = Address::generate(&env);
+    let unauthorized_invoker = Address::generate(&env);
+
+    client.initialize(&admin);
+
+    // Should fail with GuardError::UnauthorizedInvoker (Error #2)
+    client.execute_guarded_action(&caller, &unauthorized_invoker);
+}
