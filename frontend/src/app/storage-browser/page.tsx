@@ -5,6 +5,7 @@ import { Database, Download, AlertCircle, RefreshCw } from "lucide-react";
 import StorageTree from "@/components/StorageTree";
 import StorageSearchBar, { type StorageSearchState } from "@/components/StorageSearchBar";
 import DataTypeFormatter, { detectType } from "@/components/DataTypeFormatter";
+import StorageStateDiffDebugger from "@/components/StorageStateDiffDebugger";
 import type { StorageEntry, DiffKind } from "@/components/StorageTree";
 
 const DEMO_STORAGE: Record<string, unknown> = {
@@ -189,6 +190,11 @@ export default function StorageBrowserPage() {
           <div className="bg-gray-950 border border-gray-800 rounded-lg p-3 max-h-[600px] overflow-y-auto">
             <StorageTree entries={entries} />
           </div>
+        </div>
+
+        {/* Time-Travel Debugger & Storage State Diff */}
+        <div className="pt-4 border-t border-gray-800">
+          <StorageStateDiffDebugger />
         </div>
       </div>
     </div>

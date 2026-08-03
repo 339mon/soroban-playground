@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import type MonacoEditorComponent from "@monaco-editor/react";
 import { scheduleEditorLoad, loadMonacoEditor } from "@/lib/editorLoadScheduler";
 import { configureMonacoWorkers } from "@/lib/monacoWorkers";
+import { useCollaborativeEditor } from "@/hooks/useCollaborativeEditor";
+import { CollaborativeHeaderIndicator } from "@/components/CollaborativeHeaderIndicator";
 
 interface EditorProps {
   code: string;
@@ -23,6 +25,7 @@ function EditorLoadingState() {
 
 export default function Editor({ code, setCode }: EditorProps) {
   const [MonacoEditor, setMonacoEditor] = useState<typeof MonacoEditorComponent | null>(null);
+  const { peers, isConnected } = useCollaborativeEditor();
 
   useEffect(() => {
     let mounted = true;
@@ -43,36 +46,45 @@ export default function Editor({ code, setCode }: EditorProps) {
   }, []);
 
   return (
-    <div className="relative h-[500px] w-full rounded-xl overflow-hidden border border-gray-800 bg-[#1e1e1e] shadow-2xl">
-      {MonacoEditor ? (
-        <MonacoEditor
-          height="100%"
-          width="100%"
-          language="rust"
-          theme="vs-dark"
-          value={code}
-          onChange={(val) => setCode(val || "")}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            padding: { top: 16, bottom: 16 },
-            scrollBeyondLastLine: false,
-            smoothScrolling: true,
-            cursorBlinking: "smooth",
-            cursorSmoothCaretAnimation: "on",
-            formatOnPaste: true,
-            wordWrap: "on",
-            lineNumbers: "on",
-            bracketPairColorization: { enabled: true },
-            tabSize: 4,
-            insertSpaces: true,
-            renderLineHighlight: "all",
-          }}
-          loading={<EditorLoadingState />}
-        />
-      ) : (
-        <EditorLoadingState />
-      )}
+    <div className="relative h-[500px] w-full rounded-xl overflow-hidden border border-gray-800 bg-[#1e1e1e] shadow-2xl flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900/90 text-xs text-gray-400">
+        <span className="font-mono text-[11px] font-semibold tracking-wide text-slate-300">
+          lib.rs (Soroban Smart Contract)
+        </span>
+        <CollaborativeHeaderIndicator peers={peers} isConnected={isConnected} />
+      </div>
+      <div className="flex-1 w-full relative">
+        {MonacoEditor ? (
+          <MonacoEditor
+            height="100%"
+            width="100%"
+            language="rust"
+            theme="vs-dark"
+            value={code}
+            onChange={(val) => setCode(val || "")}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              padding: { top: 16, bottom: 16 },
+              scrollBeyondLastLine: false,
+              smoothScrolling: true,
+              cursorBlinking: "smooth",
+              cursorSmoothCaretAnimation: "on",
+              formatOnPaste: true,
+              wordWrap: "on",
+              lineNumbers: "on",
+              bracketPairColorization: { enabled: true },
+              tabSize: 4,
+              insertSpaces: true,
+              renderLineHighlight: "all",
+            }}
+            loading={<EditorLoadingState />}
+          />
+        ) : (
+          <EditorLoadingState />
+        )}
+      </div>
     </div>
   );
 }
+
