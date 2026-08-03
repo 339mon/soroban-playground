@@ -1,4 +1,9 @@
-﻿# Lending Pool Refactor
+# Optimize and Clean Up Lending Pool Specification
 
-Extract interest accrual into a standalone pure function.
-Unify borrow/repay validation into shared guard.
+Specification and architecture guide for Optimize and Clean Up Lending Pool on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #992
+
