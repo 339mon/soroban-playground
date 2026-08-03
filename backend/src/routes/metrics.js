@@ -84,6 +84,19 @@ export const requestRate = new client.Gauge({
 });
 register.registerMetric(requestRate);
 
+export const activeCompilationJobs = new client.Gauge({
+  name: 'active_compilation_jobs',
+  help: 'Number of active compilation jobs currently running',
+});
+register.registerMetric(activeCompilationJobs);
+
+export const httpErrorsTotal = new client.Counter({
+  name: 'http_errors_total',
+  help: 'Total number of HTTP error responses',
+  labelNames: ['method', 'route', 'status'],
+});
+register.registerMetric(httpErrorsTotal);
+
 export const processCpuSecondsTotal =
   register.getSingleMetric('process_cpu_seconds_total') ||
   new client.Gauge({
@@ -109,6 +122,9 @@ const REQUEST_RATE_WINDOW_MS = 60_000;
 
 export function recordHttpRequest(method, route, status) {
   requestCount.inc({ method, route, status });
+  if (status >= 400) {
+    httpErrorsTotal.inc({ method, route, status });
+  }
   const now = Date.now();
   requestTimestamps.push(now);
   const cutoff = now - REQUEST_RATE_WINDOW_MS;

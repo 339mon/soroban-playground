@@ -12,14 +12,20 @@
 //!    alongside the current ledger sequence.
 //! 3. After `timelock_ledgers` ledgers have elapsed, admin calls
 //!    `execute_upgrade` to apply the hash via `env.deployer().update_current_contract_wasm`.
-//! 4. Alternatively, admin calls `upgrade_to` (timelock = 0) for an immediate upgrade.
-//! 5. Admin may `pause`/`unpause` for emergency halts.
+//! 4. Alternatively, admin calls `upgrade_to`, an alias of `propose_upgrade`.
+//! 5. Admin may `cancel_upgrade` to withdraw a pending proposal.
+//! 6. Admin may `pause`/`unpause` for emergency halts.
 
 #![no_std]
 
 mod storage;
-mod test;
 mod types;
+
+// Gated so the test module is not compiled into the deployed WASM. It was
+// declared unconditionally; only the `#![cfg(test)]` inside test.rs kept it
+// from adding weight to release builds.
+#[cfg(test)]
+mod test;
 
 use soroban_sdk::{contract, contracterror, contractimpl, symbol_short, Address, BytesN, Env};
 
@@ -120,7 +126,13 @@ impl UpgradeableContract {
         let timelock = get_timelock(&env);
         let current = env.ledger().sequence();
 
-        if current < proposed_at + timelock {
+        // saturating_add, not `+`: both operands are u32, and a large timelock
+        // proposed at a high ledger sequence overflows. Release builds here set
+        // overflow-checks = true, so that would panic — aborting the invocation
+        // with no error code instead of reporting TimelockNotElapsed. Saturating
+        // keeps the comparison correct, since an unreachable deadline should
+        // simply never elapse.
+        if current < proposed_at.saturating_add(timelock) {
             return Err(Error::TimelockNotElapsed);
         }
 
@@ -130,9 +142,36 @@ impl UpgradeableContract {
         Ok(())
     }
 
-    /// Convenience: immediate upgrade (requires timelock == 0).
+    /// Alias for [`Self::propose_upgrade`].
+    ///
+    /// Applies `new_hash` immediately when the timelock is 0, and otherwise
+    /// records it as pending — it does *not* bypass a configured timelock. The
+    /// previous doc comment said "requires timelock == 0", which read as though
+    /// the call would fail on a timelocked contract; it never did, it silently
+    /// proposed instead. Behaviour is unchanged, the description now matches it.
     pub fn upgrade_to(env: Env, admin: Address, new_hash: BytesN<32>) -> Result<(), Error> {
         Self::propose_upgrade(env, admin, new_hash)
+    }
+
+    /// Withdraw a pending upgrade without executing it. Admin-only.
+    ///
+    /// Previously a proposal could only be replaced, never cancelled: once a
+    /// hash was pending, the only way out was to propose a different one, and a
+    /// contract could not be returned to a clean state. That matters when a
+    /// proposal turns out to be wrong — leaving it pending means it stays
+    /// executable the moment the timelock elapses.
+    ///
+    /// Permitted while paused: cancelling only removes a pending action, so
+    /// blocking it during an emergency halt would be exactly backwards.
+    pub fn cancel_upgrade(env: Env, admin: Address) -> Result<(), Error> {
+        ensure_initialized(&env)?;
+        admin.require_auth();
+        require_admin(&env, &admin)?;
+
+        let (hash, _) = get_pending_upgrade(&env).ok_or(Error::NoPendingUpgrade)?;
+        clear_pending_upgrade(&env);
+        env.events().publish((symbol_short!("cancelled"),), hash);
+        Ok(())
     }
 
     // ── Read-only ─────────────────────────────────────────────────────────────
