@@ -210,6 +210,38 @@ function StatCard({
   );
 }
 
+// ── Token Balance Display ─────────────────────────────────────────────────────
+
+interface TokenBalanceDisplayProps {
+  balance: number;
+  spotPrice: number;
+  poolType: PoolType;
+}
+
+const TokenBalanceDisplay = React.memo(({ balance, spotPrice, poolType }: TokenBalanceDisplayProps) => {
+  const isInsufficient = (poolType === "Buy" || poolType === "Trade") && balance < spotPrice;
+  const formattedBalance = (balance / 10_000_000).toFixed(2); // conversion to XLM
+
+  return (
+    <div>
+      <p className="text-xs text-gray-500 flex items-center gap-1">
+        Token Balance
+        {isInsufficient && (
+          <span 
+            className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" 
+            title="Insufficient balance for spot trade" 
+          />
+        )}
+      </p>
+      <p className={`mt-0.5 font-medium ${isInsufficient ? "text-red-400 font-semibold" : "text-gray-300"}`}>
+        {formattedBalance} XLM
+      </p>
+    </div>
+  );
+});
+
+TokenBalanceDisplay.displayName = "TokenBalanceDisplay";
+
 // ── Pool Card ─────────────────────────────────────────────────────────────────
 
 function PoolCard({
@@ -324,12 +356,11 @@ function PoolCard({
               <p className="text-xs text-gray-500">NFTs in Pool</p>
               <p className="mt-0.5 text-gray-300">{pool.nftCount}</p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">Token Balance</p>
-              <p className="mt-0.5 text-gray-300">
-                {stroopsToXlm(pool.tokenBalance)} XLM
-              </p>
-            </div>
+            <TokenBalanceDisplay
+              balance={pool.tokenBalance}
+              spotPrice={pool.spotPrice}
+              poolType={pool.poolType}
+            />
             <div>
               <p className="text-xs text-gray-500">Total Volume</p>
               <p className="mt-0.5 text-gray-300">

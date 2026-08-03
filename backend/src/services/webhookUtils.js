@@ -45,9 +45,12 @@ export function nextAttemptAt(attempt, nowMs = Date.now()) {
 
 // Build the custom webhook headers for a single delivery.
 export function buildDeliveryHeaders(payload, secret, deliveryId) {
+  const signature = generateSignature(payload, secret);
   return {
     'Content-Type': 'application/json',
-    'X-Playground-Signature': generateSignature(payload, secret),
+    'X-Soroban-Signature': signature,
+    'X-Playground-Signature': signature,
+    'X-Soroban-Delivery': deliveryId,
     'X-Playground-Delivery': deliveryId,
   };
 }
