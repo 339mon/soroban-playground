@@ -1,3 +1,9 @@
-﻿# Synthetic Assets Core Test Suite
+# Implement Test Suite for Synthetic Assets Core Specification
 
-Cover collateral deposit, synth minting, redemption and liquidation trigger flows.
+Specification and architecture guide for Implement Test Suite for Synthetic Assets Core on Soroban / Stellar.
+
+---
+
+## References
+- Issue reference: Fixes #985
+
