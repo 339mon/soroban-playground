@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement weather oracle contract for reliable environmental data
 title: "[SMART CONTRACT] Implement Weather Oracle Contract"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like insurance protocols and weather derivatives currently lack rel
 ## 💡 Proposed Solution
 
 Create a comprehensive weather oracle implementation with:
+
 - Standard weather data interface compliance
 - Multiple data source integration (satellite, ground stations, weather APIs)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive weather oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitWeatherData()`, `getWeatherData()`, `getHistoricalData()` functions for weather management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`WeatherDataSubmitted`, `WeatherDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/weather-oracle/`
 - Testing: `contracts/weather-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/weather-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive weather oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building insurance protocols and weather derivatives |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables real-world asset applications and insurance protocols |
+| Dimension        | Assessment                                                           |
+| ---------------- | -------------------------------------------------------------------- |
+| Who benefits?    | Developers building insurance protocols and weather derivatives      |
+| Effort estimate  | Medium (3-4 days)                                                    |
+| Breaking change? | No                                                                   |
+| MVP impact       | High - enables real-world asset applications and insurance protocols |
 
 ## 🔗 Related Issues or References
 

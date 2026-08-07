@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive output encoding and security policy enforcement
 title: "[BACKEND] Implement Comprehensive Output Encoding and Security Policy Enforcement"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive output encoding, making it vulnerable to
 ## 💡 Proposed Solution
 
 Create comprehensive output encoding implementation with:
+
 - Context-aware output encoding (HTML, JavaScript, CSS, URL, etc.)
 - Security policy enforcement middleware
 - Automatic encoding for all user-generated content
@@ -24,6 +25,7 @@ Create comprehensive output encoding implementation with:
 - Security policy configuration and management
 
 ### Key Features
+
 - Context-aware output encoding for different output contexts
 - Security policy enforcement middleware for all API endpoints
 - Automatic encoding for all user-generated content
@@ -32,6 +34,7 @@ Create comprehensive output encoding implementation with:
 - Real-time encoding monitoring and reporting
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/encoding.js`
 - Service: `backend/src/services/encodingService.js`
 - Configuration: `backend/src/config/encoding.config.js`
@@ -53,12 +56,12 @@ Create comprehensive output encoding implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All users of the Soroban Playground |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | Critical - protects against XSS and other client-side attacks |
+| Dimension        | Assessment                                                    |
+| ---------------- | ------------------------------------------------------------- |
+| Who benefits?    | All users of the Soroban Playground                           |
+| Effort estimate  | Small (1-2 days)                                              |
+| Breaking change? | No                                                            |
+| MVP impact       | Critical - protects against XSS and other client-side attacks |
 
 ## 🔗 Related Issues or References
 

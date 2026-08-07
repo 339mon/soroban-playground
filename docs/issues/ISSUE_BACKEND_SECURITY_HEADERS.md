@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement security headers and input sanitization
 title: "[BACKEND] Implement Security Headers and Input Sanitization"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive security headers and input sanitization,
 ## 💡 Proposed Solution
 
 Create comprehensive security implementation with:
+
 - Security HTTP headers (CSP, X-Frame-Options, XSS-Protection, etc.)
 - Input sanitization and validation
 - Output encoding
@@ -24,6 +25,7 @@ Create comprehensive security implementation with:
 - Compliance reporting capabilities
 
 ### Key Features
+
 - Content Security Policy (CSP) header configuration
 - X-Frame-Options and X-Content-Type-Options headers
 - XSS protection and input sanitization
@@ -32,6 +34,7 @@ Create comprehensive security implementation with:
 - Compliance reporting for security standards
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/security.js`
 - Service: `backend/src/services/securityService.js`
 - Configuration: `backend/src/config/security.config.js`
@@ -53,12 +56,12 @@ Create comprehensive security implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All users of the Soroban Playground |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | Critical - protects against common web vulnerabilities and ensures secure data handling |
+| Dimension        | Assessment                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| Who benefits?    | All users of the Soroban Playground                                                     |
+| Effort estimate  | Small (1-2 days)                                                                        |
+| Breaking change? | No                                                                                      |
+| MVP impact       | Critical - protects against common web vulnerabilities and ensures secure data handling |
 
 ## 🔗 Related Issues or References
 

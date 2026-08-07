@@ -22,12 +22,12 @@
  * duplicate timers are never queued.
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface WebSocketData {
-  type: 'price_update' | 'liquidation_alert' | 'position_update' | 'error';
+  type: "price_update" | "liquidation_alert" | "position_update" | "error";
   assetSymbol?: string;
   price?: number;
   positionId?: number;
@@ -54,7 +54,9 @@ export const useWebSocket = () => {
   // the onclose handler must NOT schedule a reconnect.
   const intentionalClose = useRef(false);
 
-  const wsUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/^http/, 'ws') || 'ws://localhost:3000';
+  const wsUrl =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/^http/, "ws") ||
+    "ws://localhost:3000";
 
   const connect = useCallback(() => {
     // Cancel any previously queued reconnect before opening a new socket.
@@ -76,11 +78,13 @@ export const useWebSocket = () => {
         reconnectAttempts.current = 0;
 
         // Resubscribe to channels that were active before the reconnect.
-        subscriptions.current.forEach(subscription => {
-          ws.current?.send(JSON.stringify({
-            type: 'subscribe',
-            channel: subscription,
-          }));
+        subscriptions.current.forEach((subscription) => {
+          ws.current?.send(
+            JSON.stringify({
+              type: "subscribe",
+              channel: subscription,
+            }),
+          );
         });
       };
 
@@ -89,13 +93,13 @@ export const useWebSocket = () => {
           const message = JSON.parse(event.data) as WebSocketData;
           setData(message);
         } catch (err) {
-          console.error('Failed to parse WebSocket message:', err);
+          console.error("Failed to parse WebSocket message:", err);
         }
       };
 
       ws.current.onerror = (event) => {
-        setError('WebSocket error');
-        console.error('WebSocket error:', event);
+        setError("WebSocket error");
+        console.error("WebSocket error:", event);
         // onclose fires after onerror — reconnect logic lives there.
       };
 
@@ -120,14 +124,17 @@ export const useWebSocket = () => {
           if (intentionalClose.current) return;
 
           // Exponential backoff with a 30 s ceiling to avoid tight reconnect loops.
-          const delay = Math.min(30_000, 1000 * Math.pow(2, reconnectAttempts.current));
+          const delay = Math.min(
+            30_000,
+            1000 * Math.pow(2, reconnectAttempts.current),
+          );
           reconnectAttempts.current += 1;
 
           reconnectTimerRef.current = setTimeout(connect, delay);
         };
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect');
+      setError(err instanceof Error ? err.message : "Failed to connect");
     }
   }, [wsUrl]);
 
@@ -151,34 +158,47 @@ export const useWebSocket = () => {
     };
   }, [connect]);
 
-  const subscribe = useCallback((channel: string) => {
-    subscriptions.current.add(channel);
+  const subscribe = useCallback(
+    (channel: string) => {
+      subscriptions.current.add(channel);
 
-    if (isConnected && ws.current) {
-      ws.current.send(JSON.stringify({
-        type: 'subscribe',
-        channel,
-      }));
-    }
-  }, [isConnected]);
+      if (isConnected && ws.current) {
+        ws.current.send(
+          JSON.stringify({
+            type: "subscribe",
+            channel,
+          }),
+        );
+      }
+    },
+    [isConnected],
+  );
 
-  const unsubscribe = useCallback((channel: string) => {
-    subscriptions.current.delete(channel);
+  const unsubscribe = useCallback(
+    (channel: string) => {
+      subscriptions.current.delete(channel);
 
-    if (isConnected && ws.current) {
-      ws.current.send(JSON.stringify({
-        type: 'unsubscribe',
-        channel,
-      }));
-    }
-  }, [isConnected]);
+      if (isConnected && ws.current) {
+        ws.current.send(
+          JSON.stringify({
+            type: "unsubscribe",
+            channel,
+          }),
+        );
+      }
+    },
+    [isConnected],
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const send = useCallback((message: any) => {
-    if (isConnected && ws.current) {
-      ws.current.send(JSON.stringify(message));
-    }
-  }, [isConnected]);
+  const send = useCallback(
+    (message: any) => {
+      if (isConnected && ws.current) {
+        ws.current.send(JSON.stringify(message));
+      }
+    },
+    [isConnected],
+  );
 
   return {
     data,

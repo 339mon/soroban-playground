@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban-specific storage utility contracts
 title: "[SMART CONTRACT] Implement Soroban Storage Utility Contracts"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement common storage
 ## 💡 Proposed Solution
 
 Create a comprehensive set of storage utility contracts including:
+
 - `StorageMap`: Key-value mapping with efficient lookup and iteration
 - `StorageVector`: Dynamic array with push/pop operations
 - `StorageQueue`: FIFO queue implementation
@@ -24,6 +25,7 @@ Create a comprehensive set of storage utility contracts including:
 - `StorageSet`: Unique value set with membership testing
 
 ### Key Features
+
 - Soroban-optimized storage layouts
 - Comprehensive error handling and validation
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of storage utility contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/storage-utils/`
 - Testing: `contracts/storage-utils/src/test.rs` with 150+ test cases
 - Documentation: `contracts/storage-utils/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of storage utility contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All Soroban contract developers |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves developer productivity and contract quality |
+| Dimension        | Assessment                                                  |
+| ---------------- | ----------------------------------------------------------- |
+| Who benefits?    | All Soroban contract developers                             |
+| Effort estimate  | Medium (3-4 days)                                           |
+| Breaking change? | No                                                          |
+| MVP impact       | High - improves developer productivity and contract quality |
 
 ## 🔗 Related Issues or References
 

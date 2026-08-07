@@ -68,7 +68,9 @@ export default function DeployPanel({
 
       {contractId && (
         <div className="mt-4 p-3 bg-gray-950 border border-gray-800 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1 tracking-wider uppercase">Active Contract ID</p>
+          <p className="text-xs text-gray-500 mb-1 tracking-wider uppercase">
+            Active Contract ID
+          </p>
           <div className="font-mono text-sm text-green-400 break-all bg-gray-900 border border-green-900/50 p-2 rounded">
             {contractId}
           </div>

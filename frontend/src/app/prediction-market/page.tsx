@@ -12,11 +12,12 @@ const CONTRACT_ID_RE = /^C[A-Z0-9]{55}$/;
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
-  (process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com");
+  (process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com");
 
 export default function PredictionMarketPage() {
   const [contractId, setContractId] = useState(
-    process.env.NEXT_PUBLIC_PM_CONTRACT_ID?.trim() ?? ""
+    process.env.NEXT_PUBLIC_PM_CONTRACT_ID?.trim() ?? "",
   );
   const [walletAddress, setWalletAddress] = useState("");
   const [inputContract, setInputContract] = useState(contractId);
@@ -43,10 +44,11 @@ export default function PredictionMarketPage() {
     setErrorMsg("");
     try {
       const res = await fetch(
-        `${API_BASE}/api/prediction-market/markets?contractId=${encodeURIComponent(cid)}`
+        `${API_BASE}/api/prediction-market/markets?contractId=${encodeURIComponent(cid)}`,
       );
       const data = await res.json();
-      if (!data.success) throw new Error(data.error ?? "Failed to load markets");
+      if (!data.success)
+        throw new Error(data.error ?? "Failed to load markets");
       const raw: MarketData[] = (data.data.markets ?? []).map(
         (m: {
           id: number;
@@ -77,7 +79,7 @@ export default function PredictionMarketPage() {
               : m.winningOutcome,
           resolutionDeadline:
             m.resolution_deadline ?? m.resolutionDeadline ?? 0,
-        })
+        }),
       );
       setMarkets(raw);
     } catch (e: unknown) {
@@ -120,7 +122,11 @@ export default function PredictionMarketPage() {
     }
   }
 
-  async function handlePlaceBet(marketId: number, outcome: number, stake: number) {
+  async function handlePlaceBet(
+    marketId: number,
+    outcome: number,
+    stake: number,
+  ) {
     setIsLoading(true);
     setStatusMsg("");
     setErrorMsg("");
@@ -136,11 +142,13 @@ export default function PredictionMarketPage() {
             outcome,
             stake,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error ?? "Bet failed");
-      setStatusMsg(`Bet placed: ${stake} XLM on ${outcome === 1 ? "YES" : "NO"}`);
+      setStatusMsg(
+        `Bet placed: ${stake} XLM on ${outcome === 1 ? "YES" : "NO"}`,
+      );
       await fetchMarkets(contractId);
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : "Place bet failed");
@@ -160,11 +168,13 @@ export default function PredictionMarketPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contractId, winningOutcome: outcome }),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error ?? "Resolve failed");
-      setStatusMsg(`Market ${marketId} resolved: ${outcome === 1 ? "YES" : "NO"} wins`);
+      setStatusMsg(
+        `Market ${marketId} resolved: ${outcome === 1 ? "YES" : "NO"} wins`,
+      );
       await fetchMarkets(contractId);
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : "Resolve market failed");
@@ -184,7 +194,7 @@ export default function PredictionMarketPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contractId }),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error ?? "Cancel failed");
@@ -201,7 +211,7 @@ export default function PredictionMarketPage() {
     if (!walletAddress) return 0;
     try {
       const res = await fetch(
-        `${API_BASE}/api/prediction-market/markets/${marketId}/payout/${encodeURIComponent(walletAddress)}?contractId=${encodeURIComponent(contractId)}`
+        `${API_BASE}/api/prediction-market/markets/${marketId}/payout/${encodeURIComponent(walletAddress)}?contractId=${encodeURIComponent(contractId)}`,
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
@@ -216,7 +226,9 @@ export default function PredictionMarketPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Page header */}
         <header>
-          <h1 className="text-2xl font-bold text-white">📈 Prediction Market</h1>
+          <h1 className="text-2xl font-bold text-white">
+            📈 Prediction Market
+          </h1>
           <p className="text-sm text-gray-400 mt-1">
             Decentralized prediction markets on Stellar Soroban — buy YES/NO
             shares and resolve outcomes via on-chain Oracle.
@@ -243,7 +255,9 @@ export default function PredictionMarketPage() {
                 onChange={(e) => setInputContract(e.target.value)}
                 placeholder="C…"
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-                aria-describedby={contractError ? "pm-contract-error" : undefined}
+                aria-describedby={
+                  contractError ? "pm-contract-error" : undefined
+                }
               />
               {contractError && (
                 <p

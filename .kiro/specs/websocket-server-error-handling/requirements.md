@@ -168,4 +168,3 @@ This document specifies requirements for enhancing error handling and edge-case 
 3. WHEN the WebSocket_Server closes, THE WebSocket_Server SHALL clear the heartbeat interval timer
 4. WHEN Safe_Send encounters a send error, THE Safe_Send SHALL remove the client from the clients set immediately
 5. THE WebSocket_Server SHALL not maintain references to closed sockets outside the clients set
-

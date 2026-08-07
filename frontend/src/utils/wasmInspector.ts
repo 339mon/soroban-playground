@@ -28,7 +28,11 @@ export interface WasmMemoryProfile {
   heapMinBytes: number | null;
   heapMaxBytes: number | null;
   stackEstimateBytes: number;
-  heavyFunctions: Array<{ name: string; estimatedSize: number; lineHint?: number }>;
+  heavyFunctions: Array<{
+    name: string;
+    estimatedSize: number;
+    lineHint?: number;
+  }>;
 }
 
 export interface WasmArtifactAnalysis {
@@ -99,7 +103,10 @@ function readUnsignedLeb128(bytes: Uint8Array, offset: number): Leb128Result {
   throw new Error("Invalid wasm: unexpected EOF while parsing LEB128");
 }
 
-function readWasmString(bytes: Uint8Array, offset: number): { value: string; nextOffset: number } {
+function readWasmString(
+  bytes: Uint8Array,
+  offset: number,
+): { value: string; nextOffset: number } {
   const size = readUnsignedLeb128(bytes, offset);
   const start = size.nextOffset;
   const end = start + size.value;
@@ -195,7 +202,9 @@ function parseImportMemory(payload: Uint8Array): ParsedMemorySection | null {
       continue;
     }
 
-    throw new Error(`Invalid wasm: unknown import descriptor kind ${String(descriptorKind)}`);
+    throw new Error(
+      `Invalid wasm: unknown import descriptor kind ${String(descriptorKind)}`,
+    );
   }
 
   return null;
@@ -233,11 +242,20 @@ const SECTION_NAME_MAP: Record<number, string> = {
   12: "Data Count",
 };
 
-function parseMemoryProfileAndSections(bytes: Uint8Array, exportFuncs: string[]): {
+function parseMemoryProfileAndSections(
+  bytes: Uint8Array,
+  exportFuncs: string[],
+): {
   memoryMetrics: WasmMemoryMetrics;
   memoryProfile: WasmMemoryProfile;
 } {
-  if (bytes.length < 8 || bytes[0] !== 0x00 || bytes[1] !== 0x61 || bytes[2] !== 0x73 || bytes[3] !== 0x6d) {
+  if (
+    bytes.length < 8 ||
+    bytes[0] !== 0x00 ||
+    bytes[1] !== 0x61 ||
+    bytes[2] !== 0x73 ||
+    bytes[3] !== 0x6d
+  ) {
     throw new Error("Invalid wasm: missing magic header");
   }
 
@@ -260,7 +278,8 @@ function parseMemoryProfileAndSections(bytes: Uint8Array, exportFuncs: string[])
     }
 
     const payload = bytes.subarray(offset, sectionEnd);
-    sectionSizes[sectionId] = (sectionSizes[sectionId] || 0) + sectionSizeResult.value;
+    sectionSizes[sectionId] =
+      (sectionSizes[sectionId] || 0) + sectionSizeResult.value;
 
     if (sectionId === 0x02 && importedMemory === null) {
       importedMemory = parseImportMemory(payload);
@@ -293,30 +312,46 @@ function parseMemoryProfileAndSections(bytes: Uint8Array, exportFuncs: string[])
         minPages: selectedMemory.minPages,
         maxPages: selectedMemory.maxPages,
         minBytes: selectedMemory.minPages * WASM_PAGE_SIZE_BYTES,
-        maxBytes: selectedMemory.maxPages === null ? null : selectedMemory.maxPages * WASM_PAGE_SIZE_BYTES,
+        maxBytes:
+          selectedMemory.maxPages === null
+            ? null
+            : selectedMemory.maxPages * WASM_PAGE_SIZE_BYTES,
         shared: selectedMemory.shared,
         memory64: selectedMemory.memory64,
       };
 
   const totalBytes = bytes.byteLength;
-  const sections: WasmSectionInfo[] = Object.entries(sectionSizes).map(([idStr, sizeBytes]) => {
-    const id = Number(idStr);
-    return {
-      id,
-      name: SECTION_NAME_MAP[id] ?? `Section ${id}`,
-      sizeBytes,
-      percentage: totalBytes > 0 ? Number(((sizeBytes / totalBytes) * 100).toFixed(1)) : 0,
-    };
-  }).sort((a, b) => b.sizeBytes - a.sizeBytes);
+  const sections: WasmSectionInfo[] = Object.entries(sectionSizes)
+    .map(([idStr, sizeBytes]) => {
+      const id = Number(idStr);
+      return {
+        id,
+        name: SECTION_NAME_MAP[id] ?? `Section ${id}`,
+        sizeBytes,
+        percentage:
+          totalBytes > 0
+            ? Number(((sizeBytes / totalBytes) * 100).toFixed(1))
+            : 0,
+      };
+    })
+    .sort((a, b) => b.sizeBytes - a.sizeBytes);
 
   const codeSectionBytes = sectionSizes[10] || 0;
-  const avgFuncSize = exportFuncs.length > 0 ? Math.round(codeSectionBytes / exportFuncs.length) : codeSectionBytes;
-  
-  const heavyFunctions = exportFuncs.map((name, index) => ({
-    name,
-    estimatedSize: Math.max(64, Math.round(avgFuncSize * (1 + (index % 3) * 0.4))),
-    lineHint: (index + 1) * 12,
-  })).sort((a, b) => b.estimatedSize - a.estimatedSize);
+  const avgFuncSize =
+    exportFuncs.length > 0
+      ? Math.round(codeSectionBytes / exportFuncs.length)
+      : codeSectionBytes;
+
+  const heavyFunctions = exportFuncs
+    .map((name, index) => ({
+      name,
+      estimatedSize: Math.max(
+        64,
+        Math.round(avgFuncSize * (1 + (index % 3) * 0.4)),
+      ),
+      lineHint: (index + 1) * 12,
+    }))
+    .sort((a, b) => b.estimatedSize - a.estimatedSize);
 
   const heapMinBytes = memoryMetrics.minBytes;
   const heapMaxBytes = memoryMetrics.maxBytes;
@@ -326,7 +361,7 @@ function parseMemoryProfileAndSections(bytes: Uint8Array, exportFuncs: string[])
   const memoryProfile: WasmMemoryProfile = {
     totalBytes,
     sections,
-    staticDataBytes: staticDataBytes || (sectionSizes[11] || 0),
+    staticDataBytes: staticDataBytes || sectionSizes[11] || 0,
     heapMinBytes,
     heapMaxBytes,
     stackEstimateBytes,
@@ -345,15 +380,23 @@ async function getWabt() {
 }
 
 function countExportKinds(module: WebAssembly.Module): Record<string, number> {
-  return WebAssembly.Module.exports(module).reduce<Record<string, number>>((counts, exportItem) => {
-    counts[exportItem.kind] = (counts[exportItem.kind] ?? 0) + 1;
-    return counts;
-  }, {});
+  return WebAssembly.Module.exports(module).reduce<Record<string, number>>(
+    (counts, exportItem) => {
+      counts[exportItem.kind] = (counts[exportItem.kind] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
 }
 
-export async function parseWasmArtifact(wasmInput: string | Uint8Array): Promise<WasmArtifactAnalysis> {
-  const bytes = typeof wasmInput === "string" ? decodeBase64ToBytes(wasmInput) : wasmInput;
-  const compiledModule = await WebAssembly.compile(bytes as unknown as BufferSource);
+export async function parseWasmArtifact(
+  wasmInput: string | Uint8Array,
+): Promise<WasmArtifactAnalysis> {
+  const bytes =
+    typeof wasmInput === "string" ? decodeBase64ToBytes(wasmInput) : wasmInput;
+  const compiledModule = await WebAssembly.compile(
+    bytes as unknown as BufferSource,
+  );
   const wabt = await getWabt();
 
   const parsed = wabt.readWasm(bytes, {
@@ -395,7 +438,10 @@ export async function parseWasmArtifact(wasmInput: string | Uint8Array): Promise
       .map((item) => item.name)
       .sort((left, right) => left.localeCompare(right));
 
-    const { memoryMetrics, memoryProfile } = parseMemoryProfileAndSections(bytes, exportFunctions);
+    const { memoryMetrics, memoryProfile } = parseMemoryProfileAndSections(
+      bytes,
+      exportFunctions,
+    );
 
     return {
       sizeBytes: bytes.byteLength,

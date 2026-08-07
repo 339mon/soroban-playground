@@ -178,4 +178,4 @@ export default function WasmSpecFormBuilder({ inputs, values, onChange }: WasmSp
       ))}
     </div>
   );
-});
+}

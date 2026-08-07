@@ -60,13 +60,16 @@ const FavoritesSearchBar: React.FC<FavoritesSearchBarProps> = ({
     (value: string) => {
       const trimmed = value.trim();
       if (!trimmed) return;
-      const next = [trimmed, ...history.filter((h) => h !== trimmed)].slice(0, MAX_HISTORY);
+      const next = [trimmed, ...history.filter((h) => h !== trimmed)].slice(
+        0,
+        MAX_HISTORY,
+      );
       setHistory(next);
       saveHistory(next);
       onSearch(trimmed);
       setShowDropdown(false);
     },
-    [history, onSearch]
+    [history, onSearch],
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,12 +100,16 @@ const FavoritesSearchBar: React.FC<FavoritesSearchBarProps> = ({
     saveHistory(next);
   };
 
-  const filteredSuggestions = query.length >= 1
-    ? suggestions.filter((s) => s.toLowerCase().includes(query.toLowerCase())).slice(0, 5)
-    : [];
+  const filteredSuggestions =
+    query.length >= 1
+      ? suggestions
+          .filter((s) => s.toLowerCase().includes(query.toLowerCase()))
+          .slice(0, 5)
+      : [];
 
   const showHistory = !query && history.length > 0;
-  const dropdownVisible = showDropdown && (filteredSuggestions.length > 0 || showHistory);
+  const dropdownVisible =
+    showDropdown && (filteredSuggestions.length > 0 || showHistory);
 
   return (
     <div className={`relative ${className}`}>
@@ -152,7 +159,10 @@ const FavoritesSearchBar: React.FC<FavoritesSearchBarProps> = ({
                   key={s}
                   role="option"
                   aria-selected={false}
-                  onClick={() => { setQuery(s); commitSearch(s); }}
+                  onClick={() => {
+                    setQuery(s);
+                    commitSearch(s);
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
                 >
                   <Star className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
@@ -175,7 +185,10 @@ const FavoritesSearchBar: React.FC<FavoritesSearchBarProps> = ({
                   <button
                     role="option"
                     aria-selected={false}
-                    onClick={() => { setQuery(item); commitSearch(item); }}
+                    onClick={() => {
+                      setQuery(item);
+                      commitSearch(item);
+                    }}
                     className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-gray-700 text-left"
                   >
                     <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />

@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Vault Contract
 ---
 
 ## References
-- Issue reference: Fixes #988
 
+- Issue reference: Fixes #988

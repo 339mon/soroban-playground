@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites sync across devices
 title: "[FRONTEND] Implement Contract Template Library Favorites Sync Across Devices"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites sync implementation with:
+
 - Cloud-based favorites storage
 - Local storage fallback
 - Conflict resolution and merging
@@ -24,6 +25,7 @@ Create comprehensive favorites sync implementation with:
 - Manual sync controls
 
 ### Key Features
+
 - Cloud-based favorites storage with encryption
 - Local storage fallback when offline
 - Conflict resolution for conflicting favorites
@@ -32,6 +34,7 @@ Create comprehensive favorites sync implementation with:
 - Favorites sync history and versioning
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesSyncManager.tsx`, `SyncStatusIndicator.tsx`
 - Integration with backend favorites API routes
@@ -52,12 +55,12 @@ Create comprehensive favorites sync implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground across multiple devices |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer efficiency across devices |
+| Dimension        | Assessment                                                          |
+| ---------------- | ------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground across multiple devices |
+| Effort estimate  | Medium (2-3 days)                                                   |
+| Breaking change? | No                                                                  |
+| MVP impact       | High - significantly improves developer efficiency across devices   |
 
 ## 🔗 Related Issues or References
 

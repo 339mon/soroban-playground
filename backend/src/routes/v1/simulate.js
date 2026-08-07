@@ -1,5 +1,8 @@
 import express from 'express';
-import { asyncHandler, createHttpError } from '../../middleware/errorHandler.js';
+import {
+  asyncHandler,
+  createHttpError,
+} from '../../middleware/errorHandler.js';
 import sorobanRpcManager from '../../services/sorobanRpcManager.js';
 import { rateLimitMiddleware } from '../../middleware/rateLimiter.js';
 
@@ -20,37 +23,39 @@ function estimateFallback(xdr) {
 }
 
 async function callSimulateTransaction(xdr) {
-  return await sorobanRpcManager.executeRpcCall(async (rpcUrl, options = {}) => {
-    const { signal, ...extraHeaders } = options;
+  return await sorobanRpcManager.executeRpcCall(
+    async (rpcUrl, options = {}) => {
+      const { signal, ...extraHeaders } = options;
 
-    const payload = {
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method: 'simulateTransaction',
-      params: { transaction: xdr },
-    };
+      const payload = {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method: 'simulateTransaction',
+        params: { transaction: xdr },
+      };
 
-    const response = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...extraHeaders,
-      },
-      body: JSON.stringify(payload),
-      signal,
-    });
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...extraHeaders,
+        },
+        body: JSON.stringify(payload),
+        signal,
+      });
 
-    if (!response.ok) {
-      throw new Error(`RPC server returned status ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`RPC server returned status ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error.message || 'Soroban RPC simulation error');
+      }
+
+      return data.result || {};
     }
-
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error.message || 'Soroban RPC simulation error');
-    }
-
-    return data.result || {};
-  });
+  );
 }
 
 router.post(
@@ -75,13 +80,21 @@ router.post(
         rpcResult = estimateFallback(xdrToSimulate);
       }
 
-      const minResourceFee = String(rpcResult.minResourceFee || rpcResult.minFee || '1000');
-      const cpuInstructions = parseInt(rpcResult.cost?.cpuInsns || '150000', 10);
+      const minResourceFee = String(
+        rpcResult.minResourceFee || rpcResult.minFee || '1000'
+      );
+      const cpuInstructions = parseInt(
+        rpcResult.cost?.cpuInsns || '150000',
+        10
+      );
       const memoryBytes = parseInt(rpcResult.cost?.memBytes || '65536', 10);
       const readCount = parseInt(rpcResult.readCount || '2', 10);
       const writeCount = parseInt(rpcResult.writeCount || '1', 10);
       const ledgerReadBytes = parseInt(rpcResult.ledgerReadBytes || '1024', 10);
-      const ledgerWriteBytes = parseInt(rpcResult.ledgerWriteBytes || '512', 10);
+      const ledgerWriteBytes = parseInt(
+        rpcResult.ledgerWriteBytes || '512',
+        10
+      );
 
       const baseFee = 100;
       const estimatedTotalFee = String(parseInt(minResourceFee, 10) + baseFee);
@@ -100,13 +113,17 @@ router.post(
           writeCount,
           estimatedTotalFee,
           transactionData: rpcResult.transactionData || null,
-          eventsCount: Array.isArray(rpcResult.events) ? rpcResult.events.length : 0,
+          eventsCount: Array.isArray(rpcResult.events)
+            ? rpcResult.events.length
+            : 0,
           latestLedger: rpcResult.latestLedger || null,
         },
       });
     } catch (error) {
       return next(
-        createHttpError(500, 'Fee simulation failed', { details: error.message })
+        createHttpError(500, 'Fee simulation failed', {
+          details: error.message,
+        })
       );
     }
   })

@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites organization and categorization
 title: "[FRONTEND] Implement Contract Template Library Favorites Organization and Categorization"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites organization implementation with:
+
 - Custom category creation and management
 - Tag-based organization
 - Favorites sorting and filtering
@@ -24,6 +25,7 @@ Create comprehensive favorites organization implementation with:
 - Favorites export and import
 
 ### Key Features
+
 - Create custom categories for organizing favorites
 - Add tags to favorites for flexible categorization
 - Sort favorites by name, category, date added, etc.
@@ -33,6 +35,7 @@ Create comprehensive favorites organization implementation with:
 - Import favorites from JSON backup
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesManager.tsx`, `CategoryManager.tsx`
 - Integration with existing contract metadata and README files
@@ -53,12 +56,12 @@ Create comprehensive favorites organization implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer efficiency and template organization |
+| Dimension        | Assessment                                                                   |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                                  |
+| Effort estimate  | Small (1-2 days)                                                             |
+| Breaking change? | No                                                                           |
+| MVP impact       | High - significantly improves developer efficiency and template organization |
 
 ## 🔗 Related Issues or References
 

@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
-import { Dashboard } from '../../components/treasury/Dashboard';
-import { TransactionList } from '../../components/treasury/TransactionList';
-import { ProposalForm } from '../../components/treasury/ProposalForm';
-import { Wallet } from 'lucide-react';
+import React from "react";
+import { Dashboard } from "../../components/treasury/Dashboard";
+import { TransactionList } from "../../components/treasury/TransactionList";
+import { ProposalForm } from "../../components/treasury/ProposalForm";
+import { Wallet } from "lucide-react";
 
 export default function TreasuryPage() {
   return (
@@ -20,9 +20,11 @@ export default function TreasuryPage() {
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white/70">
               AutonoDAO Treasury
             </h1>
-            <p className="mt-2 text-lg text-slate-400">Manage assets, proposals, and governance seamlessly.</p>
+            <p className="mt-2 text-lg text-slate-400">
+              Manage assets, proposals, and governance seamlessly.
+            </p>
           </div>
-          
+
           <button className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 transition-all font-medium text-white backdrop-blur-md">
             <Wallet size={18} />
             Connect Freighter
@@ -31,7 +33,6 @@ export default function TreasuryPage() {
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Left Column - TVL and Transaction List */}
           <div className="lg:col-span-2 space-y-8">
             <Dashboard />
@@ -44,7 +45,6 @@ export default function TreasuryPage() {
               <ProposalForm />
             </div>
           </div>
-          
         </div>
       </main>
     </div>

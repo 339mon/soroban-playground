@@ -41,7 +41,9 @@ export default class ErrorBoundary extends Component<Props, State> {
       >
         <AlertTriangle className="h-8 w-8 text-rose-400" aria-hidden="true" />
         <div>
-          <p className="text-sm font-semibold text-rose-300">Something went wrong</p>
+          <p className="text-sm font-semibold text-rose-300">
+            Something went wrong
+          </p>
           <p className="mt-1 text-xs text-rose-400/80">{error.message}</p>
         </div>
         <button

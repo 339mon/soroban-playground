@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up CORS Configuratio
 ---
 
 ## References
-- Issue reference: Fixes #977
 
+- Issue reference: Fixes #977

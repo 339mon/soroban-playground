@@ -115,7 +115,12 @@ function AssetCard({
           src={asset.imageUrl}
           alt={`${asset.symbol} logo`}
           data-testid={`asset-image-${asset.id}`}
-          style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
         />
       ) : (
         <span
@@ -160,8 +165,7 @@ function AssetCard({
           data-testid={`asset-balance-${asset.id}`}
           style={{ fontSize: "13px", color: "#374151" }}
         >
-          Balance:{" "}
-          <strong>{asset.balance.toLocaleString()}</strong>
+          Balance: <strong>{asset.balance.toLocaleString()}</strong>
         </span>
       )}
 
@@ -243,7 +247,9 @@ export function AssetGallery({
         className={className}
       >
         {emptyState ?? (
-          <p style={{ textAlign: "center", color: "#6b7280", padding: "32px 0" }}>
+          <p
+            style={{ textAlign: "center", color: "#6b7280", padding: "32px 0" }}
+          >
             No assets found.
           </p>
         )}
@@ -259,7 +265,7 @@ export function AssetGallery({
       (a) =>
         a.symbol.toLowerCase().includes(term) ||
         a.name.toLowerCase().includes(term) ||
-        (a.issuer ?? "").toLowerCase().includes(term)
+        (a.issuer ?? "").toLowerCase().includes(term),
     );
   }, [assets, searchTerm]);
 
@@ -275,7 +281,12 @@ export function AssetGallery({
         <div style={{ marginBottom: "16px" }}>
           <label
             htmlFor="asset-gallery-search"
-            style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 600 }}
+            style={{
+              display: "block",
+              marginBottom: "4px",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
           >
             Search assets
           </label>
@@ -308,7 +319,13 @@ export function AssetGallery({
           data-testid="asset-gallery-no-results"
         >
           {noResultsState ?? (
-            <p style={{ textAlign: "center", color: "#6b7280", padding: "24px 0" }}>
+            <p
+              style={{
+                textAlign: "center",
+                color: "#6b7280",
+                padding: "24px 0",
+              }}
+            >
               No assets match your search.
             </p>
           )}

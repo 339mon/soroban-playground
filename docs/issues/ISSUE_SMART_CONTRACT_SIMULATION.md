@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban contract simulation contracts
 title: "[SMART CONTRACT] Implement Soroban Contract Simulation Contracts"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement custom simulat
 ## 💡 Proposed Solution
 
 Create a comprehensive set of simulation contracts including:
+
 - `SimulationEngine`: Secure wrapper for contract simulation with mock environments
 - `MarketSimulator`: Utility for simulating market conditions and price movements
 - `OracleSimulator`: Utility for simulating oracle data feeds and responses
@@ -24,6 +25,7 @@ Create a comprehensive set of simulation contracts including:
 - `VotingSimulator`: Utility for simulating voting scenarios and outcomes
 
 ### Key Features
+
 - Soroban-optimized simulation patterns
 - Comprehensive security validation (simulation validation, boundary checking)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of simulation contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/simulation/`
 - Testing: `contracts/simulation/src/test.rs` with 100+ test cases
 - Documentation: `contracts/simulation/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of simulation contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers simulating Soroban contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract simulation |
+| Dimension        | Assessment                                                                  |
+| ---------------- | --------------------------------------------------------------------------- |
+| Who benefits?    | All developers simulating Soroban contracts                                 |
+| Effort estimate  | Medium (3-4 days)                                                           |
+| Breaking change? | No                                                                          |
+| MVP impact       | High - improves security and developer productivity for contract simulation |
 
 ## 🔗 Related Issues or References
 

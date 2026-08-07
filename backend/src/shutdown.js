@@ -15,7 +15,9 @@ export function setupGracefulShutdown({ server, wss, db, timeoutMs = 10000 }) {
 
   const handleSignal = async (signal) => {
     if (isShuttingDown) {
-      logger.warn(`Received ${signal} again. Force terminating process immediately.`);
+      logger.warn(
+        `Received ${signal} again. Force terminating process immediately.`
+      );
       process.exit(1);
     }
 
@@ -24,7 +26,9 @@ export function setupGracefulShutdown({ server, wss, db, timeoutMs = 10000 }) {
 
     // Forceful termination timer if process hangs beyond timeout threshold
     const forceExitTimer = setTimeout(() => {
-      logger.error(`Graceful shutdown timed out after ${timeoutMs}ms. Forcing exit.`);
+      logger.error(
+        `Graceful shutdown timed out after ${timeoutMs}ms. Forcing exit.`
+      );
       process.exit(1);
     }, timeoutMs);
 
@@ -43,8 +47,10 @@ export function setupGracefulShutdown({ server, wss, db, timeoutMs = 10000 }) {
 
       // 2. Notify and close active WebSocket clients cleanly
       if (wss) {
-        logger.info(`Closing WebSocket server (${wss.clients.size} connected clients)...`);
-        
+        logger.info(
+          `Closing WebSocket server (${wss.clients.size} connected clients)...`
+        );
+
         for (const client of wss.clients) {
           if (client.readyState === 1 /* OPEN */) {
             client.close(1001, 'Server is shutting down');
@@ -65,7 +71,10 @@ export function setupGracefulShutdown({ server, wss, db, timeoutMs = 10000 }) {
       logger.info('Graceful shutdown completed successfully. Exiting process.');
       process.exit(0);
     } catch (error) {
-      logger.error('Error encountered during graceful shutdown execution:', error);
+      logger.error(
+        'Error encountered during graceful shutdown execution:',
+        error
+      );
       process.exit(1);
     }
   };

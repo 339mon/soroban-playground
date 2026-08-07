@@ -37,15 +37,15 @@ export function validateRawEvent(raw) {
  */
 export function decodeScVal(base64XdrStr) {
   if (typeof base64XdrStr !== 'string' || base64XdrStr.length === 0) {
-    throw new XdrParseError('XDR input must be a non-empty string', base64XdrStr);
+    throw new XdrParseError(
+      'XDR input must be a non-empty string',
+      base64XdrStr
+    );
   }
   try {
     return scValToNative(xdr.ScVal.fromXDR(base64XdrStr, 'base64'));
   } catch (e) {
-    throw new XdrParseError(
-      `Failed to decode XDR: ${e.message}`,
-      base64XdrStr
-    );
+    throw new XdrParseError(`Failed to decode XDR: ${e.message}`, base64XdrStr);
   }
 }
 
@@ -112,7 +112,10 @@ export function dispatchEvent(parsed) {
     try {
       fn(parsed);
     } catch (e) {
-      console.error(`[EventParser] Handler error for contract type "${type}":`, e.message);
+      console.error(
+        `[EventParser] Handler error for contract type "${type}":`,
+        e.message
+      );
     }
   }
 }

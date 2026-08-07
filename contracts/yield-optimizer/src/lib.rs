@@ -782,7 +782,6 @@ impl YieldOptimizer {
     }
 }
 
-#![no_std]
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol,
 };
@@ -892,9 +891,10 @@ impl YieldOptimizerVault {
             .get(&DataKey::SharesBalance(from.clone()))
             .unwrap_or(0);
 
-        env.storage()
-            .persistent()
-            .set(&DataKey::SharesBalance(from.clone()), &(user_shares + shares_to_mint));
+        env.storage().persistent().set(
+            &DataKey::SharesBalance(from.clone()),
+            &(user_shares + shares_to_mint),
+        );
         env.storage()
             .instance()
             .set(&DataKey::TotalShares, &(total_shares + shares_to_mint));
@@ -944,9 +944,10 @@ impl YieldOptimizerVault {
             .ok_or(VaultError::NotInitialized)?;
 
         // Update state before external transfer
-        env.storage()
-            .persistent()
-            .set(&DataKey::SharesBalance(from.clone()), &(user_shares - shares));
+        env.storage().persistent().set(
+            &DataKey::SharesBalance(from.clone()),
+            &(user_shares - shares),
+        );
         env.storage()
             .instance()
             .set(&DataKey::TotalShares, &(total_shares - shares));
@@ -975,11 +976,7 @@ impl YieldOptimizerVault {
             return Err(VaultError::InvalidAmount);
         }
 
-        let fee_bps: u32 = env
-            .storage()
-            .instance()
-            .get(&DataKey::FeeBps)
-            .unwrap_or(0);
+        let fee_bps: u32 = env.storage().instance().get(&DataKey::FeeBps).unwrap_or(0);
 
         let fee_amount = yield_amount
             .checked_mul(fee_bps as i128)

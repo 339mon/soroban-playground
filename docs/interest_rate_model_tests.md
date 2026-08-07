@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Interest Rate 
 ---
 
 ## References
-- Issue reference: Fixes #994
 
+- Issue reference: Fixes #994

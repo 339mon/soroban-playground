@@ -187,7 +187,9 @@ describe('Metrics Exporter', () => {
 
     it('cacheEvictionsTotal is a Counter', () => {
       expect(cacheEvictionsTotal).toBeDefined();
-      expect(cacheEvictionsTotal.config.name).toBe('soroban_cache_evictions_total');
+      expect(cacheEvictionsTotal.config.name).toBe(
+        'soroban_cache_evictions_total'
+      );
     });
 
     it('cacheEntryCount is a Gauge', () => {
@@ -214,7 +216,9 @@ describe('Metrics Exporter', () => {
 
     it('oracleTasksEnqueued is a Counter', () => {
       expect(oracleTasksEnqueued).toBeDefined();
-      expect(oracleTasksEnqueued.config.name).toBe('oracle_tasks_enqueued_total');
+      expect(oracleTasksEnqueued.config.name).toBe(
+        'oracle_tasks_enqueued_total'
+      );
     });
 
     it('oracleTasksProcessed is a Counter with status label', () => {
@@ -234,7 +238,9 @@ describe('Metrics Exporter', () => {
 
     it('eventSchemaBreakingChangesTotal is a Counter', () => {
       expect(eventSchemaBreakingChangesTotal).toBeDefined();
-      expect(eventSchemaBreakingChangesTotal.config.labelNames).toContain('event_type');
+      expect(eventSchemaBreakingChangesTotal.config.labelNames).toContain(
+        'event_type'
+      );
     });
 
     it('oracleProofDeadLetterTotal is a Counter with reason label', () => {

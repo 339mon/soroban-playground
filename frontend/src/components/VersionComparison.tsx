@@ -1,4 +1,10 @@
-import { ArrowRight, Bell, GitCompare, PackageCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Bell,
+  GitCompare,
+  PackageCheck,
+  Sparkles,
+} from "lucide-react";
 
 export type VersionComparisonProps = {
   currentVersion: string;
@@ -59,27 +65,41 @@ export default function VersionComparison({
               : "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"
           }`}
         >
-          {hasUpdate ? <Bell className="h-3 w-3" /> : <PackageCheck className="h-3 w-3" />}
+          {hasUpdate ? (
+            <Bell className="h-3 w-3" />
+          ) : (
+            <PackageCheck className="h-3 w-3" />
+          )}
           {hasUpdate ? "Notify team" : "Synced"}
         </span>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Favorite</p>
-          <p className="mt-1 text-lg font-bold text-slate-100">{currentVersion}</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+            Favorite
+          </p>
+          <p className="mt-1 text-lg font-bold text-slate-100">
+            {currentVersion}
+          </p>
         </div>
         <ArrowRight className="hidden h-4 w-4 text-slate-500 sm:block" />
         <div className="rounded-xl border border-teal-400/20 bg-teal-400/10 p-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-teal-200/70">Latest</p>
-          <p className="mt-1 text-lg font-bold text-teal-100">{latestVersion}</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-teal-200/70">
+            Latest
+          </p>
+          <p className="mt-1 text-lg font-bold text-teal-100">
+            {latestVersion}
+          </p>
         </div>
       </div>
 
       <div className="mt-4 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-slate-300">
         <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-300" />
         <span>
-          <span className="font-semibold text-slate-100">{formatReleaseDate(releaseDate)}:</span>{" "}
+          <span className="font-semibold text-slate-100">
+            {formatReleaseDate(releaseDate)}:
+          </span>{" "}
           {changelog}
         </span>
       </div>

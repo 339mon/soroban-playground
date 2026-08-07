@@ -2,7 +2,11 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import WasmSpecFormBuilder from "@/components/WasmSpecFormBuilder";
 import { WalletProvider } from "@/components/providers/WalletProvider";
-import { validateSorobanType, normalizeType, buildDefaultInputValue } from "@/utils/contractAbi";
+import {
+  validateSorobanType,
+  normalizeType,
+  buildDefaultInputValue,
+} from "@/utils/contractAbi";
 
 describe("WasmSpecFormBuilder", () => {
   const mockInputs = [
@@ -17,8 +21,12 @@ describe("WasmSpecFormBuilder", () => {
 
     render(
       <WalletProvider>
-        <WasmSpecFormBuilder inputs={mockInputs} values={values} onChange={handleChange} />
-      </WalletProvider>
+        <WasmSpecFormBuilder
+          inputs={mockInputs}
+          values={values}
+          onChange={handleChange}
+        />
+      </WalletProvider>,
     );
 
     expect(screen.getByText("to")).toBeInTheDocument();
@@ -32,8 +40,12 @@ describe("WasmSpecFormBuilder", () => {
 
     render(
       <WalletProvider>
-        <WasmSpecFormBuilder inputs={mockInputs} values={values} onChange={handleChange} />
-      </WalletProvider>
+        <WasmSpecFormBuilder
+          inputs={mockInputs}
+          values={values}
+          onChange={handleChange}
+        />
+      </WalletProvider>,
     );
 
     const amountInput = screen.getByPlaceholderText(/1000000000000000000/i);
@@ -45,7 +57,7 @@ describe("WasmSpecFormBuilder", () => {
     render(
       <WalletProvider>
         <WasmSpecFormBuilder inputs={[]} values={{}} onChange={jest.fn()} />
-      </WalletProvider>
+      </WalletProvider>,
     );
     expect(screen.getByText(/no parameters/i)).toBeInTheDocument();
   });
@@ -58,7 +70,7 @@ describe("WasmSpecFormBuilder", () => {
           values={{ to: undefined }}
           onChange={jest.fn()}
         />
-      </WalletProvider>
+      </WalletProvider>,
     );
     expect(screen.queryByRole("paragraph")).not.toBeInTheDocument();
   });
@@ -74,15 +86,21 @@ describe("validateSorobanType", () => {
   });
 
   it("rejects invalid Stellar address", () => {
-    expect(validateSorobanType("addr", "address", "NOTANADDRESS")).toMatch(/Stellar Address/);
+    expect(validateSorobanType("addr", "address", "NOTANADDRESS")).toMatch(
+      /Stellar Address/,
+    );
   });
 
   it("accepts valid G-address", () => {
-    expect(validateSorobanType("addr", "address", `G${"A".repeat(55)}`)).toBeNull();
+    expect(
+      validateSorobanType("addr", "address", `G${"A".repeat(55)}`),
+    ).toBeNull();
   });
 
   it("rejects symbol with special characters", () => {
-    expect(validateSorobanType("sym", "symbol", "bad symbol!")).toMatch(/Symbol/);
+    expect(validateSorobanType("sym", "symbol", "bad symbol!")).toMatch(
+      /Symbol/,
+    );
   });
 
   it("rejects non-integer for u128", () => {
@@ -98,7 +116,9 @@ describe("validateSorobanType", () => {
   });
 
   it("rejects invalid JSON array for vec", () => {
-    expect(validateSorobanType("v", "Vec<u32>", "not-json")).toMatch(/JSON array/);
+    expect(validateSorobanType("v", "Vec<u32>", "not-json")).toMatch(
+      /JSON array/,
+    );
   });
 
   it("rejects non-array JSON for vec", () => {
@@ -106,7 +126,9 @@ describe("validateSorobanType", () => {
   });
 
   it("rejects invalid JSON object for map", () => {
-    expect(validateSorobanType("m", "Map<String,u32>", "[1,2]")).toMatch(/JSON object/);
+    expect(validateSorobanType("m", "Map<String,u32>", "[1,2]")).toMatch(
+      /JSON object/,
+    );
   });
 });
 
@@ -126,9 +148,14 @@ describe("normalizeType", () => {
 });
 
 describe("buildDefaultInputValue", () => {
-  it("returns false for bool", () => expect(buildDefaultInputValue("bool")).toBe(false));
-  it("returns 0 for number", () => expect(buildDefaultInputValue("u32")).toBe(0));
-  it("returns [] for vec", () => expect(buildDefaultInputValue("Vec<u32>")).toEqual([]));
-  it("returns {} for map", () => expect(buildDefaultInputValue("Map<String,u32>")).toEqual({}));
-  it("returns empty string for string", () => expect(buildDefaultInputValue("string")).toBe(""));
+  it("returns false for bool", () =>
+    expect(buildDefaultInputValue("bool")).toBe(false));
+  it("returns 0 for number", () =>
+    expect(buildDefaultInputValue("u32")).toBe(0));
+  it("returns [] for vec", () =>
+    expect(buildDefaultInputValue("Vec<u32>")).toEqual([]));
+  it("returns {} for map", () =>
+    expect(buildDefaultInputValue("Map<String,u32>")).toEqual({}));
+  it("returns empty string for string", () =>
+    expect(buildDefaultInputValue("string")).toBe(""));
 });

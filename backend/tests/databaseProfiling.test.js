@@ -40,14 +40,18 @@ describe('Database Profiling and Slow Query Logging', () => {
     const parsedWarnings = consoleWarnings.map((w) => JSON.parse(w));
 
     const slowQueryLog = parsedWarnings.find(
-      (w) => w.message === 'Slow query detected' && w.query && w.query.includes('SELECT * FROM test_profiling')
+      (w) =>
+        w.message === 'Slow query detected' &&
+        w.query &&
+        w.query.includes('SELECT * FROM test_profiling')
     );
     expect(slowQueryLog).toBeDefined();
     expect(slowQueryLog.traceId).toBeDefined();
     expect(slowQueryLog.durationMs).toBeGreaterThanOrEqual(0);
 
     const queryPlanLog = parsedWarnings.find(
-      (w) => w.message === 'Slow query plan' && w.traceId === slowQueryLog.traceId
+      (w) =>
+        w.message === 'Slow query plan' && w.traceId === slowQueryLog.traceId
     );
 
     expect(queryPlanLog).toBeDefined();

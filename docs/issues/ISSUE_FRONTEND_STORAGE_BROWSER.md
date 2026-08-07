@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract storage browser with visual data exploration
 title: "[FRONTEND] Implement Contract Storage Browser with Visual Data Exploration"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently have no way to view or explore contract storage data visual
 ## 💡 Proposed Solution
 
 Create a comprehensive contract storage browser UI with:
+
 - Interactive tree-based storage visualization
 - Advanced search and filtering capabilities
 - Data type detection and formatting
@@ -24,6 +25,7 @@ Create a comprehensive contract storage browser UI with:
 - Real-time storage updates
 
 ### Key Features
+
 - Tree view showing all storage keys and values with hierarchical structure
 - Search by key name, value, data type, or storage pattern
 - Filter by data type (string, number, address, bytes, etc.)
@@ -32,6 +34,7 @@ Create a comprehensive contract storage browser UI with:
 - Real-time updates when storage changes
 
 ### Implementation Details
+
 - Location: `frontend/src/app/storage-browser/page.tsx`
 - Components: `frontend/src/components/StorageTree.tsx`, `StorageSearchBar.tsx`, `DataTypeFormatter.tsx`
 - Integration with backend storage API routes
@@ -52,12 +55,12 @@ Create a comprehensive contract storage browser UI with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers debugging contracts |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves contract debugging and data analysis |
+| Dimension        | Assessment                                                         |
+| ---------------- | ------------------------------------------------------------------ |
+| Who benefits?    | All developers debugging contracts                                 |
+| Effort estimate  | Medium (4-5 days)                                                  |
+| Breaking change? | No                                                                 |
+| MVP impact       | High - significantly improves contract debugging and data analysis |
 
 ## 🔗 Related Issues or References
 

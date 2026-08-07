@@ -19,16 +19,16 @@ interface StorageTreeProps {
 }
 
 const DIFF_DOT: Record<DiffKind, string> = {
-  added:     "bg-emerald-400",
-  removed:   "bg-rose-400",
-  changed:   "bg-amber-400",
+  added: "bg-emerald-400",
+  removed: "bg-rose-400",
+  changed: "bg-amber-400",
   unchanged: "bg-transparent",
 };
 
 const DIFF_ROW: Record<DiffKind, string> = {
-  added:     "border-l-2 border-emerald-500/60",
-  removed:   "border-l-2 border-rose-500/60 opacity-60",
-  changed:   "border-l-2 border-amber-500/60",
+  added: "border-l-2 border-emerald-500/60",
+  removed: "border-l-2 border-rose-500/60 opacity-60",
+  changed: "border-l-2 border-amber-500/60",
   unchanged: "border-l-2 border-transparent",
 };
 
@@ -62,7 +62,9 @@ function ExpandableNode({
         ) : (
           <ChevronRight className="w-3.5 h-3.5 text-gray-500 shrink-0" />
         )}
-        <span className="text-xs font-mono text-cyan-300 truncate">{keyName}</span>
+        <span className="text-xs font-mono text-cyan-300 truncate">
+          {keyName}
+        </span>
         <span className="text-xs text-gray-500 ml-1">
           {Array.isArray(value) ? `[${value.length}]` : `{${entries.length}}`}
         </span>
@@ -86,7 +88,7 @@ function ExpandableNode({
                 <span className="text-cyan-400/70 shrink-0">{k}:</span>
                 <DataTypeFormatter value={v} showBadge={false} />
               </div>
-            )
+            ),
           )}
         </div>
       )}
@@ -94,7 +96,10 @@ function ExpandableNode({
   );
 }
 
-const StorageTree: React.FC<StorageTreeProps> = ({ entries, className = "" }) => {
+const StorageTree: React.FC<StorageTreeProps> = ({
+  entries,
+  className = "",
+}) => {
   if (entries.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500 text-sm">
@@ -122,8 +127,12 @@ const StorageTree: React.FC<StorageTreeProps> = ({ entries, className = "" }) =>
             key={key}
             className={`flex items-baseline gap-2 px-2 py-1.5 rounded hover:bg-gray-800/40 ${DIFF_ROW[diff]}`}
           >
-            <span className={`w-2 h-2 rounded-full shrink-0 mt-0.5 ${DIFF_DOT[diff]}`} />
-            <span className="text-cyan-300 shrink-0 truncate max-w-[40%]">{key}</span>
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 mt-0.5 ${DIFF_DOT[diff]}`}
+            />
+            <span className="text-cyan-300 shrink-0 truncate max-w-[40%]">
+              {key}
+            </span>
             <span className="text-gray-600">:</span>
             <DataTypeFormatter value={value} />
           </div>

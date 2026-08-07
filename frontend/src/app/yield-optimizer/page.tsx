@@ -7,7 +7,7 @@ const CONTRACT_ID_RE = /^C[A-Z0-9]{55}$/;
 
 export default function YieldOptimizerPage() {
   const [contractId, setContractId] = useState(
-    process.env.NEXT_PUBLIC_YIELD_OPTIMIZER_CONTRACT_ID?.trim() ?? ""
+    process.env.NEXT_PUBLIC_YIELD_OPTIMIZER_CONTRACT_ID?.trim() ?? "",
   );
   const [walletAddress, setWalletAddress] = useState("");
   const [inputContract, setInputContract] = useState(contractId);
@@ -30,7 +30,8 @@ export default function YieldOptimizerPage() {
         <header>
           <h1 className="text-2xl font-bold text-white">⚡ Yield Optimizer</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Cross-protocol yield optimization with auto-compounding and strategy backtesting on Stellar Soroban.
+            Cross-protocol yield optimization with auto-compounding and strategy
+            backtesting on Stellar Soroban.
           </p>
         </header>
 
@@ -41,7 +42,10 @@ export default function YieldOptimizerPage() {
           <h2 className="text-sm font-semibold text-gray-200">Connection</h2>
           <div className="space-y-2">
             <div>
-              <label htmlFor="yo-contract-id" className="block text-xs text-gray-400 mb-1">
+              <label
+                htmlFor="yo-contract-id"
+                className="block text-xs text-gray-400 mb-1"
+              >
                 Contract ID
               </label>
               <input
@@ -50,16 +54,25 @@ export default function YieldOptimizerPage() {
                 onChange={(e) => setInputContract(e.target.value)}
                 placeholder="C…"
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                aria-describedby={contractError ? "yo-contract-error" : undefined}
+                aria-describedby={
+                  contractError ? "yo-contract-error" : undefined
+                }
               />
               {contractError && (
-                <p id="yo-contract-error" className="text-xs text-red-400 mt-1" role="alert">
+                <p
+                  id="yo-contract-error"
+                  className="text-xs text-red-400 mt-1"
+                  role="alert"
+                >
                   {contractError}
                 </p>
               )}
             </div>
             <div>
-              <label htmlFor="yo-wallet" className="block text-xs text-gray-400 mb-1">
+              <label
+                htmlFor="yo-wallet"
+                className="block text-xs text-gray-400 mb-1"
+              >
                 Wallet Address (needed for write operations)
               </label>
               <input

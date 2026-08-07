@@ -563,4 +563,3 @@ fn test_set_negative_daily_limit_fails() {
     let result = client.try_set_daily_limit(&admin, &-100i128);
     assert!(matches!(result, Err(Ok(Error::InvalidAmount))));
 }
-

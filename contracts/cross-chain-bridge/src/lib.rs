@@ -154,9 +154,7 @@ impl BridgeContract {
             .ok_or(Error::ArithmeticOverflow)?
             .checked_div(10_000)
             .ok_or(Error::ArithmeticOverflow)?;
-        let net_amount = amount
-            .checked_sub(fee)
-            .ok_or(Error::ArithmeticOverflow)?;
+        let net_amount = amount.checked_sub(fee).ok_or(Error::ArithmeticOverflow)?;
 
         let now = env.ledger().timestamp();
         let expiry = now

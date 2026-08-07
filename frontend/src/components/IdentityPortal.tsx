@@ -64,9 +64,14 @@ export default function IdentityPortal({
   onRevokeCredential,
   onAdjustReputation,
 }: IdentityPortalProps) {
-  const [tab, setTab] = useState<"identities" | "register" | "credential">("identities");
+  const [tab, setTab] = useState<"identities" | "register" | "credential">(
+    "identities",
+  );
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ kind: "success" | "error"; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Register form
   const [regDid, setRegDid] = useState("");
@@ -103,7 +108,10 @@ export default function IdentityPortal({
   const showError = (error: unknown) => {
     setFeedback({
       kind: "error",
-      message: error instanceof Error ? error.message : "Something unexpected happened.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Something unexpected happened.",
     });
   };
 
@@ -245,8 +253,8 @@ export default function IdentityPortal({
             {t === "identities"
               ? `DIDs (${identities.length})`
               : t === "register"
-              ? "Register"
-              : "Issue Credential"}
+                ? "Register"
+                : "Issue Credential"}
           </button>
         ))}
       </div>
@@ -266,16 +274,24 @@ export default function IdentityPortal({
               >
                 <button
                   onClick={() =>
-                    setExpanded(expanded === identity.owner ? null : identity.owner)
+                    setExpanded(
+                      expanded === identity.owner ? null : identity.owner,
+                    )
                   }
                   className="w-full flex items-start justify-between p-3 text-left hover:bg-gray-800/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center gap-2">
                       {identity.active ? (
-                        <ShieldCheck size={12} className="text-emerald-400 shrink-0" />
+                        <ShieldCheck
+                          size={12}
+                          className="text-emerald-400 shrink-0"
+                        />
                       ) : (
-                        <ShieldOff size={12} className="text-rose-400 shrink-0" />
+                        <ShieldOff
+                          size={12}
+                          className="text-rose-400 shrink-0"
+                        />
                       )}
                       <span className="text-xs font-mono text-gray-200 truncate">
                         {identity.did}
@@ -293,9 +309,15 @@ export default function IdentityPortal({
                     </div>
                   </div>
                   {expanded === identity.owner ? (
-                    <ChevronUp size={14} className="text-gray-500 shrink-0 mt-1" />
+                    <ChevronUp
+                      size={14}
+                      className="text-gray-500 shrink-0 mt-1"
+                    />
                   ) : (
-                    <ChevronDown size={14} className="text-gray-500 shrink-0 mt-1" />
+                    <ChevronDown
+                      size={14}
+                      className="text-gray-500 shrink-0 mt-1"
+                    />
                   )}
                 </button>
 
@@ -306,12 +328,18 @@ export default function IdentityPortal({
                         label="Owner"
                         value={`${identity.owner.slice(0, 8)}…${identity.owner.slice(-4)}`}
                       />
-                      <InfoRow label="Metadata Hash" value={String(identity.metadataHash)} />
+                      <InfoRow
+                        label="Metadata Hash"
+                        value={String(identity.metadataHash)}
+                      />
                       <InfoRow
                         label="Status"
                         value={identity.active ? "Active" : "Deactivated"}
                       />
-                      <InfoRow label="Reputation" value={String(identity.reputation)} />
+                      <InfoRow
+                        label="Reputation"
+                        value={String(identity.reputation)}
+                      />
                     </div>
 
                     {/* Credentials list */}
@@ -327,7 +355,10 @@ export default function IdentityPortal({
                           >
                             <div className="flex items-center gap-2">
                               {cred.status === "Active" ? (
-                                <BadgeCheck size={12} className="text-emerald-400" />
+                                <BadgeCheck
+                                  size={12}
+                                  className="text-emerald-400"
+                                />
                               ) : (
                                 <XCircle size={12} className="text-rose-400" />
                               )}
@@ -337,7 +368,9 @@ export default function IdentityPortal({
                             </div>
                             {cred.status === "Active" && (
                               <button
-                                onClick={() => void handleRevokeCredential(cred.id)}
+                                onClick={() =>
+                                  void handleRevokeCredential(cred.id)
+                                }
                                 disabled={isLoading}
                                 className="text-[10px] px-2 py-0.5 bg-rose-900/30 hover:bg-rose-900/50 border border-rose-800/50 text-rose-400 rounded transition-colors"
                               >
@@ -370,7 +403,9 @@ export default function IdentityPortal({
                             className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-emerald-500"
                           />
                           <button
-                            onClick={() => void handleAdjustReputation(identity.owner)}
+                            onClick={() =>
+                              void handleAdjustReputation(identity.owner)
+                            }
                             disabled={isLoading}
                             className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-xs rounded transition-colors flex items-center gap-1"
                           >
@@ -384,7 +419,9 @@ export default function IdentityPortal({
                     {/* Deactivate */}
                     {identity.active && (
                       <button
-                        onClick={() => void handleDeactivateIdentity(identity.owner)}
+                        onClick={() =>
+                          void handleDeactivateIdentity(identity.owner)
+                        }
                         disabled={isLoading}
                         className="w-full py-1.5 bg-rose-900/20 hover:bg-rose-900/40 border border-rose-800/40 text-rose-400 text-xs rounded transition-colors flex items-center justify-center gap-1"
                       >
@@ -412,7 +449,10 @@ export default function IdentityPortal({
               className={inputCls}
             />
           </Field>
-          <Field label="Metadata Hash (u64)" htmlFor="identity-register-metadata-hash">
+          <Field
+            label="Metadata Hash (u64)"
+            htmlFor="identity-register-metadata-hash"
+          >
             <input
               id="identity-register-metadata-hash"
               type="number"
@@ -480,7 +520,10 @@ export default function IdentityPortal({
               />
             </Field>
           </div>
-          <Field label="Expires At (unix ts, 0 = never)" htmlFor="identity-expires-at">
+          <Field
+            label="Expires At (unix ts, 0 = never)"
+            htmlFor="identity-expires-at"
+          >
             <input
               id="identity-expires-at"
               type="number"
@@ -537,7 +580,9 @@ function Field({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</p>
+      <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+        {label}
+      </p>
       <p className="text-xs text-gray-300 font-mono truncate">{value}</p>
     </div>
   );

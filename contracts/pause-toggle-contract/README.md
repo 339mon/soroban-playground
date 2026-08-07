@@ -15,34 +15,34 @@ An emergency circuit-breaker for Soroban smart contracts. Provides admin-control
 
 ## Contract Interface
 
-| Function | Parameters | Returns | Access |
-|---|---|---|---|
-| `init` | `admin: Address` | `void` | Public (once) |
-| `pause` | `caller: Address, reason: Option<String>` | `Result<(), Error>` | Admin only |
-| `unpause` | `caller: Address` | `Result<(), Error>` | Admin only |
-| `paused` | — | `bool` | Read |
-| `get_pause_reason` | — | `Option<String>` | Read |
-| `get_pause_timestamp` | — | `Option<u64>` | Read |
-| `get_admin` | — | `Result<Address, Error>` | Read |
-| `do_action` | `caller: Address` | `Result<(), Error>` | Any (guarded) |
+| Function              | Parameters                                | Returns                  | Access        |
+| --------------------- | ----------------------------------------- | ------------------------ | ------------- |
+| `init`                | `admin: Address`                          | `void`                   | Public (once) |
+| `pause`               | `caller: Address, reason: Option<String>` | `Result<(), Error>`      | Admin only    |
+| `unpause`             | `caller: Address`                         | `Result<(), Error>`      | Admin only    |
+| `paused`              | —                                         | `bool`                   | Read          |
+| `get_pause_reason`    | —                                         | `Option<String>`         | Read          |
+| `get_pause_timestamp` | —                                         | `Option<u64>`            | Read          |
+| `get_admin`           | —                                         | `Result<Address, Error>` | Read          |
+| `do_action`           | `caller: Address`                         | `Result<(), Error>`      | Any (guarded) |
 
 ## Error Codes
 
-| Code | Variant | Meaning |
-|---|---|---|
-| 1 | `Unauthorized` | Caller is not the admin |
-| 2 | `ContractPaused` | Action blocked by pause guard |
-| 3 | `AlreadyInState` | Already paused / already unpaused |
-| 4 | `NotInitialized` | `init` has not been called |
+| Code | Variant          | Meaning                           |
+| ---- | ---------------- | --------------------------------- |
+| 1    | `Unauthorized`   | Caller is not the admin           |
+| 2    | `ContractPaused` | Action blocked by pause guard     |
+| 3    | `AlreadyInState` | Already paused / already unpaused |
+| 4    | `NotInitialized` | `init` has not been called        |
 
 ## Events
 
-| Topic | Data | Emitted When |
-|---|---|---|
-| `init` | `admin: Address` | Contract initialized |
-| `paused` | `(caller: Address, timestamp: u64)` | Contract paused |
-| `unpaused` | `caller: Address` | Contract unpaused |
-| `action` | `caller: Address` | Guarded action executed |
+| Topic      | Data                                | Emitted When            |
+| ---------- | ----------------------------------- | ----------------------- |
+| `init`     | `admin: Address`                    | Contract initialized    |
+| `paused`   | `(caller: Address, timestamp: u64)` | Contract paused         |
+| `unpaused` | `caller: Address`                   | Contract unpaused       |
+| `action`   | `caller: Address`                   | Guarded action executed |
 
 ## Security Patterns
 
@@ -78,6 +78,7 @@ cargo test
 ```
 
 The test suite contains 60+ cases covering:
+
 - Initialization (single-init enforcement, admin set, default state)
 - Pause (flag, reason, timestamp, admin-only, idempotency)
 - Unpause (flag cleared, reason cleared, timestamp cleared, admin-only, idempotency)
@@ -135,15 +136,15 @@ stellar contract invoke \
 
 Base URL: `http://localhost:5000/api/pause-toggle`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/init` | Initialize the contract |
-| POST | `/pause` | Pause the contract |
-| POST | `/unpause` | Unpause the contract |
-| GET | `/status?contractId=` | Get paused state |
-| GET | `/reason?contractId=` | Get pause reason |
-| GET | `/timestamp?contractId=` | Get pause timestamp |
-| GET | `/admin?contractId=` | Get admin address |
+| Method | Endpoint                 | Description             |
+| ------ | ------------------------ | ----------------------- |
+| POST   | `/init`                  | Initialize the contract |
+| POST   | `/pause`                 | Pause the contract      |
+| POST   | `/unpause`               | Unpause the contract    |
+| GET    | `/status?contractId=`    | Get paused state        |
+| GET    | `/reason?contractId=`    | Get pause reason        |
+| GET    | `/timestamp?contractId=` | Get pause timestamp     |
+| GET    | `/admin?contractId=`     | Get admin address       |
 
 ### Example: Pause with reason
 

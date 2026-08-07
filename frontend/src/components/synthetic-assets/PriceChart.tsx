@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 
 interface PriceDataPoint {
   timestamp: number;
@@ -15,10 +15,15 @@ interface PriceChartProps {
   marketCap?: number;
   isLoading?: boolean;
   error?: string | null;
+  onPriceUpdate?: () => void;
 }
 
-function formatPrice(points: PriceDataPoint[], width: number, height: number): string {
-  if (points.length < 2) return '';
+function formatPrice(
+  points: PriceDataPoint[],
+  width: number,
+  height: number,
+): string {
+  if (points.length < 2) return "";
   const prices = points.map((p) => p.price);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
@@ -27,13 +32,14 @@ function formatPrice(points: PriceDataPoint[], width: number, height: number): s
   return points
     .map((p, i) => {
       const x = i * stepX;
-      const y = height - ((p.price - min) / range) * (height * 0.8) - height * 0.1;
-      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+      const y =
+        height - ((p.price - min) / range) * (height * 0.8) - height * 0.1;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     })
-    .join(' ');
+    .join(" ");
 }
 
-const TIMEFRAMES = ['1H', '1D', '1W', '1M'] as const;
+const TIMEFRAMES = ["1H", "1D", "1W", "1M"] as const;
 
 export default function PriceChart({
   assetSymbol,
@@ -44,29 +50,38 @@ export default function PriceChart({
   isLoading = false,
   error = null,
 }: PriceChartProps) {
-  const [timeframe, setTimeframe] = useState<'1H' | '1D' | '1W' | '1M'>('1D');
+  const [timeframe, setTimeframe] = useState<"1H" | "1D" | "1W" | "1M">("1D");
   const isPositive = priceChangePercent >= 0;
 
   const linePath = useMemo(() => formatPrice(data, 800, 400), [data]);
 
   const formatValue = (value: number): string => {
-    if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`;
+    if (value >= 1_000_000_000)
+      return `$${(value / 1_000_000_000).toFixed(2)}B`;
     if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
     if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
     return `$${value.toFixed(2)}`;
   };
 
   return (
-    <div className="price-chart" role="region" aria-label={`${assetSymbol} price chart`}>
+    <div
+      className="price-chart"
+      role="region"
+      aria-label={`${assetSymbol} price chart`}
+    >
       <div className="chart-header">
         <h4>{assetSymbol} Price Chart</h4>
-        <div className="timeframe-buttons" role="tablist" aria-label="Chart timeframe">
+        <div
+          className="timeframe-buttons"
+          role="tablist"
+          aria-label="Chart timeframe"
+        >
           {TIMEFRAMES.map((tf) => (
             <button
               key={tf}
               role="tab"
               aria-selected={timeframe === tf}
-              className={`timeframe-btn ${timeframe === tf ? 'active' : ''}`}
+              className={`timeframe-btn ${timeframe === tf ? "active" : ""}`}
               onClick={() => setTimeframe(tf)}
             >
               {tf}
@@ -98,7 +113,7 @@ export default function PriceChart({
             <path
               d={linePath}
               fill="none"
-              stroke={isPositive ? '#4CAF50' : '#ef4444'}
+              stroke={isPositive ? "#4CAF50" : "#ef4444"}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -110,8 +125,9 @@ export default function PriceChart({
       <div className="chart-stats">
         <div className="stat">
           <label>24h Change</label>
-          <span className={isPositive ? 'positive' : 'negative'}>
-            {isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%
+          <span className={isPositive ? "positive" : "negative"}>
+            {isPositive ? "+" : ""}
+            {priceChangePercent.toFixed(2)}%
           </span>
         </div>
         <div className="stat">

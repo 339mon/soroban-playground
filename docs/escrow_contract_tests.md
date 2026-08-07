@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Escrow Contrac
 ---
 
 ## References
-- Issue reference: Fixes #991
 
+- Issue reference: Fixes #991

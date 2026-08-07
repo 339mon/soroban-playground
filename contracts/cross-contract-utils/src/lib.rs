@@ -314,8 +314,6 @@ impl CrossContractUtils {
     }
 }
 
-#![no_std]
-
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, IntoVal,
     Symbol, Val, Vec,
@@ -353,11 +351,7 @@ impl CrossContractGuard {
     }
 
     /// Whitelists or unlists a contract address as an allowed invoker.
-    pub fn set_invoker_status(
-        env: Env,
-        invoker: Address,
-        allowed: bool,
-    ) -> Result<(), GuardError> {
+    pub fn set_invoker_status(env: Env, invoker: Address, allowed: bool) -> Result<(), GuardError> {
         let admin: Address = env
             .storage()
             .instance()
@@ -411,12 +405,10 @@ impl CrossContractGuard {
         args: Vec<Val>,
     ) -> Val {
         // Authorize sub-invocations on behalf of this contract's identity
-        env.authorize_as_current_contract(
-            soroban_sdk::vec![
-                &env,
-                // Optional auth sub-call configurations can be appended here
-            ],
-        );
+        env.authorize_as_current_contract(soroban_sdk::vec![
+            &env,
+            // Optional auth sub-call configurations can be appended here
+        ]);
 
         env.invoke_contract(&target_contract, &fn_name, args)
     }

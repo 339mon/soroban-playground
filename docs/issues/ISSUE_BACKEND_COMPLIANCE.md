@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement security compliance reporting and verification
 title: "[BACKEND] Implement Security Compliance Reporting and Verification"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks automated compliance reporting capabilities, making it
 ## 💡 Proposed Solution
 
 Create comprehensive compliance reporting implementation with:
+
 - Automated compliance checks
 - Compliance report generation
 - Security standard verification
@@ -24,6 +25,7 @@ Create comprehensive compliance reporting implementation with:
 - Compliance dashboard integration
 
 ### Key Features
+
 - Automated compliance checks for security standards (SOC2, ISO27001, GDPR)
 - Compliance report generation in multiple formats (PDF, HTML, JSON)
 - Security standard verification and scoring
@@ -32,6 +34,7 @@ Create comprehensive compliance reporting implementation with:
 - Configurable compliance policies and thresholds
 
 ### Implementation Details
+
 - Location: `backend/src/compliance/`
 - Service: `backend/src/services/complianceService.js`
 - Configuration: `backend/src/config/compliance.config.js`
@@ -53,12 +56,12 @@ Create comprehensive compliance reporting implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and security teams managing the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables automated compliance verification and reporting for security standards |
+| Dimension        | Assessment                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and security teams managing the Soroban Playground                 |
+| Effort estimate  | Medium (3-4 days)                                                                         |
+| Breaking change? | No                                                                                        |
+| MVP impact       | Critical - enables automated compliance verification and reporting for security standards |
 
 ## 🔗 Related Issues or References
 

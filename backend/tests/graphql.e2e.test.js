@@ -327,7 +327,13 @@ describe('GraphQL E2E — Mutations', () => {
           network
         }
       }`,
-      { input: { wasmPath: '/tmp/token.wasm', contractName: 'token', network: 'testnet' } }
+      {
+        input: {
+          wasmPath: '/tmp/token.wasm',
+          contractName: 'token',
+          network: 'testnet',
+        },
+      }
     );
 
     expect(res.status).toBe(200);

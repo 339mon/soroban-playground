@@ -6,8 +6,9 @@ Technical specification for instrumenting backend RPC relay nodes and compilatio
 
 ## 1. Metrics & Tracing Architecture
 
-- **Prometheus Scrape Endpoint:** /metrics serving http_requests_total, wasm_compile_duration_seconds, and pc_latency_seconds.
-- **Jaeger Context Propagation:** 	raceparent headers injected across all async worker tasks.
+- **Prometheus Scrape Endpoint:** /metrics serving http_requests_total, wasm_compile_duration_seconds, and
+  pc_latency_seconds.
+- **Jaeger Context Propagation:** raceparent headers injected across all async worker tasks.
 
 ---
 

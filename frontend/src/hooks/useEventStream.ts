@@ -38,12 +38,7 @@ const IDX_DROPPED = 2;
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export type EventStreamStatus =
-  | "idle"
-  | "connecting"
-  | "connected"
-  | "reconnecting"
-  | "fallback"
-  | "error";
+  "idle" | "connecting" | "connected" | "reconnecting" | "fallback" | "error";
 
 export interface EventStreamOptions {
   /** Full WebSocket URL, e.g. "ws://localhost:3001/ws/events" */
@@ -80,7 +75,11 @@ function readUint32(view: Uint8Array, offset: number): number {
   );
 }
 
-function readBytes(view: Uint8Array, offset: number, length: number): Uint8Array {
+function readBytes(
+  view: Uint8Array,
+  offset: number,
+  length: number,
+): Uint8Array {
   const result = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
     result[i] = view[(offset + i) % view.length];
@@ -113,8 +112,12 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
   // Keep filter refs fresh without restarting the worker.
   const contractIdRef = useRef(contractId);
   const eventTypeRef = useRef(eventType);
-  useEffect(() => { contractIdRef.current = contractId; }, [contractId]);
-  useEffect(() => { eventTypeRef.current = eventType; }, [eventType]);
+  useEffect(() => {
+    contractIdRef.current = contractId;
+  }, [contractId]);
+  useEffect(() => {
+    eventTypeRef.current = eventType;
+  }, [eventType]);
 
   // ── Event appender ──────────────────────────────────────────────────────────
 
@@ -124,8 +127,10 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
     // Apply client-side filter.
     const filtered = incoming.filter((e) => {
       if (e.type === "quorum_update") return true; // Always show quorum updates
-      if (contractIdRef.current && e.contract_id !== contractIdRef.current) return false;
-      if (eventTypeRef.current && e.event_type !== eventTypeRef.current) return false;
+      if (contractIdRef.current && e.contract_id !== contractIdRef.current)
+        return false;
+      if (eventTypeRef.current && e.event_type !== eventTypeRef.current)
+        return false;
       return true;
     });
 
@@ -249,7 +254,11 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
       const dataBuf = new SharedArrayBuffer(RING_CAPACITY);
       headerRef.current = new Int32Array(headerBuf);
       ringRef.current = new Uint8Array(dataBuf);
-      worker.postMessage({ type: "init", headerBuffer: headerBuf, dataBuffer: dataBuf });
+      worker.postMessage({
+        type: "init",
+        headerBuffer: headerBuf,
+        dataBuffer: dataBuf,
+      });
     } else {
       worker.postMessage({ type: "init" });
     }
@@ -260,7 +269,12 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
     // Handle worker messages.
     worker.onmessage = (ev: MessageEvent) => {
       if (disposed) return;
-      const msg = ev.data as { type: string; payload?: WsEvent[]; message?: string; code?: number };
+      const msg = ev.data as {
+        type: string;
+        payload?: WsEvent[];
+        message?: string;
+        code?: number;
+      };
 
       switch (msg.type) {
         case "connected":
@@ -313,7 +327,7 @@ export function useEventStream(options: EventStreamOptions): EventStreamResult {
       headerRef.current = null;
       ringRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, disabled]); // Only restart the worker when url or disabled changes.
 
   // ── Public controls ─────────────────────────────────────────────────────────

@@ -33,7 +33,7 @@ import {
   Zap,
   ChevronDown,
   LayoutGrid,
-  Search
+  Search,
 } from "lucide-react";
 
 type NavItem = {
@@ -61,8 +61,8 @@ const NAVIGATION: NavGroup[] = [
       { name: "Search Utility", href: "/search", icon: Search },
       { name: "Ledger Migration", href: "/migration", icon: Send },
       { name: "XDR Inspector", href: "/xdr-decoder", icon: Code2 },
-      { name: "Rate Limits", href: "/rate-limits", icon: Sliders }
-    ]
+      { name: "Rate Limits", href: "/rate-limits", icon: Sliders },
+    ],
   },
   {
     groupName: "DeFi Suite",
@@ -71,17 +71,21 @@ const NAVIGATION: NavGroup[] = [
       { name: "Limit Order Book", href: "/orderbook", icon: Boxes },
       { name: "Stablecoin Peg", href: "/stablecoin", icon: Waves },
       { name: "Yield Optimizer", href: "/yield-optimizer", icon: TrendingUp },
-      { name: "NFT AMM Pool", href: "/nft-amm", icon: Activity }
-    ]
+      { name: "NFT AMM Pool", href: "/nft-amm", icon: Activity },
+    ],
   },
   {
     groupName: "Governance & Trust",
     items: [
       { name: "Governance Portal", href: "/governance/history", icon: Users },
-      { name: "Quadratic Voting", href: "/quadratic-voting", icon: Fingerprint },
+      {
+        name: "Quadratic Voting",
+        href: "/quadratic-voting",
+        icon: Fingerprint,
+      },
       { name: "Treasury Panel", href: "/treasury", icon: Wallet },
-      { name: "Bug Bounty Program", href: "/bug-bounty", icon: AlertTriangle }
-    ]
+      { name: "Bug Bounty Program", href: "/bug-bounty", icon: AlertTriangle },
+    ],
   },
   {
     groupName: "Real World Assets",
@@ -90,16 +94,16 @@ const NAVIGATION: NavGroup[] = [
       { name: "Patent Registry", href: "/patents", icon: FileText },
       { name: "Music Licensing", href: "/music-licensing", icon: Music },
       { name: "Data Marketplace", href: "/data-marketplace", icon: Database },
-      { name: "Content Publishing", href: "/content-publishing", icon: Globe }
-    ]
+      { name: "Content Publishing", href: "/content-publishing", icon: Globe },
+    ],
   },
   {
     groupName: "Gaming & Sports",
     items: [
       { name: "Sports Dashboard", href: "/sports", icon: Trophy },
-      { name: "Sports Prediction", href: "/sports-prediction", icon: Target }
-    ]
-  }
+      { name: "Sports Prediction", href: "/sports-prediction", icon: Target },
+    ],
+  },
 ];
 
 const formatAddress = (addr: string | null) => {
@@ -107,26 +111,32 @@ const formatAddress = (addr: string | null) => {
   return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
 };
 
-export default function SidebarShell({ children }: { children: React.ReactNode }) {
+export default function SidebarShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const wallet = useFreighterWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "Core IDE & Ops": true,
-    "DeFi Suite": true,
-    "Governance & Trust": true,
-    "Real World Assets": false,
-    "Gaming & Sports": false
-  });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {
+      "Core IDE & Ops": true,
+      "DeFi Suite": true,
+      "Governance & Trust": true,
+      "Real World Assets": false,
+      "Gaming & Sports": false,
+    },
+  );
 
   const toggleGroup = useCallback((groupName: string) => {
-    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+    setExpandedGroups((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
   }, []);
 
   const activeItemName = useMemo(() => {
     for (const group of NAVIGATION) {
-      const active = group.items.find(item => item.href === pathname);
+      const active = group.items.find((item) => item.href === pathname);
       if (active) return active.name;
     }
     if (pathname.startsWith("/bug-bounty")) return "Bug Bounty Program";
@@ -135,12 +145,15 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
     return "Stellar Playground";
   }, [pathname]);
 
-  const isActive = useCallback((href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  }, [pathname]);
+  const isActive = useCallback(
+    (href: string) => {
+      if (href === "/") {
+        return pathname === "/";
+      }
+      return pathname.startsWith(href);
+    },
+    [pathname],
+  );
 
   return (
     <div className="flex min-h-screen bg-[#060c18] text-[#e6edf7] font-sans antialiased selection:bg-teal-500/30 selection:text-teal-200">
@@ -148,17 +161,18 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/10 blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/10 blur-[120px]" />
-        <div 
-          className="absolute inset-0 opacity-[0.03]" 
+        <div
+          className="absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: "linear-gradient(rgba(120, 140, 180, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 140, 180, 0.15) 1px, transparent 1px)",
-            backgroundSize: "32px 32px"
+            backgroundImage:
+              "linear-gradient(rgba(120, 140, 180, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 140, 180, 0.15) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
           }}
         />
       </div>
 
       {/* Desktop Sidebar */}
-      <aside 
+      <aside
         className={`fixed inset-y-0 left-0 z-20 hidden md:flex flex-col bg-slate-950/80 border-r border-slate-800/60 backdrop-blur-xl transition-all duration-300 ${
           collapsed ? "w-20" : "w-64"
         }`}
@@ -175,7 +189,7 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
               </span>
             )}
           </Link>
-          <button 
+          <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -194,15 +208,15 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                   className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold text-slate-500 hover:text-slate-400 uppercase tracking-[0.2em] transition-colors"
                 >
                   <span>{group.groupName}</span>
-                  <ChevronDown 
-                    size={10} 
+                  <ChevronDown
+                    size={10}
                     className={`transition-transform duration-200 ${
                       expandedGroups[group.groupName] ? "" : "-rotate-90"
                     }`}
                   />
                 </button>
               )}
-              
+
               {(!collapsed && expandedGroups[group.groupName]) || collapsed ? (
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
@@ -218,11 +232,13 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                         }`}
                         title={collapsed ? item.name : undefined}
                       >
-                        <item.icon 
+                        <item.icon
                           className={`shrink-0 transition-transform group-hover:scale-105 ${
-                            active ? "text-teal-400" : "text-slate-400 group-hover:text-slate-200"
-                          }`} 
-                          size={16} 
+                            active
+                              ? "text-teal-400"
+                              : "text-slate-400 group-hover:text-slate-200"
+                          }`}
+                          size={16}
                         />
                         {!collapsed && (
                           <span className="truncate">{item.name}</span>
@@ -249,18 +265,25 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   Freighter Connected
                 </span>
-                <span className={`h-1.5 w-1.5 rounded-full ${
-                  wallet.status === "connected" ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
-                }`} />
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    wallet.status === "connected"
+                      ? "bg-emerald-400 animate-pulse"
+                      : "bg-slate-600"
+                  }`}
+                />
               </div>
-              
+
               {wallet.status === "connected" && wallet.address ? (
                 <div>
                   <p className="font-mono text-xs text-emerald-400 truncate mb-1">
                     {formatAddress(wallet.address)}
                   </p>
                   <p className="text-[10px] text-slate-500 font-medium">
-                    Network: <span className="text-slate-300 uppercase">{wallet.network}</span>
+                    Network:{" "}
+                    <span className="text-slate-300 uppercase">
+                      {wallet.network}
+                    </span>
                   </p>
                 </div>
               ) : (
@@ -280,26 +303,29 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
 
       {/* Mobile Drawer Backdrop */}
       {isOpen && (
-        <div 
+        <div
           onClick={() => setIsOpen(false)}
           className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
         />
       )}
 
       {/* Mobile Sidebar Drawer */}
-      <aside 
+      <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-950/90 border-r border-slate-800/60 backdrop-blur-2xl flex flex-col md:hidden transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60">
           <Link href="/" className="flex items-center gap-2">
-            <Orbit size={18} className="text-teal-400 animate-spin-[duration:12s]" />
+            <Orbit
+              size={18}
+              className="text-teal-400 animate-spin-[duration:12s]"
+            />
             <span className="font-semibold text-sm tracking-wider uppercase text-white">
               Soroban Playground
             </span>
           </Link>
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             className="p-1 rounded-lg text-slate-400 hover:bg-white/5"
           >
@@ -327,7 +353,10 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                           : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
                       }`}
                     >
-                      <item.icon size={16} className={active ? "text-teal-400" : "text-slate-400"} />
+                      <item.icon
+                        size={16}
+                        className={active ? "text-teal-400" : "text-slate-400"}
+                      />
                       <span>{item.name}</span>
                     </Link>
                   );
@@ -343,11 +372,15 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Wallet Status
               </span>
-              <span className={`h-1.5 w-1.5 rounded-full ${
-                wallet.status === "connected" ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
-              }`} />
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  wallet.status === "connected"
+                    ? "bg-emerald-400 animate-pulse"
+                    : "bg-slate-600"
+                }`}
+              />
             </div>
-            
+
             {wallet.status === "connected" && wallet.address ? (
               <p className="font-mono text-xs text-emerald-400 truncate">
                 {formatAddress(wallet.address)}
@@ -365,9 +398,11 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
       </aside>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 z-10 ${
-        collapsed ? "md:pl-20" : "md:pl-64"
-      }`}>
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 z-10 ${
+          collapsed ? "md:pl-20" : "md:pl-64"
+        }`}
+      >
         {/* Top Navigation Header */}
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-slate-950/40 border-b border-slate-800/60 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-3">
@@ -378,13 +413,15 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
             >
               <Menu size={20} />
             </button>
-            
+
             {/* Page title / breadcrumb */}
             <div className="flex items-center gap-2">
               <span className="hidden sm:inline-flex text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-400 transition-colors">
                 Soroban Play
               </span>
-              <span className="hidden sm:inline text-slate-600 font-light">/</span>
+              <span className="hidden sm:inline text-slate-600 font-light">
+                /
+              </span>
               <h1 className="text-xs sm:text-sm font-semibold tracking-wider text-white uppercase bg-slate-800/60 border border-slate-700/40 px-2.5 py-1 rounded-lg">
                 {activeItemName}
               </h1>
@@ -407,7 +444,9 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium transition-all hover:bg-slate-800 hover:border-slate-700 shadow-sm"
               >
                 <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-xs">{formatAddress(wallet.address)}</span>
+                <span className="font-mono text-xs">
+                  {formatAddress(wallet.address)}
+                </span>
               </button>
             ) : (
               <button
@@ -415,17 +454,22 @@ export default function SidebarShell({ children }: { children: React.ReactNode }
                 disabled={wallet.status === "connecting"}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-300 hover:to-teal-400 text-slate-950 font-semibold text-xs transition-all shadow-[0_0_15px_rgba(45,212,191,0.2)] hover:shadow-[0_0_20px_rgba(45,212,191,0.3)] disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Zap size={13} className={wallet.status === "connecting" ? "animate-pulse" : ""} />
-                {wallet.status === "connecting" ? "Connecting..." : "Link Wallet"}
+                <Zap
+                  size={13}
+                  className={
+                    wallet.status === "connecting" ? "animate-pulse" : ""
+                  }
+                />
+                {wallet.status === "connecting"
+                  ? "Connecting..."
+                  : "Link Wallet"}
               </button>
             )}
           </div>
         </header>
 
         {/* Dynamic Children Panel */}
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );

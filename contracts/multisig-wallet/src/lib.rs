@@ -36,7 +36,8 @@ use crate::storage::{
     get_max_delay, get_min_delay, get_owner_at, get_owner_count, get_threshold, get_tx,
     get_tx_count, has_owner, is_confirmed, is_initialized, record_confirmation,
     remove_confirmation, remove_is_owner, remove_owner_at, set_initialized, set_is_owner,
-    set_max_delay, set_min_delay, set_owner_at, set_owner_count, set_threshold, set_tx, set_tx_count,
+    set_max_delay, set_min_delay, set_owner_at, set_owner_count, set_threshold, set_tx,
+    set_tx_count,
 };
 use crate::types::{Error, Transaction, TxStatus};
 

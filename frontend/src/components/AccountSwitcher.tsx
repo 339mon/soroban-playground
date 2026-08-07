@@ -5,7 +5,13 @@ import { User, Copy, Check, ChevronDown, LogOut } from "lucide-react";
 import { useWallet } from "./providers/WalletProvider";
 
 export default function AccountSwitcher() {
-  const { activeAccount, allAccounts, switchAccount, disconnect, activeWallet } = useWallet();
+  const {
+    activeAccount,
+    allAccounts,
+    switchAccount,
+    disconnect,
+    activeWallet,
+  } = useWallet();
   const [copied, setCopied] = React.useState(false);
 
   if (!activeAccount)
@@ -46,7 +52,9 @@ export default function AccountSwitcher() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Active {activeWallet} Account
             </p>
-            <p className="font-mono text-sm text-white">{shortAddress(activeAccount)}</p>
+            <p className="font-mono text-sm text-white">
+              {shortAddress(activeAccount)}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -55,7 +63,11 @@ export default function AccountSwitcher() {
             className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
             title="Copy address"
           >
-            {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+            {copied ? (
+              <Check size={16} className="text-emerald-400" />
+            ) : (
+              <Copy size={16} />
+            )}
           </button>
           <button
             onClick={disconnect}
@@ -86,10 +98,11 @@ export default function AccountSwitcher() {
           </button>
         ))}
       </div>
-      
+
       <div className="px-5 py-3 bg-slate-900/50">
         <p className="text-[11px] text-slate-400 italic">
-          Tip: Change active account in your {activeWallet} extension to see more accounts.
+          Tip: Change active account in your {activeWallet} extension to see
+          more accounts.
         </p>
       </div>
     </div>

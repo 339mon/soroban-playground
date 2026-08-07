@@ -13,14 +13,19 @@ export class TempCleanupService {
    * Hourly Cron Job: Purges leftover `.tmp_compile_*` directories older than 30 minutes.
    */
   @Cron(CronExpression.EVERY_HOUR)
-  async cleanupWasmTempDirectories(): Promise<{ deletedDirs: number; reclaimedBytes: number }> {
+  async cleanupWasmTempDirectories(): Promise<{
+    deletedDirs: number;
+    reclaimedBytes: number;
+  }> {
     this.logger.log('Starting WASM build temp directory garbage collection...');
 
     let deletedDirs = 0;
     let reclaimedBytes = 0;
 
     try {
-      const entries = await fs.readdir(this.tempBaseDir, { withFileTypes: true });
+      const entries = await fs.readdir(this.tempBaseDir, {
+        withFileTypes: true,
+      });
       const now = Date.now();
 
       for (const entry of entries) {
@@ -34,7 +39,7 @@ export class TempCleanupService {
 
             if (dirAgeMs > this.maxAgeMs) {
               const dirSizeBytes = await this.calculateDirectorySize(dirPath);
-              
+
               // Safely delete stale temp build folder recursively
               await fs.rm(dirPath, { recursive: true, force: true });
 
@@ -45,23 +50,29 @@ export class TempCleanupService {
                 `Purged temp directory: ${entry.name} (Age: ${Math.round(dirAgeMs / 60000)}m, Size: ${(
                   dirSizeBytes /
                   (1024 * 1024)
-                ).toFixed(2)} MB)`,
+                ).toFixed(2)} MB)`
               );
             }
           } catch (statOrRmError) {
-            this.logger.error(`Failed to process or delete temp dir ${dirPath}:`, statOrRmError);
+            this.logger.error(
+              `Failed to process or delete temp dir ${dirPath}:`,
+              statOrRmError
+            );
           }
         }
       }
 
       const reclaimedMb = (reclaimedBytes / (1024 * 1024)).toFixed(2);
       this.logger.log(
-        `WASM Garbage Collection finished. Reclaimed ${reclaimedMb} MB across ${deletedDirs} temp directories.`,
+        `WASM Garbage Collection finished. Reclaimed ${reclaimedMb} MB across ${deletedDirs} temp directories.`
       );
 
       return { deletedDirs, reclaimedBytes };
     } catch (error) {
-      this.logger.error('Error scanning base temp directory for WASM cleanup:', error);
+      this.logger.error(
+        'Error scanning base temp directory for WASM cleanup:',
+        error
+      );
       return { deletedDirs: 0, reclaimedBytes: 0 };
     }
   }

@@ -1,7 +1,7 @@
 # Soroban Testing Framework
 
 A reusable, standardised set of testing utilities for Soroban smart
-contracts.  Provides drop-in mock contracts, enhanced assertions, and
+contracts. Provides drop-in mock contracts, enhanced assertions, and
 property-based fuzzing strategies so you can write consistent,
 comprehensive tests across all your contracts without repeating
 boilerplate.
@@ -10,13 +10,13 @@ boilerplate.
 
 ## Modules
 
-| Component         | Module              | Description                                       |
-|-------------------|---------------------|---------------------------------------------------|
-| **TestHarness**   | `TestHarness`       | Pre-configured `Env` with mock auth & ledger time |
-| **MockOracle**    | `mock_oracle`       | Deployable price-feed oracle with stale-data sim  |
-| **MockToken**     | `mock_token`        | SEP-41 compatible token with validation checks    |
-| **TestAssertions**| `assertions`        | `assert_near`, `assert_event_emitted`, etc.       |
-| **FuzzTester**    | `FuzzTester`        | `proptest` strategies for Address, Symbol, amount |
+| Component          | Module        | Description                                       |
+| ------------------ | ------------- | ------------------------------------------------- |
+| **TestHarness**    | `TestHarness` | Pre-configured `Env` with mock auth & ledger time |
+| **MockOracle**     | `mock_oracle` | Deployable price-feed oracle with stale-data sim  |
+| **MockToken**      | `mock_token`  | SEP-41 compatible token with validation checks    |
+| **TestAssertions** | `assertions`  | `assert_near`, `assert_event_emitted`, etc.       |
+| **FuzzTester**     | `FuzzTester`  | `proptest` strategies for Address, Symbol, amount |
 
 ### TestHarness
 
@@ -39,6 +39,7 @@ than the balance, and `require_auth` on `from` in `transfer`.
 ### TestAssertions
 
 Free functions for common test patterns:
+
 - `assert_near` — approximate equality with tolerance
 - `assert_event_emitted` — check that an event was fired
 - `assert_auth_required` — assert that a call was rejected
@@ -47,7 +48,7 @@ Free functions for common test patterns:
 ### FuzzTester
 
 Wraps `proptest` strategies for `Address`, `Symbol`, and `i128`
-amounts.  Uses a fixed seed (`0xDEAD_BEEF_CAFE_0001`) for
+amounts. Uses a fixed seed (`0xDEAD_BEEF_CAFE_0001`) for
 reproducible CI runs.
 
 ---
@@ -116,7 +117,7 @@ testing-framework = { path = "../testing-framework", features = ["testutils"] }
 ```
 
 The `testutils` feature flag enables `TestHarness` and `FuzzTester` and
-activates `soroban-sdk/testutils`.  Without it only `mock_oracle`,
+activates `soroban-sdk/testutils`. Without it only `mock_oracle`,
 `mock_token`, and `assertions` are available.
 
 ---

@@ -1,5 +1,10 @@
 import { renderHook, act } from "@testing-library/react";
-import { useFavorites, FavoriteTemplate, FavoritesState, Category } from "@/hooks/useFavorites";
+import {
+  useFavorites,
+  FavoriteTemplate,
+  FavoritesState,
+  Category,
+} from "@/hooks/useFavorites";
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
@@ -53,7 +58,10 @@ describe("useFavorites", () => {
         ],
         categories: [{ id: "custom", name: "Custom", color: "#fff" }],
       };
-      localStorageMock.setItem("soroban_template_favorites", JSON.stringify(preloaded));
+      localStorageMock.setItem(
+        "soroban_template_favorites",
+        JSON.stringify(preloaded),
+      );
 
       const { result } = renderHook(() => useFavorites());
 
@@ -85,9 +93,13 @@ describe("useFavorites", () => {
 
       expect(result.current.favorites).toHaveLength(1);
       expect(result.current.favorites[0].id).toBe("template-1");
-      expect(result.current.favorites[0].addedAt).toBe("2024-01-01T00:00:00.000Z");
+      expect(result.current.favorites[0].addedAt).toBe(
+        "2024-01-01T00:00:00.000Z",
+      );
 
-      const stored = JSON.parse(localStorageMock.getItem("soroban_template_favorites")!);
+      const stored = JSON.parse(
+        localStorageMock.getItem("soroban_template_favorites")!,
+      );
       expect(stored.favorites).toHaveLength(1);
       expect(stored.favorites[0].id).toBe("template-1");
     });
@@ -109,7 +121,7 @@ describe("useFavorites", () => {
             },
           ],
           categories: [],
-        })
+        }),
       );
 
       const { result } = renderHook(() => useFavorites());
@@ -120,7 +132,9 @@ describe("useFavorites", () => {
 
       expect(result.current.favorites).toHaveLength(0);
 
-      const stored = JSON.parse(localStorageMock.getItem("soroban_template_favorites")!);
+      const stored = JSON.parse(
+        localStorageMock.getItem("soroban_template_favorites")!,
+      );
       expect(stored.favorites).toHaveLength(0);
     });
   });
@@ -141,7 +155,7 @@ describe("useFavorites", () => {
             },
           ],
           categories: [],
-        })
+        }),
       );
 
       const { result } = renderHook(() => useFavorites());
@@ -166,10 +180,8 @@ describe("useFavorites", () => {
               addedAt: "2023-01-01T00:00:00Z",
             },
           ],
-          categories: [
-            { id: "defi", name: "DeFi", color: "#2dd4bf" },
-          ],
-        })
+          categories: [{ id: "defi", name: "DeFi", color: "#2dd4bf" }],
+        }),
       );
 
       const { result } = renderHook(() => useFavorites());
@@ -199,12 +211,15 @@ describe("useFavorites", () => {
               { id: "defi", name: "DeFi Updated", color: "#aaa" },
               { id: "nft", name: "NFT", color: "#a78bfa" },
             ],
-          })
+          }),
         );
       });
 
       expect(result.current.favorites).toHaveLength(2);
-      expect(result.current.favorites.map((f) => f.id)).toEqual(["template-1", "template-2"]);
+      expect(result.current.favorites.map((f) => f.id)).toEqual([
+        "template-1",
+        "template-2",
+      ]);
       expect(result.current.categories).toHaveLength(2);
     });
   });

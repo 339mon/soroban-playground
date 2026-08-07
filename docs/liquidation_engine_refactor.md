@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Liquidation Engin
 ---
 
 ## References
-- Issue reference: Fixes #995
 
+- Issue reference: Fixes #995

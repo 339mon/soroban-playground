@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement dark mode and accessibility improvements
 title: "[FRONTEND] Implement Dark Mode and Accessibility Improvements"
 labels: enhancement, frontend, accessibility, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current UI lacks dark mode support and has accessibility gaps that make it d
 ## 💡 Proposed Solution
 
 Create comprehensive dark mode and accessibility implementation with:
+
 - System-aware dark/light mode detection
 - Manual theme switching
 - WCAG 2.1 AA compliance
@@ -25,6 +26,7 @@ Create comprehensive dark mode and accessibility implementation with:
 - High contrast mode support
 
 ### Key Features
+
 - Automatic theme detection based on system preferences
 - Manual theme toggle in settings
 - Comprehensive dark mode styling for all UI components
@@ -34,6 +36,7 @@ Create comprehensive dark mode and accessibility implementation with:
 - Screen reader optimized content structure
 
 ### Implementation Details
+
 - Location: `frontend/src/app/layout.tsx` (theme provider)
 - Components: `frontend/src/components/ThemeToggle.tsx`, `AccessibilityManager.tsx`
 - Styling: `frontend/src/styles/dark-mode.css`, `frontend/src/styles/accessibility.css`
@@ -55,12 +58,12 @@ Create comprehensive dark mode and accessibility implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers, especially those with visual preferences or accessibility needs |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves inclusivity and developer experience for all users |
+| Dimension        | Assessment                                                                      |
+| ---------------- | ------------------------------------------------------------------------------- |
+| Who benefits?    | All developers, especially those with visual preferences or accessibility needs |
+| Effort estimate  | Medium (3-4 days)                                                               |
+| Breaking change? | No                                                                              |
+| MVP impact       | High - improves inclusivity and developer experience for all users              |
 
 ## 🔗 Related Issues or References
 

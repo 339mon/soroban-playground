@@ -44,7 +44,9 @@ const FavoritesFilter: React.FC<FavoritesFilterProps> = ({
   const activeCount = filters.categories.length + filters.tags.length;
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>
+    <div
+      className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-600" />

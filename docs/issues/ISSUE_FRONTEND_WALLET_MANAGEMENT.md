@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement wallet connection management UI
 title: "[FRONTEND] Implement Wallet Connection Management UI"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently need to manually configure wallet connections through CLI c
 ## 💡 Proposed Solution
 
 Create a comprehensive wallet connection management UI with:
+
 - Multi-wallet connection support
 - Account switching and management
 - Connection status monitoring
@@ -24,6 +25,7 @@ Create a comprehensive wallet connection management UI with:
 - Wallet detection and onboarding
 
 ### Key Features
+
 - Wallet connection wizard with Freighter, Soroban Wallet, and other compatible wallets
 - Account switching between multiple connected wallets
 - Connection status indicators (connected, disconnected, error)
@@ -32,6 +34,7 @@ Create a comprehensive wallet connection management UI with:
 - Connection history and recent accounts
 
 ### Implementation Details
+
 - Location: `frontend/src/app/wallet-management/page.tsx`
 - Components: `frontend/src/components/WalletConnectionWizard.tsx`, `AccountSwitcher.tsx`, `TransactionSigner.tsx`
 - Integration with Freighter extension and Stellar SDK
@@ -52,12 +55,12 @@ Create a comprehensive wallet connection management UI with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using wallets |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves wallet interaction experience |
+| Dimension        | Assessment                                                  |
+| ---------------- | ----------------------------------------------------------- |
+| Who benefits?    | All developers using wallets                                |
+| Effort estimate  | Medium (3-4 days)                                           |
+| Breaking change? | No                                                          |
+| MVP impact       | High - significantly improves wallet interaction experience |
 
 ## 🔗 Related Issues or References
 

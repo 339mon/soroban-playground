@@ -64,7 +64,9 @@ pub fn get_owner_count(env: &Env) -> u32 {
 }
 
 pub fn set_owner_count(env: &Env, count: u32) {
-    env.storage().instance().set(&InstanceKey::OwnerCount, &count);
+    env.storage()
+        .instance()
+        .set(&InstanceKey::OwnerCount, &count);
 }
 
 pub fn get_owner_at(env: &Env, idx: u32) -> Option<Address> {

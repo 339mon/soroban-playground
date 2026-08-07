@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Auth 
 ---
 
 ## References
-- Issue reference: Fixes #952
 
+- Issue reference: Fixes #952

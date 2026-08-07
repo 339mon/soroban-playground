@@ -118,7 +118,7 @@ describe("DataTable – empty state", () => {
         columns={columns}
         data={[]}
         emptyState={<span>Nothing here yet</span>}
-      />
+      />,
     );
     expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
   });
@@ -137,7 +137,7 @@ describe("DataTable – loading state", () => {
 
   it("renders the table after loading completes", () => {
     const { rerender } = render(
-      <DataTable columns={columns} data={[]} isLoading={true} />
+      <DataTable columns={columns} data={[]} isLoading={true} />,
     );
     rerender(<DataTable columns={columns} data={data} isLoading={false} />);
     expect(screen.getByRole("table")).toBeInTheDocument();
@@ -152,7 +152,11 @@ describe("DataTable – loading state", () => {
 describe("DataTable – error state", () => {
   it("renders the error alert when error is an Error object", () => {
     render(
-      <DataTable columns={columns} data={[]} error={new Error("Fetch failed")} />
+      <DataTable
+        columns={columns}
+        data={[]}
+        error={new Error("Fetch failed")}
+      />,
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByText(/fetch failed/i)).toBeInTheDocument();
@@ -171,7 +175,7 @@ describe("DataTable – error state", () => {
         data={[]}
         error="Fetch failed"
         onRetry={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByTestId("skeleton-retry-button")).toBeInTheDocument();
   });
@@ -184,7 +188,7 @@ describe("DataTable – error state", () => {
         data={[]}
         error="Fetch failed"
         onRetry={onRetry}
-      />
+      />,
     );
     fireEvent.click(screen.getByTestId("skeleton-retry-button"));
     expect(onRetry).toHaveBeenCalledTimes(1);
@@ -252,7 +256,7 @@ describe("DataTable – sorting", () => {
 
     const rows = screen.getAllByRole("row").slice(1);
     const balanceCells = rows.map(
-      (row) => within(row).getAllByRole("cell")[2].textContent
+      (row) => within(row).getAllByRole("cell")[2].textContent,
     );
     expect(balanceCells).toEqual(["100", "200", "300"]);
   });
@@ -326,11 +330,16 @@ describe("DataTable – row interaction", () => {
 
   it("rows have tabIndex when onRowClick is provided", () => {
     render(<DataTable columns={columns} data={data} onRowClick={jest.fn()} />);
-    expect(screen.getByTestId("datatable-row-0")).toHaveAttribute("tabindex", "0");
+    expect(screen.getByTestId("datatable-row-0")).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
   });
 
   it("rows do not have tabIndex when onRowClick is absent", () => {
     render(<DataTable columns={columns} data={data} />);
-    expect(screen.getByTestId("datatable-row-0")).not.toHaveAttribute("tabindex");
+    expect(screen.getByTestId("datatable-row-0")).not.toHaveAttribute(
+      "tabindex",
+    );
   });
 });

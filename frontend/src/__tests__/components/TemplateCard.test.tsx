@@ -19,13 +19,13 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={false}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
 
     expect(screen.getByText("Hello World")).toBeInTheDocument();
     expect(screen.getByText("utility")).toBeInTheDocument();
     expect(
-      screen.getByText("Minimal Soroban contract that returns a greeting.")
+      screen.getByText("Minimal Soroban contract that returns a greeting."),
     ).toBeInTheDocument();
   });
 
@@ -35,7 +35,7 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={false}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
 
     const article = screen.getByRole("article");
@@ -50,7 +50,7 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={true}
         onToggleFavorite={onToggle}
-      />
+      />,
     );
 
     const favButton = screen.getByRole("button", {
@@ -66,11 +66,11 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={false}
         onToggleFavorite={onToggle}
-      />
+      />,
     );
 
     expect(
-      screen.getByRole("button", { name: "Add to favorites" })
+      screen.getByRole("button", { name: "Add to favorites" }),
     ).toBeInTheDocument();
   });
 
@@ -80,11 +80,11 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={false}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
 
     const codeBlock = screen.getByText((content) =>
-      content.includes("#![no_std]")
+      content.includes("#![no_std]"),
     );
     expect(codeBlock).toBeInTheDocument();
   });
@@ -95,7 +95,7 @@ describe("TemplateCard", () => {
         template={sampleTemplate}
         isFavorite={false}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
 
     const link = screen.getByRole("link");

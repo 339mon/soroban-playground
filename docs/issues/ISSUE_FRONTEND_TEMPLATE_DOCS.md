@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library documentation integration
 title: "[FRONTEND] Implement Contract Template Library Documentation Integration"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires developers to navigate to separate README
 ## 💡 Proposed Solution
 
 Create comprehensive documentation integration implementation with:
+
 - Inline documentation previews
 - Full documentation view
 - Documentation search and navigation
@@ -24,6 +25,7 @@ Create comprehensive documentation integration implementation with:
 - Interactive code examples and snippets
 
 ### Key Features
+
 - Inline README preview in template cards
 - Full documentation view with navigation sidebar
 - Search across all template documentation
@@ -32,6 +34,7 @@ Create comprehensive documentation integration implementation with:
 - Documentation status indicators (complete, partial, missing)
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/TemplateDocumentation.tsx`, `DocumentationSearchBar.tsx`
 - Integration with existing contract README files and metadata
@@ -52,12 +55,12 @@ Create comprehensive documentation integration implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer productivity and reduces context switching |
+| Dimension        | Assessment                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                                        |
+| Effort estimate  | Medium (2-3 days)                                                                  |
+| Breaking change? | No                                                                                 |
+| MVP impact       | High - significantly improves developer productivity and reduces context switching |
 
 ## 🔗 Related Issues or References
 

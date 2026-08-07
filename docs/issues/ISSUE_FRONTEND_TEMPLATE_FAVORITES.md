@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites and recent templates
 title: "[FRONTEND] Implement Contract Template Library Favorites and Recent Templates"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites and recent templates implementation with:
+
 - Template favoriting and management
 - Recent templates tracking and display
 - Favorites organization and categorization
@@ -24,6 +25,7 @@ Create comprehensive favorites and recent templates implementation with:
 - Performance optimization for large template sets
 
 ### Key Features
+
 - One-click favoriting of templates
 - Favorites sidebar with quick access
 - Recent templates section showing last accessed templates
@@ -32,6 +34,7 @@ Create comprehensive favorites and recent templates implementation with:
 - Search within favorites and recent templates
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesManager.tsx`, `RecentTemplates.tsx`
 - Integration with existing contract metadata and README files
@@ -52,12 +55,12 @@ Create comprehensive favorites and recent templates implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer efficiency and template access |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                            |
+| Effort estimate  | Small (1-2 days)                                                       |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - significantly improves developer efficiency and template access |
 
 ## 🔗 Related Issues or References
 

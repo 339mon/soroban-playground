@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement oracle aggregation contract for reliable data feeds
 title: "[SMART CONTRACT] Implement Oracle Aggregation Contract for Reliable Data Feeds"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban applications currently rely on single-source oracles, creating single po
 ## 💡 Proposed Solution
 
 Create a comprehensive oracle aggregation implementation with:
+
 - Standard oracle interface compliance
 - Multiple aggregation strategies (median, weighted average, trimmed mean)
 - Comprehensive security features (source validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive oracle aggregation implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `updatePrice()`, `getPrice()`, `getAggregatedPrice()` functions for price management
 - `addSource()`, `removeSource()`, `setWeight()` for source management
 - Event emissions (`PriceUpdated`, `SourceAdded`, `SourceRemoved`)
 - Security features: outlier detection, circuit breakers, source validation
 
 ### Implementation Details
+
 - Location: `contracts/oracle-aggregation/`
 - Testing: `contracts/oracle-aggregation/src/test.rs` with 80+ test cases
 - Documentation: `contracts/oracle-aggregation/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive oracle aggregation implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building financial applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential infrastructure for synthetic assets, stablecoins, and other financial applications |
+| Dimension        | Assessment                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers building financial applications                                                          |
+| Effort estimate  | Medium (3-4 days)                                                                                       |
+| Breaking change? | No                                                                                                      |
+| MVP impact       | Critical - essential infrastructure for synthetic assets, stablecoins, and other financial applications |
 
 ## 🔗 Related Issues or References
 

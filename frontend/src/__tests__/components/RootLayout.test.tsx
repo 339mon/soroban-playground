@@ -24,7 +24,7 @@ describe("RootLayout (Dashboard Layout)", () => {
       // @ts-ignore - Next layout typing in tests
       <RootLayout>
         <div>child-content</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByText("child-content")).toBeInTheDocument();

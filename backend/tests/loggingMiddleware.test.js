@@ -44,13 +44,19 @@ function waitForFinish() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-function makeApp(middlewareOptions = {}, routeStatus = 200, routeBody = { ok: true }) {
+function makeApp(
+  middlewareOptions = {},
+  routeStatus = 200,
+  routeBody = { ok: true }
+) {
   const app = express();
   app.use(express.json());
   app.use(createLoggingMiddleware(middlewareOptions));
   app.get('/api/test', (_req, res) => res.status(routeStatus).json(routeBody));
   app.get('/healthz', (_req, res) => res.json({ status: 'up' }));
-  app.post('/api/data', (req, res) => res.status(201).json({ received: req.body }));
+  app.post('/api/data', (req, res) =>
+    res.status(201).json({ received: req.body })
+  );
   return app;
 }
 
@@ -65,8 +71,10 @@ describe('resolveLogLevel', () => {
   it('returns "warn" for 400', () => expect(resolveLogLevel(400)).toBe('warn'));
   it('returns "warn" for 404', () => expect(resolveLogLevel(404)).toBe('warn'));
   it('returns "warn" for 422', () => expect(resolveLogLevel(422)).toBe('warn'));
-  it('returns "error" for 500', () => expect(resolveLogLevel(500)).toBe('error'));
-  it('returns "error" for 503', () => expect(resolveLogLevel(503)).toBe('error'));
+  it('returns "error" for 500', () =>
+    expect(resolveLogLevel(500)).toBe('error'));
+  it('returns "error" for 503', () =>
+    expect(resolveLogLevel(503)).toBe('error'));
 });
 
 describe('redactHeaders', () => {
@@ -105,7 +113,10 @@ describe('redactHeaders', () => {
 
   it('uses a custom sensitive header set', () => {
     const custom = new Set(['x-custom-secret']);
-    const result = redactHeaders({ 'x-custom-secret': 'value', safe: 'ok' }, custom);
+    const result = redactHeaders(
+      { 'x-custom-secret': 'value', safe: 'ok' },
+      custom
+    );
     expect(result['x-custom-secret']).toBe('[REDACTED]');
     expect(result.safe).toBe('ok');
   });
@@ -123,7 +134,12 @@ describe('buildLogRecord', () => {
       headers: { 'user-agent': 'jest' },
       ip: '127.0.0.1',
     };
-    const record = buildLogRecord({ req, statusCode: 200, durationMs: 45, requestId: 'test-id' });
+    const record = buildLogRecord({
+      req,
+      statusCode: 200,
+      durationMs: 45,
+      requestId: 'test-id',
+    });
     expect(record).toMatchObject({
       requestId: 'test-id',
       method: 'GET',
@@ -137,7 +153,12 @@ describe('buildLogRecord', () => {
 
   it('falls back to null for missing userAgent and ip', () => {
     const req = { method: 'POST', originalUrl: '/deploy', headers: {} };
-    const record = buildLogRecord({ req, statusCode: 201, durationMs: 10, requestId: 'r1' });
+    const record = buildLogRecord({
+      req,
+      statusCode: 201,
+      durationMs: 10,
+      requestId: 'r1',
+    });
     expect(record.userAgent).toBeNull();
     expect(record.ip).toBeNull();
   });
@@ -164,7 +185,9 @@ describe('createLoggingMiddleware – log levels', () => {
     const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() };
     const app = express();
     app.use(createLoggingMiddleware({ logger }));
-    app.get('/api/test', (_req, res) => res.status(404).json({ error: 'not found' }));
+    app.get('/api/test', (_req, res) =>
+      res.status(404).json({ error: 'not found' })
+    );
 
     await request(app).get('/api/test').expect(404);
     await waitForFinish();
@@ -177,7 +200,9 @@ describe('createLoggingMiddleware – log levels', () => {
     const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() };
     const app = express();
     app.use(createLoggingMiddleware({ logger }));
-    app.get('/api/test', (_req, res) => res.status(500).json({ error: 'server error' }));
+    app.get('/api/test', (_req, res) =>
+      res.status(500).json({ error: 'server error' })
+    );
 
     await request(app).get('/api/test').expect(500);
     await waitForFinish();

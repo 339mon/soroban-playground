@@ -29,7 +29,10 @@ export function useCollaborativeEditor({
   const socketRef = useRef<WebSocket | null>(null);
 
   const userColor = useRef(
-    "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")
+    "#" +
+      Math.floor(Math.random() * 16777215)
+        .toString(16)
+        .padStart(6, "0"),
   ).current;
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export function useCollaborativeEditor({
             type: "collaboration-join",
             docId,
             user: { name: userName, color: userColor },
-          })
+          }),
         );
       };
 
@@ -56,11 +59,14 @@ export function useCollaborativeEditor({
           const data = JSON.parse(event.data);
           if (data.type === "collaboration-presence" && data.docId === docId) {
             setPeers(data.peers || []);
-          } else if (data.type === "collaboration-peer-cursor" && data.docId === docId) {
+          } else if (
+            data.type === "collaboration-peer-cursor" &&
+            data.docId === docId
+          ) {
             setPeers((prev) =>
               prev.map((p) =>
-                p.id === data.peerId ? { ...p, cursor: data.cursor } : p
-              )
+                p.id === data.peerId ? { ...p, cursor: data.cursor } : p,
+              ),
             );
           }
         } catch {
@@ -88,17 +94,20 @@ export function useCollaborativeEditor({
 
   const sendCursorUpdate = useCallback(
     (cursor: { line: number; column: number }) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN
+      ) {
         socketRef.current.send(
           JSON.stringify({
             type: "collaboration-cursor",
             docId,
             cursor,
-          })
+          }),
         );
       }
     },
-    [docId]
+    [docId],
   );
 
   return {

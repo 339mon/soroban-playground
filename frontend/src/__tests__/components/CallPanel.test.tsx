@@ -1,54 +1,56 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import CallPanel from '../../components/CallPanel';
-import { WalletProvider } from '../../components/providers/WalletProvider';
+import { fireEvent, render, screen } from "@testing-library/react";
+import CallPanel from "../../components/CallPanel";
+import { WalletProvider } from "../../components/providers/WalletProvider";
 
-describe('CallPanel', () => {
-  it('shows a validation message for invalid JSON arguments', () => {
+describe("CallPanel", () => {
+  it("shows a validation message for invalid JSON arguments", () => {
     const onInvoke = jest.fn();
 
     render(
       <CallPanel
         onInvoke={onInvoke}
         isInvoking={false}
-        contractId={'C'.repeat(56)}
-      />
+        contractId={"C".repeat(56)}
+      />,
     );
 
     fireEvent.change(screen.getByLabelText(/arguments \(json\)/i), {
-      target: { value: '{ invalid json' },
+      target: { value: "{ invalid json" },
     });
     fireEvent.change(screen.getByLabelText(/function name/i), {
-      target: { value: 'hello' },
+      target: { value: "hello" },
     });
-    fireEvent.click(screen.getByRole('button', { name: /invoke function/i }));
+    fireEvent.click(screen.getByRole("button", { name: /invoke function/i }));
 
-    expect(screen.getByText(/arguments must be valid json/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/arguments must be valid json/i),
+    ).toBeInTheDocument();
     expect(onInvoke).not.toHaveBeenCalled();
   });
 
-  it('invokes the contract with trimmed function names and parsed arguments', () => {
+  it("invokes the contract with trimmed function names and parsed arguments", () => {
     const onInvoke = jest.fn();
 
     render(
       <CallPanel
         onInvoke={onInvoke}
         isInvoking={false}
-        contractId={'C'.repeat(56)}
-      />
+        contractId={"C".repeat(56)}
+      />,
     );
 
     fireEvent.change(screen.getByLabelText(/function name/i), {
-      target: { value: '  hello  ' },
+      target: { value: "  hello  " },
     });
     fireEvent.change(screen.getByLabelText(/arguments \(json\)/i), {
       target: { value: '{"name":"Ayomide"}' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /invoke function/i }));
+    fireEvent.click(screen.getByRole("button", { name: /invoke function/i }));
 
-    expect(onInvoke).toHaveBeenCalledWith('hello', { name: 'Ayomide' });
+    expect(onInvoke).toHaveBeenCalledWith("hello", { name: "Ayomide" });
   });
 
-  it('renders ABI-driven fields for typed inputs and submits them', async () => {
+  it("renders ABI-driven fields for typed inputs and submits them", async () => {
     const onInvoke = jest.fn();
 
     render(
@@ -56,28 +58,28 @@ describe('CallPanel', () => {
         <CallPanel
           onInvoke={onInvoke}
           isInvoking={false}
-          contractId={'C'.repeat(56)}
+          contractId={"C".repeat(56)}
           abi={[
             {
-              name: 'set_profile',
+              name: "set_profile",
               inputs: [
-                { name: 'amount', type: 'u64' },
-                { name: 'active', type: 'bool' },
+                { name: "amount", type: "u64" },
+                { name: "active", type: "bool" },
               ],
             },
           ]}
         />
-      </WalletProvider>
+      </WalletProvider>,
     );
 
     fireEvent.change(screen.getByPlaceholderText(/1000000000000000000/i), {
-      target: { value: '100' },
+      target: { value: "100" },
     });
     fireEvent.click(screen.getByLabelText(/enable \/ true/i));
-    fireEvent.click(screen.getByRole('button', { name: /invoke function/i }));
+    fireEvent.click(screen.getByRole("button", { name: /invoke function/i }));
 
-    expect(onInvoke).toHaveBeenCalledWith('set_profile', {
-      amount: '100',
+    expect(onInvoke).toHaveBeenCalledWith("set_profile", {
+      amount: "100",
       active: true,
     });
   });

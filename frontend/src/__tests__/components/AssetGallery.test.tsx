@@ -66,27 +66,33 @@ describe("AssetGallery – rendering", () => {
 
   it("displays symbol and name for each asset", () => {
     render(<AssetGallery assets={assets} />);
-    expect(screen.getByTestId("asset-symbol-XLM:native")).toHaveTextContent("XLM");
-    expect(screen.getByTestId("asset-name-XLM:native")).toHaveTextContent("Stellar Lumens");
+    expect(screen.getByTestId("asset-symbol-XLM:native")).toHaveTextContent(
+      "XLM",
+    );
+    expect(screen.getByTestId("asset-name-XLM:native")).toHaveTextContent(
+      "Stellar Lumens",
+    );
   });
 
   it("displays balance when provided", () => {
     render(<AssetGallery assets={assets} />);
-    expect(screen.getByTestId("asset-balance-XLM:native")).toHaveTextContent("1,000");
+    expect(screen.getByTestId("asset-balance-XLM:native")).toHaveTextContent(
+      "1,000",
+    );
   });
 
   it("displays issuer when provided", () => {
     render(<AssetGallery assets={assets} />);
     expect(screen.getByTestId("asset-issuer-USDC:GA5Z")).toHaveTextContent(
-      "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
     );
   });
 
   it("displays description when provided", () => {
     render(<AssetGallery assets={assets} />);
-    expect(screen.getByTestId("asset-description-XLM:native")).toHaveTextContent(
-      "Native Stellar asset"
-    );
+    expect(
+      screen.getByTestId("asset-description-XLM:native"),
+    ).toHaveTextContent("Native Stellar asset");
   });
 
   it("shows logo image when imageUrl is provided", () => {
@@ -98,7 +104,9 @@ describe("AssetGallery – rendering", () => {
 
   it("shows placeholder initials when imageUrl is absent", () => {
     render(<AssetGallery assets={assets} />);
-    expect(screen.getByTestId("asset-placeholder-XLM:native")).toHaveTextContent("XL");
+    expect(
+      screen.getByTestId("asset-placeholder-XLM:native"),
+    ).toHaveTextContent("XL");
   });
 
   it("renders the listbox with the correct aria-label", () => {
@@ -109,7 +117,9 @@ describe("AssetGallery – rendering", () => {
 
   it("attaches className to the root section", () => {
     render(<AssetGallery assets={assets} className="gallery-class" />);
-    expect(screen.getByTestId("asset-gallery-root")).toHaveClass("gallery-class");
+    expect(screen.getByTestId("asset-gallery-root")).toHaveClass(
+      "gallery-class",
+    );
   });
 });
 
@@ -151,7 +161,7 @@ describe("AssetGallery – error state", () => {
 
   it("shows Retry button when onRetry is provided", () => {
     render(
-      <AssetGallery assets={[]} error="Network timeout" onRetry={jest.fn()} />
+      <AssetGallery assets={[]} error="Network timeout" onRetry={jest.fn()} />,
     );
     expect(screen.getByTestId("skeleton-retry-button")).toBeInTheDocument();
   });
@@ -159,7 +169,7 @@ describe("AssetGallery – error state", () => {
   it("calls onRetry when Retry is clicked", () => {
     const onRetry = jest.fn();
     render(
-      <AssetGallery assets={[]} error="Network timeout" onRetry={onRetry} />
+      <AssetGallery assets={[]} error="Network timeout" onRetry={onRetry} />,
     );
     fireEvent.click(screen.getByTestId("skeleton-retry-button"));
     expect(onRetry).toHaveBeenCalledTimes(1);
@@ -187,7 +197,7 @@ describe("AssetGallery – empty state", () => {
       <AssetGallery
         assets={[]}
         emptyState={<span>Your wallet is empty</span>}
-      />
+      />,
     );
     expect(screen.getByText("Your wallet is empty")).toBeInTheDocument();
   });
@@ -205,7 +215,9 @@ describe("AssetGallery – search", () => {
 
   it("hides the search bar when showSearch=false", () => {
     render(<AssetGallery assets={assets} showSearch={false} />);
-    expect(screen.queryByTestId("asset-gallery-search")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("asset-gallery-search"),
+    ).not.toBeInTheDocument();
   });
 
   it("filters assets by symbol", () => {
@@ -214,7 +226,9 @@ describe("AssetGallery – search", () => {
       target: { value: "USDC" },
     });
     expect(screen.getByTestId("asset-card-USDC:GA5Z")).toBeInTheDocument();
-    expect(screen.queryByTestId("asset-card-XLM:native")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("asset-card-XLM:native"),
+    ).not.toBeInTheDocument();
   });
 
   it("filters assets by name (case-insensitive)", () => {
@@ -223,7 +237,9 @@ describe("AssetGallery – search", () => {
       target: { value: "yield" },
     });
     expect(screen.getByTestId("asset-card-yXLM:GBUY")).toBeInTheDocument();
-    expect(screen.queryByTestId("asset-card-XLM:native")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("asset-card-XLM:native"),
+    ).not.toBeInTheDocument();
   });
 
   it("filters assets by issuer", () => {
@@ -232,7 +248,9 @@ describe("AssetGallery – search", () => {
       target: { value: "GBUY" },
     });
     expect(screen.getByTestId("asset-card-yXLM:GBUY")).toBeInTheDocument();
-    expect(screen.queryByTestId("asset-card-XLM:native")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("asset-card-XLM:native"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows default no-results state when filter matches nothing", () => {
@@ -241,7 +259,9 @@ describe("AssetGallery – search", () => {
       target: { value: "NONEXISTENT" },
     });
     expect(screen.getByTestId("asset-gallery-no-results")).toBeInTheDocument();
-    expect(screen.getByText(/no assets match your search/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no assets match your search/i),
+    ).toBeInTheDocument();
   });
 
   it("shows custom noResultsState when filter matches nothing", () => {
@@ -249,7 +269,7 @@ describe("AssetGallery – search", () => {
       <AssetGallery
         assets={assets}
         noResultsState={<span>Try a different search</span>}
-      />
+      />,
     );
     fireEvent.change(screen.getByTestId("asset-gallery-search"), {
       target: { value: "XXXXXX" },
@@ -278,11 +298,11 @@ describe("AssetGallery – selection", () => {
     render(<AssetGallery assets={assets} selectedId="XLM:native" />);
     expect(screen.getByTestId("asset-card-XLM:native")).toHaveAttribute(
       "aria-selected",
-      "true"
+      "true",
     );
     expect(screen.getByTestId("asset-card-USDC:GA5Z")).toHaveAttribute(
       "aria-selected",
-      "false"
+      "false",
     );
   });
 

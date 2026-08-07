@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive contract template library filtering
 title: "[FRONTEND] Implement Comprehensive Contract Template Library Filtering"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive template filtering implementation with:
+
 - Multi-criteria filtering (category, functionality, dependencies, etc.)
 - Advanced filter combinations and saved filter presets
 - Filter suggestions and auto-complete
@@ -24,6 +25,7 @@ Create comprehensive template filtering implementation with:
 - Visual filter indicators and reset functionality
 
 ### Key Features
+
 - Filter by category (financial, governance, utility, etc.)
 - Filter by functionality (token, voting, oracle, etc.)
 - Filter by technical requirements (Rust version, dependencies, etc.)
@@ -32,6 +34,7 @@ Create comprehensive template filtering implementation with:
 - Saved filter presets for common use cases
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/TemplateFilter.tsx`, `FilterPresetManager.tsx`
 - Integration with existing contract metadata and README files
@@ -52,12 +55,12 @@ Create comprehensive template filtering implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer productivity and template discovery |
+| Dimension        | Assessment                                                                  |
+| ---------------- | --------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                                 |
+| Effort estimate  | Medium (2-3 days)                                                           |
+| Breaking change? | No                                                                          |
+| MVP impact       | High - significantly improves developer productivity and template discovery |
 
 ## 🔗 Related Issues or References
 

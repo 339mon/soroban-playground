@@ -11,7 +11,9 @@ const VALID_QUEUE_NAMES = new Set(['indexing', 'email', 'cron', 'compilation']);
 const VALID_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateRequiredFields(body, fields) {
-  const missing = fields.filter((f) => !body[f] || (typeof body[f] === 'string' && !body[f].trim()));
+  const missing = fields.filter(
+    (f) => !body[f] || (typeof body[f] === 'string' && !body[f].trim())
+  );
   return missing.length > 0 ? missing : null;
 }
 
@@ -47,18 +49,30 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { contractId } = req.body || {};
     if (!contractId || typeof contractId !== 'string' || !contractId.trim()) {
-      return next(createHttpError(400, 'contractId is required and must be a non-empty string', { field: 'contractId' }));
+      return next(
+        createHttpError(
+          400,
+          'contractId is required and must be a non-empty string',
+          { field: 'contractId' }
+        )
+      );
     }
 
     try {
-      const job = await addJob('indexing', 'contract-indexing', { contractId: contractId.trim() });
+      const job = await addJob('indexing', 'contract-indexing', {
+        contractId: contractId.trim(),
+      });
       return res.status(202).json({
         success: true,
         message: 'Indexing job enqueued',
         jobId: job.id,
       });
     } catch (err) {
-      return next(createHttpError(503, 'Failed to enqueue indexing job', { cause: err.message }));
+      return next(
+        createHttpError(503, 'Failed to enqueue indexing job', {
+          cause: err.message,
+        })
+      );
     }
   })
 );
@@ -94,22 +108,38 @@ router.post(
 
     const missing = validateRequiredFields(req.body || {}, ['to']);
     if (missing) {
-      return next(createHttpError(400, `${missing.join(', ')} is required`, { fields: missing }));
+      return next(
+        createHttpError(400, `${missing.join(', ')} is required`, {
+          fields: missing,
+        })
+      );
     }
 
     if (typeof to === 'string' && !VALID_EMAIL_REGEX.test(to.trim())) {
-      return next(createHttpError(400, 'to must be a valid email address', { field: 'to' }));
+      return next(
+        createHttpError(400, 'to must be a valid email address', {
+          field: 'to',
+        })
+      );
     }
 
     try {
-      const job = await addJob('email', 'send-email', { to: to.trim(), subject, body });
+      const job = await addJob('email', 'send-email', {
+        to: to.trim(),
+        subject,
+        body,
+      });
       return res.status(202).json({
         success: true,
         message: 'Email job enqueued',
         jobId: job.id,
       });
     } catch (err) {
-      return next(createHttpError(503, 'Failed to enqueue email job', { cause: err.message }));
+      return next(
+        createHttpError(503, 'Failed to enqueue email job', {
+          cause: err.message,
+        })
+      );
     }
   })
 );
@@ -137,8 +167,15 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { taskName } = req.body || {};
 
-    if (taskName !== undefined && (typeof taskName !== 'string' || !taskName.trim())) {
-      return next(createHttpError(400, 'taskName must be a non-empty string', { field: 'taskName' }));
+    if (
+      taskName !== undefined &&
+      (typeof taskName !== 'string' || !taskName.trim())
+    ) {
+      return next(
+        createHttpError(400, 'taskName must be a non-empty string', {
+          field: 'taskName',
+        })
+      );
     }
 
     try {
@@ -151,7 +188,11 @@ router.post(
         jobId: job.id,
       });
     } catch (err) {
-      return next(createHttpError(503, 'Failed to enqueue cron job', { cause: err.message }));
+      return next(
+        createHttpError(503, 'Failed to enqueue cron job', {
+          cause: err.message,
+        })
+      );
     }
   })
 );
@@ -185,21 +226,39 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { parent, children } = req.body || {};
     if (!parent || typeof parent !== 'object') {
-      return next(createHttpError(400, 'parent object is required', { field: 'parent' }));
+      return next(
+        createHttpError(400, 'parent object is required', { field: 'parent' })
+      );
     }
     if (!children || !Array.isArray(children)) {
-      return next(createHttpError(400, 'children array is required', { field: 'children' }));
+      return next(
+        createHttpError(400, 'children array is required', {
+          field: 'children',
+        })
+      );
     }
     if (children.length === 0) {
-      return next(createHttpError(400, 'children array must not be empty', { field: 'children' }));
+      return next(
+        createHttpError(400, 'children array must not be empty', {
+          field: 'children',
+        })
+      );
     }
 
     for (let i = 0; i < children.length; i++) {
       if (!children[i] || typeof children[i] !== 'object') {
-        return next(createHttpError(400, `children[${i}] must be an object`, { field: `children[${i}]` }));
+        return next(
+          createHttpError(400, `children[${i}] must be an object`, {
+            field: `children[${i}]`,
+          })
+        );
       }
       if (!children[i].name) {
-        return next(createHttpError(400, `children[${i}].name is required`, { field: `children[${i}].name` }));
+        return next(
+          createHttpError(400, `children[${i}].name is required`, {
+            field: `children[${i}].name`,
+          })
+        );
       }
     }
 
@@ -227,7 +286,9 @@ router.post(
           : [],
       });
     } catch (err) {
-      return next(createHttpError(503, 'Failed to enqueue flow', { cause: err.message }));
+      return next(
+        createHttpError(503, 'Failed to enqueue flow', { cause: err.message })
+      );
     }
   })
 );
@@ -258,15 +319,21 @@ router.get(
 
     if (!queueName || !VALID_QUEUE_NAMES.has(queueName)) {
       return next(
-        createHttpError(400, `Invalid queue name. Must be one of: ${[...VALID_QUEUE_NAMES].join(', ')}`, {
-          field: 'queueName',
-          validValues: [...VALID_QUEUE_NAMES],
-        })
+        createHttpError(
+          400,
+          `Invalid queue name. Must be one of: ${[...VALID_QUEUE_NAMES].join(', ')}`,
+          {
+            field: 'queueName',
+            validValues: [...VALID_QUEUE_NAMES],
+          }
+        )
       );
     }
 
     if (!jobId || typeof jobId !== 'string') {
-      return next(createHttpError(400, 'jobId is required', { field: 'jobId' }));
+      return next(
+        createHttpError(400, 'jobId is required', { field: 'jobId' })
+      );
     }
 
     const queue = queues[queueName];
@@ -278,7 +345,10 @@ router.get(
       const job = await queue.getJob(jobId);
       if (!job) {
         return next(
-          createHttpError(404, `Job "${jobId}" not found in queue "${queueName}"`)
+          createHttpError(
+            404,
+            `Job "${jobId}" not found in queue "${queueName}"`
+          )
         );
       }
 
@@ -294,7 +364,11 @@ router.get(
         returnValue: job.returnValue,
       });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to retrieve job status', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to retrieve job status', {
+          cause: err.message,
+        })
+      );
     }
   })
 );

@@ -78,26 +78,26 @@ is_confirmed(tx_id, owner)
 
 ## Errors
 
-| Variant | Code | Description |
-|--------|------|-------------|
-| `AlreadyInitialized` | 1 | `initialize` called twice |
-| `NotInitialized` | 2 | method called before `initialize` |
-| `Unauthorized` | 3 | caller is not an owner |
-| `OwnerRequired` | 4 | `initialize` called with empty owners |
-| `OwnerExists` | 5 | `add_owner` with an existing owner |
-| `OwnerNotFound` | 6 | `remove_owner` on a non-owner |
-| `DuplicateOwner` | 7 | `initialize` owners list contains duplicates |
-| `SelfRemoval` | 8 | owner tries to remove themselves |
-| `InvalidThreshold` | 9 | threshold is 0 or greater than owner count |
-| `InvalidDelay` | 10 | delay window is inverted or out of bounds |
-| `InvalidValue` | 11 | `submit_transaction` with negative value |
-| `EmptyData` | 12 | `submit_transaction` with empty data |
-| `DataTooLong` | 13 | `submit_transaction` data exceeds 256 bytes |
-| `TransactionNotFound` | 14 | operation on unknown transaction id |
-| `AlreadyConfirmed` | 15 | duplicate `confirm_transaction` |
-| `NotConfirmed` | 16 | `revoke_confirmation` on a non-confirmer |
-| `WrongStatus` | 17 | operation invalid for the current transaction status |
-| `DelayNotElapsed` | 18 | `execute_transaction` before the required delay |
+| Variant               | Code | Description                                          |
+| --------------------- | ---- | ---------------------------------------------------- |
+| `AlreadyInitialized`  | 1    | `initialize` called twice                            |
+| `NotInitialized`      | 2    | method called before `initialize`                    |
+| `Unauthorized`        | 3    | caller is not an owner                               |
+| `OwnerRequired`       | 4    | `initialize` called with empty owners                |
+| `OwnerExists`         | 5    | `add_owner` with an existing owner                   |
+| `OwnerNotFound`       | 6    | `remove_owner` on a non-owner                        |
+| `DuplicateOwner`      | 7    | `initialize` owners list contains duplicates         |
+| `SelfRemoval`         | 8    | owner tries to remove themselves                     |
+| `InvalidThreshold`    | 9    | threshold is 0 or greater than owner count           |
+| `InvalidDelay`        | 10   | delay window is inverted or out of bounds            |
+| `InvalidValue`        | 11   | `submit_transaction` with negative value             |
+| `EmptyData`           | 12   | `submit_transaction` with empty data                 |
+| `DataTooLong`         | 13   | `submit_transaction` data exceeds 256 bytes          |
+| `TransactionNotFound` | 14   | operation on unknown transaction id                  |
+| `AlreadyConfirmed`    | 15   | duplicate `confirm_transaction`                      |
+| `NotConfirmed`        | 16   | `revoke_confirmation` on a non-confirmer             |
+| `WrongStatus`         | 17   | operation invalid for the current transaction status |
+| `DelayNotElapsed`     | 18   | `execute_transaction` before the required delay      |
 
 ## Example
 

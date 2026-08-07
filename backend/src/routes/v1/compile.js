@@ -180,15 +180,25 @@ router.post(
     try {
       const { queues } = await import('../../services/queueService.js');
       if (queues && queues.compilation) {
-        await queues.compilation.add('compile-wasm', {
-          source: codeToCompile,
-          contractName: contractName || 'soroban_contract',
-        }, { jobId });
+        await queues.compilation.add(
+          'compile-wasm',
+          {
+            source: codeToCompile,
+            contractName: contractName || 'soroban_contract',
+          },
+          { jobId }
+        );
       } else {
-        inMemoryJobs.set(jobId, { status: 'queued', createdAt: new Date().toISOString() });
+        inMemoryJobs.set(jobId, {
+          status: 'queued',
+          createdAt: new Date().toISOString(),
+        });
       }
     } catch {
-      inMemoryJobs.set(jobId, { status: 'queued', createdAt: new Date().toISOString() });
+      inMemoryJobs.set(jobId, {
+        status: 'queued',
+        createdAt: new Date().toISOString(),
+      });
     }
 
     return res.status(202).json({

@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Deplo
 ---
 
 ## References
-- Issue reference: Fixes #955
 
+- Issue reference: Fixes #955

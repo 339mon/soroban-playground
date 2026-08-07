@@ -26,7 +26,10 @@ function parseTagsSafely(rawTags, fallback = []) {
   }
 }
 
-function validateProjectPayload({ title, description, category, status, funding_goal }, isUpdate = false) {
+function validateProjectPayload(
+  { title, description, category, status, funding_goal },
+  isUpdate = false
+) {
   const errors = [];
 
   if (!isUpdate) {
@@ -49,11 +52,17 @@ function validateProjectPayload({ title, description, category, status, funding_
     if (typeof description !== 'string' || !description.trim()) {
       errors.push('description must be a non-empty string');
     } else if (description.length > MAX_DESCRIPTION_LENGTH) {
-      errors.push(`description must be at most ${MAX_DESCRIPTION_LENGTH} characters`);
+      errors.push(
+        `description must be at most ${MAX_DESCRIPTION_LENGTH} characters`
+      );
     }
   }
 
-  if (status !== undefined && VALID_STATUSES.length > 0 && !VALID_STATUSES.includes(status)) {
+  if (
+    status !== undefined &&
+    VALID_STATUSES.length > 0 &&
+    !VALID_STATUSES.includes(status)
+  ) {
     errors.push(`status must be one of: ${VALID_STATUSES.join(', ')}`);
   }
 
@@ -82,7 +91,10 @@ router.get(
       const db = getDatabase();
 
       const limitRaw = parseInt(req.query.limit, 10);
-      const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 100) : 50;
+      const limit =
+        Number.isFinite(limitRaw) && limitRaw > 0
+          ? Math.min(limitRaw, 100)
+          : 50;
       const filter = {};
       if (req.query.category) filter.category = req.query.category;
       if (req.query.status) filter.status = req.query.status;
@@ -102,7 +114,9 @@ router.get(
 
       return res.json({ success: true, projects: formatted });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to list projects', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to list projects', { cause: err.message })
+      );
     }
   })
 );
@@ -120,7 +134,9 @@ router.get(
       const { id } = req.params;
 
       if (!id || isNaN(Number(id))) {
-        return next(createHttpError(400, 'Invalid project id', { field: 'id' }));
+        return next(
+          createHttpError(400, 'Invalid project id', { field: 'id' })
+        );
       }
 
       const project = await db.get('SELECT * FROM projects WHERE id = ?', [id]);
@@ -137,7 +153,11 @@ router.get(
       project.tags = parseTagsSafely(project.tags);
       return res.json({ success: true, project });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to retrieve project', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to retrieve project', {
+          cause: err.message,
+        })
+      );
     }
   })
 );
@@ -158,11 +178,15 @@ router.post(
       false
     );
     if (validationErrors) {
-      return next(createHttpError(400, 'Validation failed', { errors: validationErrors }));
+      return next(
+        createHttpError(400, 'Validation failed', { errors: validationErrors })
+      );
     }
 
     if (tags !== undefined && !Array.isArray(tags)) {
-      return next(createHttpError(400, 'tags must be an array', { field: 'tags' }));
+      return next(
+        createHttpError(400, 'tags must be an array', { field: 'tags' })
+      );
     }
 
     try {
@@ -200,7 +224,9 @@ router.post(
 
       return res.status(201).json({ success: true, project: newProject });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to create project', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to create project', { cause: err.message })
+      );
     }
   })
 );
@@ -227,11 +253,15 @@ router.put(
       true
     );
     if (validationErrors) {
-      return next(createHttpError(400, 'Validation failed', { errors: validationErrors }));
+      return next(
+        createHttpError(400, 'Validation failed', { errors: validationErrors })
+      );
     }
 
     if (tags !== undefined && !Array.isArray(tags)) {
-      return next(createHttpError(400, 'tags must be an array', { field: 'tags' }));
+      return next(
+        createHttpError(400, 'tags must be an array', { field: 'tags' })
+      );
     }
 
     try {
@@ -287,7 +317,9 @@ router.put(
 
       return res.json({ success: true, project: updatedProject });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to update project', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to update project', { cause: err.message })
+      );
     }
   })
 );
@@ -322,9 +354,14 @@ router.delete(
 
       await db.run('DELETE FROM projects WHERE id = ?', [id]);
 
-      return res.json({ success: true, message: 'Project deleted successfully' });
+      return res.json({
+        success: true,
+        message: 'Project deleted successfully',
+      });
     } catch (err) {
-      return next(createHttpError(500, 'Failed to delete project', { cause: err.message }));
+      return next(
+        createHttpError(500, 'Failed to delete project', { cause: err.message })
+      );
     }
   })
 );

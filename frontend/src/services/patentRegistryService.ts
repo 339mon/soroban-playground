@@ -118,7 +118,7 @@ class PatentRegistryService {
       title: string;
       metadata_uri: string;
       metadata_hash: string;
-    }
+    },
   ) {
     return request<Patent>(`/patents/${patentId}`, {
       method: "PATCH",
@@ -147,7 +147,7 @@ class PatentRegistryService {
       terms: string;
       payment_amount: number;
       payment_currency: string;
-    }
+    },
   ) {
     return request<LicenseOffer>(`/patents/${patentId}/licenses`, {
       method: "POST",
@@ -168,18 +168,15 @@ class PatentRegistryService {
     actor: string,
     payload: {
       payment_reference: string;
-    }
+    },
   ) {
-    return request<LicenseOffer>(
-      `/patents/${patentId}/licenses/${licenseId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "x-actor-address": actor,
-        },
-        body: JSON.stringify(payload),
-      }
-    );
+    return request<LicenseOffer>(`/patents/${patentId}/licenses/${licenseId}`, {
+      method: "PATCH",
+      headers: {
+        "x-actor-address": actor,
+      },
+      body: JSON.stringify(payload),
+    });
   }
 
   listLicenses() {

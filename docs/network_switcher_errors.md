@@ -5,5 +5,5 @@ Architecture and implementation specification for Robust Error Handling in Netwo
 ---
 
 ## References
-- Issue reference: Fixes #945
 
+- Issue reference: Fixes #945

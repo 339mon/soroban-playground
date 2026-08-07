@@ -23,7 +23,9 @@ export function ConsoleAndEventsDrawer({
   onIngestionPauseChange,
   contractId,
 }: ConsoleAndEventsDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"console" | "events" | "terminal">("console");
+  const [activeTab, setActiveTab] = useState<"console" | "events" | "terminal">(
+    "console",
+  );
 
   return (
     <div className="flex flex-col rounded-xl border border-gray-800 bg-gray-950 overflow-hidden shadow-2xl">
@@ -88,4 +90,3 @@ export function ConsoleAndEventsDrawer({
     </div>
   );
 }
-

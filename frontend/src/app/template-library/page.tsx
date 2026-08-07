@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Star, StarOff, FileCode2, Tag, Layers, BookOpen } from "lucide-react";
 import FavoritesSearchBar from "@/components/FavoritesSearchBar";
-import FavoritesFilter, { FavoritesFilterState } from "@/components/FavoritesFilter";
+import FavoritesFilter, {
+  FavoritesFilterState,
+} from "@/components/FavoritesFilter";
 
 const FAVORITES_KEY = "template_favorites";
 
@@ -39,7 +41,8 @@ const TEMPLATES: Template[] = [
   {
     id: "nft-mint",
     name: "NFT Mint",
-    description: "Non-fungible token contract with minting and ownership transfer.",
+    description:
+      "Non-fungible token contract with minting and ownership transfer.",
     category: "Tokens",
     tags: ["nft", "token"],
     difficulty: "Intermediate",
@@ -115,7 +118,10 @@ export default function TemplateLibraryPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<FavoritesFilterState>({ categories: [], tags: [] });
+  const [filters, setFilters] = useState<FavoritesFilterState>({
+    categories: [],
+    tags: [],
+  });
   const [previewId, setPreviewId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -133,21 +139,23 @@ export default function TemplateLibraryPage() {
 
   const allCategories = useMemo(
     () => [...new Set(TEMPLATES.map((t) => t.category))].sort(),
-    []
+    [],
   );
 
   const allTags = useMemo(
     () => [...new Set(TEMPLATES.flatMap((t) => t.tags))].sort(),
-    []
+    [],
   );
 
   const allSuggestions = useMemo(
     () => [...new Set(TEMPLATES.map((t) => t.name))].sort(),
-    []
+    [],
   );
 
   const filtered = useMemo(() => {
-    let list = showFavoritesOnly ? TEMPLATES.filter((t) => favorites.has(t.id)) : TEMPLATES;
+    let list = showFavoritesOnly
+      ? TEMPLATES.filter((t) => favorites.has(t.id))
+      : TEMPLATES;
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -156,7 +164,7 @@ export default function TemplateLibraryPage() {
           t.name.toLowerCase().includes(q) ||
           t.description.toLowerCase().includes(q) ||
           t.category.toLowerCase().includes(q) ||
-          t.tags.some((tag) => tag.toLowerCase().includes(q))
+          t.tags.some((tag) => tag.toLowerCase().includes(q)),
       );
     }
 
@@ -165,7 +173,9 @@ export default function TemplateLibraryPage() {
     }
 
     if (filters.tags.length > 0) {
-      list = list.filter((t) => filters.tags.some((tag) => t.tags.includes(tag)));
+      list = list.filter((t) =>
+        filters.tags.some((tag) => t.tags.includes(tag)),
+      );
     }
 
     return list;
@@ -180,7 +190,9 @@ export default function TemplateLibraryPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
             <BookOpen className="w-5 h-5 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">Template Library</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              Template Library
+            </h1>
           </div>
           <p className="text-sm text-gray-500">
             Browse, favorite, and load Soroban contract templates into the IDE.
@@ -237,7 +249,9 @@ export default function TemplateLibraryPage() {
             <div className="text-center py-16 text-gray-400">
               <FileCode2 className="w-10 h-10 mx-auto mb-3 opacity-50" />
               <p className="font-medium">No templates found</p>
-              <p className="text-sm mt-1">Try a different search or clear filters.</p>
+              <p className="text-sm mt-1">
+                Try a different search or clear filters.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -257,7 +271,9 @@ export default function TemplateLibraryPage() {
                       </div>
                       <button
                         onClick={() => toggleFavorite(template.id)}
-                        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+                        aria-label={
+                          isFav ? "Remove from favorites" : "Add to favorites"
+                        }
                         className="ml-2 shrink-0 text-gray-400 hover:text-yellow-500 transition-colors"
                       >
                         {isFav ? (
@@ -298,7 +314,11 @@ export default function TemplateLibraryPage() {
 
                     <div className="flex gap-2 mt-auto">
                       <button
-                        onClick={() => setPreviewId(previewId === template.id ? null : template.id)}
+                        onClick={() =>
+                          setPreviewId(
+                            previewId === template.id ? null : template.id,
+                          )
+                        }
                         className="flex-1 text-xs px-3 py-1.5 border border-gray-200 text-gray-700 rounded hover:bg-gray-50 transition-colors"
                       >
                         {previewId === template.id ? "Hide" : "Preview"}

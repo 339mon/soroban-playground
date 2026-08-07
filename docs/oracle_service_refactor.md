@@ -5,5 +5,5 @@ Architecture and implementation specification for Optimize and Clean Up Oracle S
 ---
 
 ## References
-- Issue reference: Fixes #953
 
+- Issue reference: Fixes #953

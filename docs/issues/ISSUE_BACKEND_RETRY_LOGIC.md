@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement intelligent retry logic and fallback mechanisms
 title: "[BACKEND] Implement Intelligent Retry Logic and Fallback Mechanisms"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks intelligent retry logic, making it vulnerable to trans
 ## 💡 Proposed Solution
 
 Create comprehensive retry implementation with:
+
 - Exponential backoff retry logic
 - Configurable retry policies per endpoint
 - Fallback mechanisms for critical operations
@@ -24,6 +25,7 @@ Create comprehensive retry implementation with:
 - Integration with existing middleware
 
 ### Key Features
+
 - Exponential backoff retry logic for all external dependencies
 - Configurable retry policies (max retries, timeout, jitter)
 - Fallback mechanisms for failed operations (caching, defaults, etc.)
@@ -31,6 +33,7 @@ Create comprehensive retry implementation with:
 - Integration with circuit breaker pattern
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/retry.js`
 - Service: `backend/src/services/retryService.js`
 - Configuration: `backend/src/config/retry.config.js`
@@ -52,12 +55,12 @@ Create comprehensive retry implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - improves system reliability and user experience during transient failures |
+| Dimension        | Assessment                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground                     |
+| Effort estimate  | Medium (2-3 days)                                                                    |
+| Breaking change? | No                                                                                   |
+| MVP impact       | Critical - improves system reliability and user experience during transient failures |
 
 ## 🔗 Related Issues or References
 

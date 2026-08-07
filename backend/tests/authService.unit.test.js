@@ -8,7 +8,7 @@ jest.mock('jsonwebtoken', () => ({
   default: {
     sign: jest.fn(),
     verify: jest.fn(),
-  }
+  },
 }));
 
 jest.mock('uuid', () => ({
@@ -21,7 +21,7 @@ jest.mock('../src/services/redisService.js', () => ({
   default: {
     get: jest.fn(),
     set: jest.fn(),
-  }
+  },
 }));
 
 const mockDb = {
@@ -38,7 +38,7 @@ jest.mock('../src/services/apiKeyService.js', () => ({
   __esModule: true,
   default: {
     validateKey: jest.fn(),
-  }
+  },
 }));
 
 import jwt from 'jsonwebtoken';
@@ -54,9 +54,10 @@ describe('AuthService', () => {
 
   describe('generateTokens', () => {
     it('should generate access and refresh tokens correctly', () => {
-      uuidv4.mockReturnValueOnce('access-jti')
-            .mockReturnValueOnce('refresh-jti')
-            .mockReturnValueOnce('family-id');
+      uuidv4
+        .mockReturnValueOnce('access-jti')
+        .mockReturnValueOnce('refresh-jti')
+        .mockReturnValueOnce('family-id');
 
       jwt.sign
         .mockReturnValueOnce('access-token')
@@ -82,7 +83,12 @@ describe('AuthService', () => {
       );
       expect(jwt.sign).toHaveBeenNthCalledWith(
         2,
-        { sub: user.id, familyId: 'family-id', jti: 'refresh-jti', type: 'refresh' },
+        {
+          sub: user.id,
+          familyId: 'family-id',
+          jti: 'refresh-jti',
+          type: 'refresh',
+        },
         expect.any(String),
         { expiresIn: 7 * 24 * 60 * 60 }
       );
@@ -95,7 +101,9 @@ describe('AuthService', () => {
       jwt.verify.mockReturnValue(decoded);
       redisService.get.mockResolvedValue('1');
 
-      await expect(authService.verifyAccessToken('token')).rejects.toThrow('Token is blacklisted');
+      await expect(authService.verifyAccessToken('token')).rejects.toThrow(
+        'Token is blacklisted'
+      );
       expect(jwt.verify).toHaveBeenCalledWith('token', expect.any(String));
       expect(redisService.get).toHaveBeenCalledWith('bl_access:some-jti');
     });
@@ -115,8 +123,12 @@ describe('AuthService', () => {
       const now = Math.floor(Date.now() / 1000);
       const exp = now + 3600; // 1 hour later
       await authService.blacklistAccessToken('some-jti', exp);
-      expect(redisService.set).toHaveBeenCalledWith('bl_access:some-jti', '1', expect.any(Number));
-      
+      expect(redisService.set).toHaveBeenCalledWith(
+        'bl_access:some-jti',
+        '1',
+        expect.any(Number)
+      );
+
       const ttl = redisService.set.mock.calls[0][2];
       expect(ttl).toBeGreaterThan(0);
       expect(ttl).toBeLessThanOrEqual(3600);
@@ -132,52 +144,93 @@ describe('AuthService', () => {
 
   describe('rotateRefreshToken', () => {
     beforeEach(() => {
-      uuidv4.mockReturnValueOnce('new-access-jti').mockReturnValueOnce('new-refresh-jti');
-      jwt.sign.mockReturnValueOnce('new-access').mockReturnValueOnce('new-refresh');
+      uuidv4
+        .mockReturnValueOnce('new-access-jti')
+        .mockReturnValueOnce('new-refresh-jti');
+      jwt.sign
+        .mockReturnValueOnce('new-access')
+        .mockReturnValueOnce('new-refresh');
     });
 
     it('should throw if invalid token signature', async () => {
-      jwt.verify.mockImplementation(() => { throw new Error('invalid signature'); });
-      await expect(authService.rotateRefreshToken('token')).rejects.toThrow('Invalid refresh token');
+      jwt.verify.mockImplementation(() => {
+        throw new Error('invalid signature');
+      });
+      await expect(authService.rotateRefreshToken('token')).rejects.toThrow(
+        'Invalid refresh token'
+      );
     });
 
     it('should throw if wrong token type', async () => {
       jwt.verify.mockReturnValue({ type: 'access' });
-      await expect(authService.rotateRefreshToken('token')).rejects.toThrow('Invalid token type');
+      await expect(authService.rotateRefreshToken('token')).rejects.toThrow(
+        'Invalid token type'
+      );
     });
 
     it('should detect reuse, invalidate family and throw', async () => {
-      const decoded = { type: 'refresh', jti: 'r-jti', familyId: 'f-id', exp: Math.floor(Date.now()/1000) + 1000 };
+      const decoded = {
+        type: 'refresh',
+        jti: 'r-jti',
+        familyId: 'f-id',
+        exp: Math.floor(Date.now() / 1000) + 1000,
+      };
       jwt.verify.mockReturnValue(decoded);
-      
+
       redisService.get.mockImplementation(async (key) => {
         if (key === 'used_refresh:r-jti') return '1';
         return null;
       });
 
-      await expect(authService.rotateRefreshToken('token')).rejects.toThrow('Refresh token reuse detected. Family invalidated.');
-      expect(redisService.set).toHaveBeenCalledWith('bl_family:f-id', '1', 7 * 24 * 60 * 60);
+      await expect(authService.rotateRefreshToken('token')).rejects.toThrow(
+        'Refresh token reuse detected. Family invalidated.'
+      );
+      expect(redisService.set).toHaveBeenCalledWith(
+        'bl_family:f-id',
+        '1',
+        7 * 24 * 60 * 60
+      );
     });
 
     it('should throw if family is blacklisted', async () => {
-      const decoded = { type: 'refresh', jti: 'r-jti', familyId: 'f-id', exp: Math.floor(Date.now()/1000) + 1000 };
+      const decoded = {
+        type: 'refresh',
+        jti: 'r-jti',
+        familyId: 'f-id',
+        exp: Math.floor(Date.now() / 1000) + 1000,
+      };
       jwt.verify.mockReturnValue(decoded);
       redisService.get.mockImplementation(async (key) => {
         if (key === 'bl_family:f-id') return '1';
         return null;
       });
 
-      await expect(authService.rotateRefreshToken('token')).rejects.toThrow('Token family is blacklisted due to previous anomaly.');
+      await expect(authService.rotateRefreshToken('token')).rejects.toThrow(
+        'Token family is blacklisted due to previous anomaly.'
+      );
     });
 
     it('should rotate successfully', async () => {
-      const decoded = { sub: 1, type: 'refresh', jti: 'r-jti', familyId: 'f-id', exp: Math.floor(Date.now()/1000) + 1000 };
+      const decoded = {
+        sub: 1,
+        type: 'refresh',
+        jti: 'r-jti',
+        familyId: 'f-id',
+        exp: Math.floor(Date.now() / 1000) + 1000,
+      };
       jwt.verify.mockReturnValue(decoded);
       redisService.get.mockResolvedValue(null);
 
       const result = await authService.rotateRefreshToken('token');
-      expect(result).toEqual({ accessToken: 'new-access', refreshToken: 'new-refresh' });
-      expect(redisService.set).toHaveBeenCalledWith('used_refresh:r-jti', '1', expect.any(Number));
+      expect(result).toEqual({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+      });
+      expect(redisService.set).toHaveBeenCalledWith(
+        'used_refresh:r-jti',
+        '1',
+        expect.any(Number)
+      );
       expect(jwt.sign).toHaveBeenCalledTimes(2);
     });
   });
@@ -188,11 +241,19 @@ describe('AuthService', () => {
     });
 
     it('should return user object if found', async () => {
-      const user = { id: 1, username: 'test', email: 'test@e.com', role: 'admin' };
+      const user = {
+        id: 1,
+        username: 'test',
+        email: 'test@e.com',
+        role: 'admin',
+      };
       mockDb.get.mockResolvedValue(user);
       const result = await authService.getUserById(1);
       expect(result).toEqual(user);
-      expect(mockDb.get).toHaveBeenCalledWith('SELECT id, username, email, role FROM users WHERE id = ?', [1]);
+      expect(mockDb.get).toHaveBeenCalledWith(
+        'SELECT id, username, email, role FROM users WHERE id = ?',
+        [1]
+      );
     });
   });
 
@@ -218,16 +279,26 @@ describe('AuthService', () => {
     it('should authenticate via API Key Bearer token', async () => {
       const req = { headers: { authorization: 'Bearer my-token' } };
       apiKeyService.validateKey.mockResolvedValue({ userId: 10 });
-      jest.spyOn(authService, 'getUserById').mockResolvedValue({ id: 10, role: 'user' });
-      jest.spyOn(authService, 'getUserPermissions').mockResolvedValue(['read:data']);
+      jest
+        .spyOn(authService, 'getUserById')
+        .mockResolvedValue({ id: 10, role: 'user' });
+      jest
+        .spyOn(authService, 'getUserPermissions')
+        .mockResolvedValue(['read:data']);
 
       const user = await authService.authenticate(req);
-      expect(user).toEqual({ id: 10, role: 'user', permissions: ['read:data'] });
+      expect(user).toEqual({
+        id: 10,
+        role: 'user',
+        permissions: ['read:data'],
+      });
     });
 
     it('should fallback to session if no valid API key', async () => {
       const req = { headers: {}, session: { userId: 20 } };
-      jest.spyOn(authService, 'getUserById').mockResolvedValue({ id: 20, role: 'admin' });
+      jest
+        .spyOn(authService, 'getUserById')
+        .mockResolvedValue({ id: 20, role: 'admin' });
       jest.spyOn(authService, 'getUserPermissions').mockResolvedValue(['all']);
 
       const user = await authService.authenticate(req);
@@ -236,7 +307,9 @@ describe('AuthService', () => {
 
     it('should fallback to x-user-id header', async () => {
       const req = { headers: { 'x-user-id': '30' } };
-      jest.spyOn(authService, 'getUserById').mockResolvedValue({ id: 30, role: 'user' });
+      jest
+        .spyOn(authService, 'getUserById')
+        .mockResolvedValue({ id: 30, role: 'user' });
       jest.spyOn(authService, 'getUserPermissions').mockResolvedValue(['read']);
 
       const user = await authService.authenticate(req);
@@ -248,12 +321,14 @@ describe('AuthService', () => {
       mockDb.all.mockResolvedValue([{ name: 'all' }]);
 
       const user = await authService.authenticate(req);
-      expect(user).toEqual(expect.objectContaining({
-        id: 1,
-        username: 'admin_user',
-        role: 'admin',
-        permissions: ['all']
-      }));
+      expect(user).toEqual(
+        expect.objectContaining({
+          id: 1,
+          username: 'admin_user',
+          role: 'admin',
+          permissions: ['all'],
+        })
+      );
     });
 
     it('should default to guest if nothing matches', async () => {
@@ -279,11 +354,21 @@ describe('AuthService', () => {
     });
 
     it('returns true if user has permission', () => {
-      expect(authService.hasPermission({ role: 'user', permissions: ['read'] }, 'read')).toBe(true);
+      expect(
+        authService.hasPermission(
+          { role: 'user', permissions: ['read'] },
+          'read'
+        )
+      ).toBe(true);
     });
 
     it('returns false if user does not have permission', () => {
-      expect(authService.hasPermission({ role: 'user', permissions: ['read'] }, 'write')).toBe(false);
+      expect(
+        authService.hasPermission(
+          { role: 'user', permissions: ['read'] },
+          'write'
+        )
+      ).toBe(false);
     });
   });
 
@@ -297,11 +382,15 @@ describe('AuthService', () => {
     });
 
     it('returns true if user role is in array of roles', () => {
-      expect(authService.hasRole({ role: 'user' }, ['admin', 'user'])).toBe(true);
+      expect(authService.hasRole({ role: 'user' }, ['admin', 'user'])).toBe(
+        true
+      );
     });
 
     it('returns false if user role is not in array', () => {
-      expect(authService.hasRole({ role: 'guest' }, ['admin', 'user'])).toBe(false);
+      expect(authService.hasRole({ role: 'guest' }, ['admin', 'user'])).toBe(
+        false
+      );
     });
   });
 });

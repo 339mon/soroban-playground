@@ -27,7 +27,8 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedDocStatus, setSelectedDocStatus] = useState("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateMetadata | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TemplateMetadata | null>(null);
   const [deployingId, setDeployingId] = useState<string | null>(null);
 
   const categories = useMemo(() => getCategories(), []);
@@ -53,7 +54,9 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
 
     // Apply doc status filter
     if (selectedDocStatus !== "all") {
-      results = results.filter((t) => t.documentationStatus === selectedDocStatus);
+      results = results.filter(
+        (t) => t.documentationStatus === selectedDocStatus,
+      );
     }
 
     return results;
@@ -79,11 +82,13 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">
           <BookOpen size={28} className="text-teal-400" />
-          <h1 className="text-3xl font-bold text-white">Contract Template Library</h1>
+          <h1 className="text-3xl font-bold text-white">
+            Contract Template Library
+          </h1>
         </div>
         <p className="text-slate-400">
-          Browse {TEMPLATES_CATALOG.length} production-ready smart contract templates with
-          integrated documentation and deployment capabilities
+          Browse {TEMPLATES_CATALOG.length} production-ready smart contract
+          templates with integrated documentation and deployment capabilities
         </p>
       </div>
 
@@ -101,7 +106,9 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
         <div className="flex flex-wrap gap-3">
           {/* Category Filter */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-slate-400">CATEGORY</label>
+            <label className="text-xs font-semibold text-slate-400">
+              CATEGORY
+            </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -118,7 +125,9 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
 
           {/* Difficulty Filter */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-slate-400">DIFFICULTY</label>
+            <label className="text-xs font-semibold text-slate-400">
+              DIFFICULTY
+            </label>
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
@@ -176,7 +185,8 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
 
       {/* Results Count */}
       <div className="mb-4 text-sm text-slate-500">
-        Showing {filteredTemplates.length} template{filteredTemplates.length !== 1 ? "s" : ""}
+        Showing {filteredTemplates.length} template
+        {filteredTemplates.length !== 1 ? "s" : ""}
       </div>
 
       {/* Templates Grid/List */}
@@ -202,7 +212,9 @@ export default function TemplateLibraryDashboard({ onDeployTemplate }: Props) {
       ) : (
         <div className="rounded-2xl border border-white/8 bg-white/5 p-12 text-center">
           <BookOpen size={32} className="mx-auto mb-4 text-slate-500" />
-          <h3 className="text-lg font-semibold text-slate-400 mb-2">No templates found</h3>
+          <h3 className="text-lg font-semibold text-slate-400 mb-2">
+            No templates found
+          </h3>
           <p className="text-sm text-slate-500">
             Try adjusting your search filters or clearing the search query
           </p>
@@ -245,14 +257,18 @@ function TemplateCard({
       <div className="rounded-xl border border-white/8 bg-white/5 hover:bg-white/8 transition p-4 flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-white truncate">{template.name}</h3>
+            <h3 className="font-semibold text-white truncate">
+              {template.name}
+            </h3>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize flex-shrink-0 ${getDifficultyColor(template.difficulty)}`}
             >
               {template.difficulty}
             </span>
           </div>
-          <p className="text-sm text-slate-400 truncate">{template.description}</p>
+          <p className="text-sm text-slate-400 truncate">
+            {template.description}
+          </p>
           <div className="mt-2 flex gap-2 flex-wrap">
             {template.tags.slice(0, 2).map((tag) => (
               <span key={tag} className="text-xs text-teal-300">
@@ -260,7 +276,9 @@ function TemplateCard({
               </span>
             ))}
             {template.tags.length > 2 && (
-              <span className="text-xs text-slate-500">+{template.tags.length - 2} more</span>
+              <span className="text-xs text-slate-500">
+                +{template.tags.length - 2} more
+              </span>
             )}
           </div>
         </div>
@@ -291,9 +309,13 @@ function TemplateCard({
       {/* Card Header */}
       <div className="p-4 border-b border-white/8">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-white line-clamp-2">{template.name}</h3>
+          <h3 className="font-semibold text-white line-clamp-2">
+            {template.name}
+          </h3>
         </div>
-        <p className="text-xs text-slate-400 line-clamp-2">{template.description}</p>
+        <p className="text-xs text-slate-400 line-clamp-2">
+          {template.description}
+        </p>
       </div>
 
       {/* Card Body */}
@@ -315,7 +337,9 @@ function TemplateCard({
         {/* Category */}
         <div>
           <p className="text-xs text-slate-500 mb-1">Category</p>
-          <p className="text-xs font-semibold text-slate-300">{template.category}</p>
+          <p className="text-xs font-semibold text-slate-300">
+            {template.category}
+          </p>
         </div>
 
         {/* Tags */}
@@ -331,14 +355,17 @@ function TemplateCard({
               </span>
             ))}
             {template.tags.length > 3 && (
-              <span className="text-xs text-slate-500">+{template.tags.length - 3}</span>
+              <span className="text-xs text-slate-500">
+                +{template.tags.length - 3}
+              </span>
             )}
           </div>
         </div>
 
         {/* Features Count */}
         <div className="text-xs text-slate-500">
-          {template.features.length} features • {template.useCases.length} use cases
+          {template.features.length} features • {template.useCases.length} use
+          cases
         </div>
       </div>
 

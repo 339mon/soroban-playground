@@ -66,27 +66,39 @@ export function filterTemplates(
   functionalities: string[],
   complexityLevels: string[],
   deploymentStatuses: string[],
-  dependencies: string[]
+  dependencies: string[],
 ): TemplateMetadata[] {
   return templates.filter((template) => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const matches = template.name.toLowerCase().includes(query) ||
+      const matches =
+        template.name.toLowerCase().includes(query) ||
         template.description.toLowerCase().includes(query) ||
-        template.tags.some(tag => tag.toLowerCase().includes(query));
+        template.tags.some((tag) => tag.toLowerCase().includes(query));
       if (!matches) return false;
     }
 
-    if (categories.length > 0 && !categories.includes(template.category)) return false;
+    if (categories.length > 0 && !categories.includes(template.category))
+      return false;
     if (functionalities.length > 0) {
-      const has = functionalities.some(func => template.functionalities.includes(func as any));
+      const has = functionalities.some((func) =>
+        template.functionalities.includes(func as any),
+      );
       if (!has) return false;
     }
-    if (complexityLevels.length > 0 && !complexityLevels.includes(template.complexity)) return false;
-    if (deploymentStatuses.length > 0 && !deploymentStatuses.includes(template.deploymentStatus)) return false;
+    if (
+      complexityLevels.length > 0 &&
+      !complexityLevels.includes(template.complexity)
+    )
+      return false;
+    if (
+      deploymentStatuses.length > 0 &&
+      !deploymentStatuses.includes(template.deploymentStatus)
+    )
+      return false;
     if (dependencies.length > 0) {
-      const depNames = template.dependencies.map(d => d.name);
-      const has = dependencies.every(dep => depNames.includes(dep));
+      const depNames = template.dependencies.map((d) => d.name);
+      const has = dependencies.every((dep) => depNames.includes(dep));
       if (!has) return false;
     }
 
@@ -99,9 +111,13 @@ export function generateSuggestions(templates: TemplateMetadata[]) {
 
   templates.forEach((template) => {
     suggestions.set(template.category, "category");
-    template.functionalities.forEach((func) => suggestions.set(func, "functionality"));
+    template.functionalities.forEach((func) =>
+      suggestions.set(func, "functionality"),
+    );
     template.tags.forEach((tag) => suggestions.set(tag, "tag"));
-    template.dependencies.forEach((dep) => suggestions.set(dep.name, "dependency"));
+    template.dependencies.forEach((dep) =>
+      suggestions.set(dep.name, "dependency"),
+    );
   });
 
   return Array.from(suggestions.entries())

@@ -88,7 +88,11 @@ router.post(
     if (!validateAddress(admin))
       return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(contractId, 'pause', { admin }, network);
-    return res.json({ success: true, message: 'Contract paused successfully', output: result.parsed });
+    return res.json({
+      success: true,
+      message: 'Contract paused successfully',
+      output: result.parsed,
+    });
   })
 );
 
@@ -104,7 +108,11 @@ router.post(
     if (!validateAddress(admin))
       return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(contractId, 'unpause', { admin }, network);
-    return res.json({ success: true, message: 'Contract unpaused successfully', output: result.parsed });
+    return res.json({
+      success: true,
+      message: 'Contract unpaused successfully',
+      output: result.parsed,
+    });
   })
 );
 
@@ -432,11 +440,22 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const { contractId, admin, name, baseApyBps, network } = req.body || {};
-    const errs = requireFields(req.body, ['contractId', 'admin', 'name', 'baseApyBps']);
+    const errs = requireFields(req.body, [
+      'contractId',
+      'admin',
+      'name',
+      'baseApyBps',
+    ]);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
-    if (typeof baseApyBps !== 'number' || baseApyBps < 0 || baseApyBps > 50000) {
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin))
+      return next(createHttpError(400, 'Invalid admin address'));
+    if (
+      typeof baseApyBps !== 'number' ||
+      baseApyBps < 0 ||
+      baseApyBps > 50000
+    ) {
       return next(createHttpError(400, 'baseApyBps must be 0-50000'));
     }
     const result = await invoke(
@@ -455,11 +474,14 @@ router.patch(
   asyncHandler(async (req, res, next) => {
     const { contractId, admin, newApyBps, network } = req.body || {};
     const protocolId = Number(req.params.id);
-    if (!Number.isInteger(protocolId) || protocolId < 1) return next(createHttpError(400, 'Invalid protocol id'));
+    if (!Number.isInteger(protocolId) || protocolId < 1)
+      return next(createHttpError(400, 'Invalid protocol id'));
     const errs = requireFields(req.body, ['contractId', 'admin', 'newApyBps']);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin))
+      return next(createHttpError(400, 'Invalid admin address'));
     if (typeof newApyBps !== 'number' || newApyBps < 0 || newApyBps > 50000) {
       return next(createHttpError(400, 'newApyBps must be 0-50000'));
     }
@@ -478,10 +500,17 @@ router.post(
   rateLimitMiddleware('invoke'),
   asyncHandler(async (req, res, next) => {
     const { contractId, admin, name, protocolId, network } = req.body || {};
-    const errs = requireFields(req.body, ['contractId', 'admin', 'name', 'protocolId']);
+    const errs = requireFields(req.body, [
+      'contractId',
+      'admin',
+      'name',
+      'protocolId',
+    ]);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin))
+      return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(
       contractId,
       'add_vault',
@@ -509,12 +538,16 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { contractId, user, amount, network } = req.body || {};
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    if (!Number.isInteger(id) || id < 1)
+      return next(createHttpError(400, 'Invalid vault id'));
     const errs = requireFields(req.body, ['contractId', 'user', 'amount']);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
-    if (typeof amount !== 'number' || amount <= 0) return next(createHttpError(400, 'amount must be > 0'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(user))
+      return next(createHttpError(400, 'Invalid user address'));
+    if (typeof amount !== 'number' || amount <= 0)
+      return next(createHttpError(400, 'amount must be > 0'));
     const result = await invoke(
       contractId,
       'deposit',
@@ -531,12 +564,16 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { contractId, user, amount, network } = req.body || {};
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    if (!Number.isInteger(id) || id < 1)
+      return next(createHttpError(400, 'Invalid vault id'));
     const errs = requireFields(req.body, ['contractId', 'user', 'amount']);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
-    if (typeof amount !== 'number' || amount <= 0) return next(createHttpError(400, 'amount must be > 0'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(user))
+      return next(createHttpError(400, 'Invalid user address'));
+    if (typeof amount !== 'number' || amount <= 0)
+      return next(createHttpError(400, 'amount must be > 0'));
     const result = await invoke(
       contractId,
       'withdraw',
@@ -553,10 +590,12 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { contractId, network } = req.body || {};
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    if (!Number.isInteger(id) || id < 1)
+      return next(createHttpError(400, 'Invalid vault id'));
     const errs = requireFields(req.body, ['contractId']);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
     const result = await invoke(
       contractId,
       'compound',
@@ -573,9 +612,11 @@ router.get(
   asyncHandler(async (req, res, next) => {
     const contractId = getContractId(req);
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    if (!Number.isInteger(id) || id < 1)
+      return next(createHttpError(400, 'Invalid vault id'));
     const { user } = req.params;
-    if (!validateAddress(user)) return next(createHttpError(400, 'Invalid user address'));
+    if (!validateAddress(user))
+      return next(createHttpError(400, 'Invalid user address'));
     const { network } = req.query;
     const result = await invoke(
       contractId,
@@ -593,11 +634,14 @@ router.post(
   asyncHandler(async (req, res, next) => {
     const { contractId, admin, network } = req.body || {};
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) return next(createHttpError(400, 'Invalid vault id'));
+    if (!Number.isInteger(id) || id < 1)
+      return next(createHttpError(400, 'Invalid vault id'));
     const errs = requireFields(req.body, ['contractId', 'admin']);
     if (errs) return next(createHttpError(400, 'Validation failed', errs));
-    if (!validateContractId(contractId)) return next(createHttpError(400, 'Invalid contractId'));
-    if (!validateAddress(admin)) return next(createHttpError(400, 'Invalid admin address'));
+    if (!validateContractId(contractId))
+      return next(createHttpError(400, 'Invalid contractId'));
+    if (!validateAddress(admin))
+      return next(createHttpError(400, 'Invalid admin address'));
     const result = await invoke(
       contractId,
       'backtest',

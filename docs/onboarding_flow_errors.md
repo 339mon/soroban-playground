@@ -5,5 +5,5 @@ Architecture and implementation specification for Robust Error Handling in User 
 ---
 
 ## References
-- Issue reference: Fixes #951
 
+- Issue reference: Fixes #951

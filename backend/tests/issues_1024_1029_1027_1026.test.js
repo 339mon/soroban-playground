@@ -6,7 +6,11 @@ import express from 'express';
 import { rateLimiter } from '../src/middleware/rateLimiter.js';
 import metricsRouter, { activeCompilationJobs } from '../src/routes/metrics.js';
 import simulateRouter from '../src/routes/v1/simulate.js';
-import { generateSignature, verifySignature, buildDeliveryHeaders } from '../src/services/webhookUtils.js';
+import {
+  generateSignature,
+  verifySignature,
+  buildDeliveryHeaders,
+} from '../src/services/webhookUtils.js';
 
 describe('Issue #1024: Distributed Rate Limiting & Headers', () => {
   let app;
@@ -16,7 +20,12 @@ describe('Issue #1024: Distributed Rate Limiting & Headers', () => {
     app.use(express.json());
     app.post(
       '/api/v1/compile',
-      rateLimiter({ limit: 2, windowMs: 60000, strategyName: 'SlidingWindowCounter', identifier: 'apiKeyOrIp' }),
+      rateLimiter({
+        limit: 2,
+        windowMs: 60000,
+        strategyName: 'SlidingWindowCounter',
+        identifier: 'apiKeyOrIp',
+      }),
       (req, res) => res.json({ success: true })
     );
   });
@@ -90,15 +99,24 @@ describe('Issue #1027: Soroban RPC Gas & Resource Footprint Estimator Endpoint',
 
 describe('Issue #1026: Cryptographic Webhook Delivery & Signature Verification', () => {
   it('builds delivery headers including X-Soroban-Signature', () => {
-    const headers = buildDeliveryHeaders('{"event":"test"}', 'secret123', 'delivery-1');
+    const headers = buildDeliveryHeaders(
+      '{"event":"test"}',
+      'secret123',
+      'delivery-1'
+    );
     expect(headers['X-Soroban-Signature']).toBeDefined();
     expect(headers['X-Soroban-Signature']).toContain('sha256=');
-    expect(headers['X-Playground-Signature']).toBe(headers['X-Soroban-Signature']);
+    expect(headers['X-Playground-Signature']).toBe(
+      headers['X-Soroban-Signature']
+    );
   });
 
   it('verifies valid HMAC-SHA256 signature', () => {
     const secret = 'super-secret-key-12345';
-    const payload = JSON.stringify({ event: 'contract.deployed', contract_id: 'C123' });
+    const payload = JSON.stringify({
+      event: 'contract.deployed',
+      contract_id: 'C123',
+    });
     const signature = generateSignature(payload, secret);
 
     const valid = verifySignature(payload, secret, signature);
@@ -106,7 +124,11 @@ describe('Issue #1026: Cryptographic Webhook Delivery & Signature Verification',
   });
 
   it('rejects invalid signature', () => {
-    const valid = verifySignature('{"event":"test"}', 'secret123', 'sha256=invalid');
+    const valid = verifySignature(
+      '{"event":"test"}',
+      'secret123',
+      'sha256=invalid'
+    );
     expect(valid).toBe(false);
   });
 });

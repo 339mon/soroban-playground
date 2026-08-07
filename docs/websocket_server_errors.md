@@ -5,5 +5,5 @@ Architecture and implementation specification for Robust Error Handling in WebSo
 ---
 
 ## References
-- Issue reference: Fixes #960
 
+- Issue reference: Fixes #960

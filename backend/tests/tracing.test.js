@@ -115,7 +115,11 @@ describe('Distributed Tracing', () => {
       jest.mock('../src/config/index.js', () => ({
         __esModule: true,
         default: {
-          tracing: { enabled: false, serviceName: 'test', serviceVersion: '1.0.0' },
+          tracing: {
+            enabled: false,
+            serviceName: 'test',
+            serviceVersion: '1.0.0',
+          },
           app: { env: 'development' },
         },
       }));

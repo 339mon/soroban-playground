@@ -12,63 +12,63 @@ Each registered **source** has a designated reporter address. Reporters submit p
 
 ## Aggregation Strategies
 
-| Strategy | Description | Best for |
-|---|---|---|
-| `Median` (default) | Middle value of sorted prices | Robust against manipulation |
-| `WeightedAverage` | Σ(price × weight) / Σ(weight) | Trusted sources with different reliability |
-| `TrimmedMean` | Average after dropping top/bottom `trim_pct` % | Large source sets |
+| Strategy           | Description                                    | Best for                                   |
+| ------------------ | ---------------------------------------------- | ------------------------------------------ |
+| `Median` (default) | Middle value of sorted prices                  | Robust against manipulation                |
+| `WeightedAverage`  | Σ(price × weight) / Σ(weight)                  | Trusted sources with different reliability |
+| `TrimmedMean`      | Average after dropping top/bottom `trim_pct` % | Large source sets                          |
 
 ## Security Features
 
-| Feature | Parameter | Default |
-|---|---|---|
-| Circuit breaker | `circuit_breaker_bps` | 3000 bps (30%) — rejects single-update swings above this |
-| Outlier detection | `outlier_bps` | 2000 bps (20%) — excludes sources far from the median |
-| Stale price exclusion | `max_price_age` | 3600 s (1 hour) |
-| Emergency pause | admin-only | — |
-| Reporter auth | per-source | Only the registered reporter may update a source |
+| Feature               | Parameter             | Default                                                  |
+| --------------------- | --------------------- | -------------------------------------------------------- |
+| Circuit breaker       | `circuit_breaker_bps` | 3000 bps (30%) — rejects single-update swings above this |
+| Outlier detection     | `outlier_bps`         | 2000 bps (20%) — excludes sources far from the median    |
+| Stale price exclusion | `max_price_age`       | 3600 s (1 hour)                                          |
+| Emergency pause       | admin-only            | —                                                        |
+| Reporter auth         | per-source            | Only the registered reporter may update a source         |
 
 ## Contract Functions
 
 ### Admin
 
-| Function | Description |
-|---|---|
-| `initialize(admin, asset, decimals?, max_price_age?, outlier_bps?, circuit_breaker_bps?, strategy?)` | One-time setup |
-| `pause(admin)` / `unpause(admin)` | Emergency controls |
-| `add_source(admin, reporter, description, weight?)` | Register a new price source |
-| `remove_source(admin, source_id)` | Deactivate a source |
-| `set_weight(admin, source_id, weight)` | Update source weight (1–100) |
-| `set_strategy(admin, strategy)` | Change aggregation strategy |
-| `set_max_price_age(admin, max_age)` | Update staleness threshold |
-| `set_outlier_bps(admin, bps)` | Update outlier threshold |
-| `set_circuit_breaker_bps(admin, bps)` | Update circuit breaker threshold |
+| Function                                                                                             | Description                      |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `initialize(admin, asset, decimals?, max_price_age?, outlier_bps?, circuit_breaker_bps?, strategy?)` | One-time setup                   |
+| `pause(admin)` / `unpause(admin)`                                                                    | Emergency controls               |
+| `add_source(admin, reporter, description, weight?)`                                                  | Register a new price source      |
+| `remove_source(admin, source_id)`                                                                    | Deactivate a source              |
+| `set_weight(admin, source_id, weight)`                                                               | Update source weight (1–100)     |
+| `set_strategy(admin, strategy)`                                                                      | Change aggregation strategy      |
+| `set_max_price_age(admin, max_age)`                                                                  | Update staleness threshold       |
+| `set_outlier_bps(admin, bps)`                                                                        | Update outlier threshold         |
+| `set_circuit_breaker_bps(admin, bps)`                                                                | Update circuit breaker threshold |
 
 ### Reporter
 
-| Function | Description |
-|---|---|
+| Function                                   | Description                                          |
+| ------------------------------------------ | ---------------------------------------------------- |
 | `update_price(reporter, source_id, price)` | Submit a new price (must be the registered reporter) |
 
 ### Read-only
 
-| Function | Description |
-|---|---|
-| `get_price(source_id)` | Raw price data for a single source |
+| Function                 | Description                               |
+| ------------------------ | ----------------------------------------- |
+| `get_price(source_id)`   | Raw price data for a single source        |
 | `get_aggregated_price()` | Aggregated price across all valid sources |
-| `get_source_count()` | Total number of sources ever registered |
-| `get_admin()` | Admin address |
-| `is_paused()` | Pause state |
+| `get_source_count()`     | Total number of sources ever registered   |
+| `get_admin()`            | Admin address                             |
+| `is_paused()`            | Pause state                               |
 
 ## Events
 
-| Event | Payload |
-|---|---|
-| `init` | `(admin, asset)` |
-| `paused` / `unpaused` | `admin` |
-| `srcadd` | `(source_id, reporter)` |
-| `srcrm` | `source_id` |
-| `priceupd` | `(source_id, price)` |
+| Event                 | Payload                 |
+| --------------------- | ----------------------- |
+| `init`                | `(admin, asset)`        |
+| `paused` / `unpaused` | `admin`                 |
+| `srcadd`              | `(source_id, reporter)` |
+| `srcrm`               | `source_id`             |
+| `priceupd`            | `(source_id, price)`    |
 
 ## Building
 
@@ -138,26 +138,26 @@ stellar contract invoke \
 
 Prices are integer values scaled by `10^decimals` (default `decimals = 7`). For example:
 
-| Human price | On-chain value |
-|---|---|
-| $0.10 | `1_000_000` |
-| $1.00 | `10_000_000` |
-| $123.45 | `1_234_500_000` |
+| Human price | On-chain value  |
+| ----------- | --------------- |
+| $0.10       | `1_000_000`     |
+| $1.00       | `10_000_000`    |
+| $123.45     | `1_234_500_000` |
 
 ## Error Codes
 
-| Code | Name | Meaning |
-|---|---|---|
-| 1 | `AlreadyInitialized` | `initialize` called more than once |
-| 2 | `NotInitialized` | Contract not yet initialized |
-| 3 | `Unauthorized` | Caller is not the admin or registered reporter |
-| 4 | `SourceNotFound` | Source ID does not exist |
-| 5 | `SourceInactive` | Source has been deactivated |
-| 6 | `InvalidPrice` | Price ≤ 0 |
-| 7 | `StalePrice` | (reserved) |
-| 8 | `InsufficientSources` | No valid active sources for aggregation |
-| 9 | `ContractPaused` | Operation blocked while paused |
-| 10 | `InvalidWeight` | Weight outside 1–100 range |
-| 11 | `OutlierDetected` | (reserved) |
-| 12 | `CircuitBreakerTripped` | Price update exceeds `circuit_breaker_bps` swing |
-| 13 | `InvalidParameter` | Config value out of valid range |
+| Code | Name                    | Meaning                                          |
+| ---- | ----------------------- | ------------------------------------------------ |
+| 1    | `AlreadyInitialized`    | `initialize` called more than once               |
+| 2    | `NotInitialized`        | Contract not yet initialized                     |
+| 3    | `Unauthorized`          | Caller is not the admin or registered reporter   |
+| 4    | `SourceNotFound`        | Source ID does not exist                         |
+| 5    | `SourceInactive`        | Source has been deactivated                      |
+| 6    | `InvalidPrice`          | Price ≤ 0                                        |
+| 7    | `StalePrice`            | (reserved)                                       |
+| 8    | `InsufficientSources`   | No valid active sources for aggregation          |
+| 9    | `ContractPaused`        | Operation blocked while paused                   |
+| 10   | `InvalidWeight`         | Weight outside 1–100 range                       |
+| 11   | `OutlierDetected`       | (reserved)                                       |
+| 12   | `CircuitBreakerTripped` | Price update exceeds `circuit_breaker_bps` swing |
+| 13   | `InvalidParameter`      | Config value out of valid range                  |

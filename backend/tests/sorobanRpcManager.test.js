@@ -1,7 +1,9 @@
 // Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
-import sorobanRpcManager, { CIRCUIT_STATES } from '../src/services/sorobanRpcManager.js';
+import sorobanRpcManager, {
+  CIRCUIT_STATES,
+} from '../src/services/sorobanRpcManager.js';
 
 describe('SorobanRpcManager Circuit Breaker', () => {
   beforeEach(() => {
@@ -21,7 +23,7 @@ describe('SorobanRpcManager Circuit Breaker', () => {
     expect(result).toBe('ledger-12345');
     expect(mockCall).toHaveBeenCalledWith(
       sorobanRpcManager.activeEndpoint.url,
-      expect.objectContaining({}),
+      expect.objectContaining({})
     );
   });
 
@@ -40,7 +42,9 @@ describe('SorobanRpcManager Circuit Breaker', () => {
   });
 
   it('trips circuit breaker OPEN after consecutive failures threshold', async () => {
-    const failingCall = jest.fn().mockRejectedValue(new Error('503 Service Unavailable'));
+    const failingCall = jest
+      .fn()
+      .mockRejectedValue(new Error('503 Service Unavailable'));
 
     for (let i = 0; i < 3; i++) {
       try {
@@ -51,7 +55,9 @@ describe('SorobanRpcManager Circuit Breaker', () => {
     }
 
     const status = sorobanRpcManager.getStatus();
-    expect(status.endpoints.some((ep) => ep.state === CIRCUIT_STATES.OPEN)).toBe(true);
+    expect(
+      status.endpoints.some((ep) => ep.state === CIRCUIT_STATES.OPEN)
+    ).toBe(true);
   });
 
   it('resets circuit breaker state when reset() is invoked', async () => {

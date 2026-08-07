@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement carbon credit oracle contract for reliable environmental data
 title: "[SMART CONTRACT] Implement Carbon Credit Oracle Contract for Reliable Environmental Data"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like carbon credit trading currently lack reliable carbon credit da
 ## 💡 Proposed Solution
 
 Create a comprehensive carbon credit oracle implementation with:
+
 - Standard carbon credit data interface compliance
 - Multiple data source integration (carbon registries, verification agencies, satellite monitoring)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive carbon credit oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitCarbonData()`, `getCarbonData()`, `getVerificationStatus()` functions for carbon management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`CarbonDataSubmitted`, `CarbonDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/carbon-credit-oracle/`
 - Testing: `contracts/carbon-credit-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/carbon-credit-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive carbon credit oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building carbon credit trading and sustainability applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables carbon credit trading and environmental impact tracking |
+| Dimension        | Assessment                                                                |
+| ---------------- | ------------------------------------------------------------------------- |
+| Who benefits?    | Developers building carbon credit trading and sustainability applications |
+| Effort estimate  | Medium (3-4 days)                                                         |
+| Breaking change? | No                                                                        |
+| MVP impact       | High - enables carbon credit trading and environmental impact tracking    |
 
 ## 🔗 Related Issues or References
 

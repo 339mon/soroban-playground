@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import type MonacoEditorComponent from "@monaco-editor/react";
-import { scheduleEditorLoad, loadMonacoEditor } from "@/lib/editorLoadScheduler";
+import {
+  scheduleEditorLoad,
+  loadMonacoEditor,
+} from "@/lib/editorLoadScheduler";
 import { configureMonacoWorkers } from "@/lib/monacoWorkers";
 import { useCollaborativeEditor } from "@/hooks/useCollaborativeEditor";
 import { CollaborativeHeaderIndicator } from "@/components/CollaborativeHeaderIndicator";
@@ -17,14 +20,18 @@ function EditorLoadingState() {
     <div className="flex items-center justify-center h-full w-full text-gray-500">
       <div className="flex flex-col items-center gap-3">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
-        <span className="text-xs font-mono text-gray-400">Loading editor...</span>
+        <span className="text-xs font-mono text-gray-400">
+          Loading editor...
+        </span>
       </div>
     </div>
   );
 }
 
 export default function Editor({ code, setCode }: EditorProps) {
-  const [MonacoEditor, setMonacoEditor] = useState<typeof MonacoEditorComponent | null>(null);
+  const [MonacoEditor, setMonacoEditor] = useState<
+    typeof MonacoEditorComponent | null
+  >(null);
   const { peers, isConnected } = useCollaborativeEditor();
 
   useEffect(() => {
@@ -87,4 +94,3 @@ export default function Editor({ code, setCode }: EditorProps) {
     </div>
   );
 }
-

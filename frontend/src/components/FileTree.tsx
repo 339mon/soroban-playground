@@ -95,7 +95,7 @@ function getExtension(name: string, hint?: string): string {
 
 /** Map a file extension to a Lucide icon component. */
 function resolveFileIcon(
-  ext: string
+  ext: string,
 ): React.ComponentType<{ className?: string; size?: number }> {
   switch (ext) {
     case "rs":
@@ -144,7 +144,7 @@ const FileNode = memo(function FileNode({
         onSelect(node);
       }
     },
-    [node, onSelect]
+    [node, onSelect],
   );
 
   return (
@@ -219,7 +219,7 @@ const FolderNode = memo(function FolderNode({
         toggle();
       }
     },
-    [toggle]
+    [toggle],
   );
 
   const FolderIcon = open ? FolderOpen : Folder;
@@ -259,7 +259,9 @@ const FolderNode = memo(function FolderNode({
           size={13}
           className={[
             "shrink-0 transition-colors",
-            open ? "text-teal-400/80" : "text-slate-500 group-hover:text-slate-300",
+            open
+              ? "text-teal-400/80"
+              : "text-slate-500 group-hover:text-slate-300",
           ].join(" ")}
         />
         <span className="truncate">{node.name}</span>
@@ -292,7 +294,7 @@ const FolderNode = memo(function FolderNode({
                 onSelect={onSelect}
                 treeId={treeId}
               />
-            )
+            ),
           )}
         </ul>
       )}
@@ -337,7 +339,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     (node: FileTreeNode) => {
       onSelectFile?.(node);
     },
-    [onSelectFile]
+    [onSelectFile],
   );
 
   if (nodes.length === 0) {
@@ -356,10 +358,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     <ul
       role="tree"
       aria-label="File explorer"
-      className={[
-        "space-y-0.5 font-sans text-xs",
-        className,
-      ].join(" ")}
+      className={["space-y-0.5 font-sans text-xs", className].join(" ")}
       data-testid="filetree-root"
     >
       {nodes.map((node) =>
@@ -382,7 +381,7 @@ const FileTree: React.FC<FileTreeProps> = ({
             onSelect={handleSelect}
             treeId={treeId}
           />
-        )
+        ),
       )}
     </ul>
   );

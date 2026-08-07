@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive contract template library UI
 title: "[FRONTEND] Implement Comprehensive Contract Template Library UI"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently need to manually navigate the `contracts/` directory struct
 ## 💡 Proposed Solution
 
 Create a comprehensive contract template library UI with:
+
 - Responsive grid-based template browsing
 - Advanced search and filtering capabilities
 - Template categorization and tagging
@@ -24,6 +25,7 @@ Create a comprehensive contract template library UI with:
 - Favorites and recent templates functionality
 
 ### Key Features
+
 - Grid view of all 54+ contract templates with icons and descriptions
 - Search by name, category, functionality, or keywords
 - Filter by contract type (financial, governance, utility, etc.)
@@ -32,6 +34,7 @@ Create a comprehensive contract template library UI with:
 - Favorites system for commonly used templates
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/TemplateLibraryGrid.tsx`, `TemplateSearchBar.tsx`, `TemplateCard.tsx`
 - Integration with existing contract metadata and README files
@@ -52,12 +55,12 @@ Create a comprehensive contract template library UI with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer onboarding and productivity |
+| Dimension        | Assessment                                                          |
+| ---------------- | ------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                         |
+| Effort estimate  | Medium (3-4 days)                                                   |
+| Breaking change? | No                                                                  |
+| MVP impact       | High - significantly improves developer onboarding and productivity |
 
 ## 🔗 Related Issues or References
 

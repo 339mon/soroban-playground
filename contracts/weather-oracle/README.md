@@ -20,43 +20,43 @@ data for on-chain applications such as insurance protocols and weather derivativ
 
 ### Admin
 
-| Function | Description |
-|---|---|
-| `initialize(admin, verification_threshold?)` | One-time setup |
-| `pause(admin)` / `unpause(admin)` | Emergency pause |
-| `set_circuit_breaker(admin, active)` | Block/unblock submissions |
-| `add_data_source(admin, source, name)` | Register a trusted source |
-| `remove_data_source(admin, source, active)` | Activate / deactivate a source |
-| `set_verification_threshold(admin, threshold)` | Update confirmation count |
+| Function                                       | Description                    |
+| ---------------------------------------------- | ------------------------------ |
+| `initialize(admin, verification_threshold?)`   | One-time setup                 |
+| `pause(admin)` / `unpause(admin)`              | Emergency pause                |
+| `set_circuit_breaker(admin, active)`           | Block/unblock submissions      |
+| `add_data_source(admin, source, name)`         | Register a trusted source      |
+| `remove_data_source(admin, source, active)`    | Activate / deactivate a source |
+| `set_verification_threshold(admin, threshold)` | Update confirmation count      |
 
 ### Data Sources
 
-| Function | Description |
-|---|---|
+| Function                                                                                          | Description      |
+| ------------------------------------------------------------------------------------------------- | ---------------- |
 | `submit_weather_data(source, location, temperature_c, humidity_pct, wind_speed_kmh, observed_at)` | Submit a reading |
 
 ### Read-only
 
-| Function | Description |
-|---|---|
-| `get_weather_data(record_id)` | Fetch record by ID |
+| Function                                     | Description                          |
+| -------------------------------------------- | ------------------------------------ |
+| `get_weather_data(record_id)`                | Fetch record by ID                   |
 | `get_historical_data(location, observed_at)` | Fetch record by location + timestamp |
-| `get_record_count()` | Total records submitted |
-| `get_verification_threshold()` | Current threshold |
-| `get_data_source(source)` | Source metadata |
-| `is_paused()` | Pause state |
-| `is_circuit_breaker_active()` | Circuit breaker state |
-| `get_admin()` | Admin address |
+| `get_record_count()`                         | Total records submitted              |
+| `get_verification_threshold()`               | Current threshold                    |
+| `get_data_source(source)`                    | Source metadata                      |
+| `is_paused()`                                | Pause state                          |
+| `is_circuit_breaker_active()`                | Circuit breaker state                |
+| `get_admin()`                                | Admin address                        |
 
 ## Data Format (fixed-point × 100)
 
 All measurements are stored as integers scaled by 100 to avoid floating-point:
 
-| Field | Unit | Example value | Meaning |
-|---|---|---|---|
-| `temperature_c` | °C × 100 | `2150` | 21.50 °C |
-| `humidity_pct` | % × 100 | `6500` | 65.00 % |
-| `wind_speed_kmh` | km/h × 100 | `1500` | 15.00 km/h |
+| Field            | Unit       | Example value | Meaning    |
+| ---------------- | ---------- | ------------- | ---------- |
+| `temperature_c`  | °C × 100   | `2150`        | 21.50 °C   |
+| `humidity_pct`   | % × 100    | `6500`        | 65.00 %    |
+| `wind_speed_kmh` | km/h × 100 | `1500`        | 15.00 km/h |
 
 Valid ranges: temperature −90.00 to +60.00 °C; humidity 0–100 %; wind 0–500 km/h.
 

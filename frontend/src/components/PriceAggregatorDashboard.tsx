@@ -46,7 +46,11 @@ interface Props {
   onAddSource: (name: string, weight: number) => Promise<void>;
   onRemoveSource: (sourceId: number) => Promise<void>;
   onSetWeight: (sourceId: number, weight: number) => Promise<void>;
-  onUpdatePrice: (sourceId: number, asset: string, price: string) => Promise<void>;
+  onUpdatePrice: (
+    sourceId: number,
+    asset: string,
+    price: string,
+  ) => Promise<void>;
   onGetAggregated: (asset: string) => Promise<AggregatedPrice>;
   onSetStrategy: (strategy: Strategy) => Promise<void>;
   onPause: () => Promise<void>;
@@ -78,11 +82,17 @@ function StatusBadge({ paused }: { paused: boolean }) {
   return (
     <span
       className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-        paused ? "bg-rose-900/40 text-rose-300" : "bg-emerald-900/40 text-emerald-300"
+        paused
+          ? "bg-rose-900/40 text-rose-300"
+          : "bg-emerald-900/40 text-emerald-300"
       }`}
       aria-live="polite"
     >
-      {paused ? <PauseCircle size={10} aria-hidden /> : <CheckCircle size={10} aria-hidden />}
+      {paused ? (
+        <PauseCircle size={10} aria-hidden />
+      ) : (
+        <CheckCircle size={10} aria-hidden />
+      )}
       {paused ? "Paused" : "Active"}
     </span>
   );
@@ -106,7 +116,9 @@ export default function PriceAggregatorDashboard({
   onPause,
   onUnpause,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"prices" | "sources" | "admin">("prices");
+  const [activeTab, setActiveTab] = useState<"prices" | "sources" | "admin">(
+    "prices",
+  );
 
   // Price lookup
   const [queryAsset, setQueryAsset] = useState("BTC/USD");
@@ -178,7 +190,7 @@ export default function PriceAggregatorDashboard({
         setStratMsg(e instanceof Error ? e.message : "Failed to set strategy");
       }
     },
-    [onSetStrategy]
+    [onSetStrategy],
   );
 
   const tabClass = (t: string) =>
@@ -194,28 +206,43 @@ export default function PriceAggregatorDashboard({
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
         <div className="flex items-center gap-2">
           <Activity size={16} className="text-cyan-400" aria-hidden />
-          <span className="text-white text-sm font-semibold">Price Aggregator</span>
+          <span className="text-white text-sm font-semibold">
+            Price Aggregator
+          </span>
           <StatusBadge paused={isPaused} />
         </div>
         {isLoading && (
-          <RefreshCw size={14} className="text-slate-400 animate-spin" aria-label="Loading" />
+          <RefreshCw
+            size={14}
+            className="text-slate-400 animate-spin"
+            aria-label="Loading"
+          />
         )}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 px-4 pt-3 pb-0">
-        <button className={tabClass("prices")} onClick={() => setActiveTab("prices")}>
+        <button
+          className={tabClass("prices")}
+          onClick={() => setActiveTab("prices")}
+        >
           <span className="flex items-center gap-1">
             <BarChart2 size={12} aria-hidden /> Prices
           </span>
         </button>
-        <button className={tabClass("sources")} onClick={() => setActiveTab("sources")}>
+        <button
+          className={tabClass("sources")}
+          onClick={() => setActiveTab("sources")}
+        >
           <span className="flex items-center gap-1">
             <Database size={12} aria-hidden /> Sources
           </span>
         </button>
         {isAdmin && (
-          <button className={tabClass("admin")} onClick={() => setActiveTab("admin")}>
+          <button
+            className={tabClass("admin")}
+            onClick={() => setActiveTab("admin")}
+          >
             <span className="flex items-center gap-1">
               <AlertTriangle size={12} aria-hidden /> Admin
             </span>
@@ -261,7 +288,9 @@ export default function PriceAggregatorDashboard({
                 <div className="mt-2 bg-slate-800 rounded p-3 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Asset</span>
-                    <span className="text-white font-mono">{aggregated.asset}</span>
+                    <span className="text-white font-mono">
+                      {aggregated.asset}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Price</span>
@@ -276,7 +305,8 @@ export default function PriceAggregatorDashboard({
                   <div className="flex justify-between">
                     <span className="text-slate-400">Strategy</span>
                     <span className="text-cyan-300">
-                      {STRATEGY_LABEL[aggregated.strategy] ?? aggregated.strategy}
+                      {STRATEGY_LABEL[aggregated.strategy] ??
+                        aggregated.strategy}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -348,11 +378,16 @@ export default function PriceAggregatorDashboard({
         {activeTab === "sources" && (
           <div className="space-y-4">
             <section aria-labelledby="src-list-title">
-              <h2 id="src-list-title" className="text-slate-400 text-xs uppercase tracking-wide mb-2">
+              <h2
+                id="src-list-title"
+                className="text-slate-400 text-xs uppercase tracking-wide mb-2"
+              >
                 Registered Sources
               </h2>
               {sources.length === 0 ? (
-                <p className="text-slate-500 text-sm">No sources registered yet.</p>
+                <p className="text-slate-500 text-sm">
+                  No sources registered yet.
+                </p>
               ) : (
                 <ul className="space-y-2" role="list">
                   {sources.map((src) => (
@@ -361,11 +396,19 @@ export default function PriceAggregatorDashboard({
                       className="bg-slate-800 rounded p-3 flex items-center justify-between"
                     >
                       <div>
-                        <span className="text-white text-sm font-medium">{src.name}</span>
-                        <span className="text-slate-400 text-xs ml-2">ID:{src.id}</span>
-                        <span className="text-slate-400 text-xs ml-2">w:{src.weight}</span>
+                        <span className="text-white text-sm font-medium">
+                          {src.name}
+                        </span>
+                        <span className="text-slate-400 text-xs ml-2">
+                          ID:{src.id}
+                        </span>
+                        <span className="text-slate-400 text-xs ml-2">
+                          w:{src.weight}
+                        </span>
                         {!src.active && (
-                          <span className="text-rose-400 text-xs ml-2">(inactive)</span>
+                          <span className="text-rose-400 text-xs ml-2">
+                            (inactive)
+                          </span>
                         )}
                       </div>
                       {isAdmin && src.active && (
@@ -410,7 +453,9 @@ export default function PriceAggregatorDashboard({
                       min={1}
                       max={100}
                       value={newWeight}
-                      onChange={(e) => setNewWeight(parseInt(e.target.value, 10))}
+                      onChange={(e) =>
+                        setNewWeight(parseInt(e.target.value, 10))
+                      }
                       className="flex-1 accent-cyan-500"
                       aria-label="Weight"
                     />
@@ -441,7 +486,10 @@ export default function PriceAggregatorDashboard({
           <div className="space-y-4">
             {/* Strategy */}
             <section aria-labelledby="strat-title">
-              <h2 id="strat-title" className="text-slate-400 text-xs uppercase tracking-wide mb-2">
+              <h2
+                id="strat-title"
+                className="text-slate-400 text-xs uppercase tracking-wide mb-2"
+              >
                 Aggregation Strategy
               </h2>
               <div className="flex gap-2 flex-wrap">
@@ -467,7 +515,10 @@ export default function PriceAggregatorDashboard({
 
             {/* Pause / Unpause */}
             <section aria-labelledby="pause-title">
-              <h2 id="pause-title" className="text-slate-400 text-xs uppercase tracking-wide mb-2">
+              <h2
+                id="pause-title"
+                className="text-slate-400 text-xs uppercase tracking-wide mb-2"
+              >
                 Emergency Controls
               </h2>
               <div className="flex gap-2">

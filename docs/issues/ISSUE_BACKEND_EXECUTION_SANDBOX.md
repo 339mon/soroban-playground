@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract execution sandboxing and gas estimation service
 title: "[BACKEND] Implement Contract Execution Sandboxing and Gas Estimation Service"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently cannot safely test contract interactions or estimate gas co
 ## 💡 Proposed Solution
 
 Create a comprehensive execution sandboxing service with:
+
 - Isolated contract execution environment
 - Gas estimation and cost calculation
 - Simulation capabilities for read/write operations
@@ -24,6 +25,7 @@ Create a comprehensive execution sandboxing service with:
 - Security isolation and resource limits
 
 ### Key Features
+
 - `POST /sandbox/execute`: Execute contract in sandbox
 - `POST /sandbox/estimate-gas`: Estimate gas for contract operation
 - `POST /sandbox/simulate`: Simulate contract interaction
@@ -31,6 +33,7 @@ Create a comprehensive execution sandboxing service with:
 - Integration with compile/deploy/invoke endpoints
 
 ### Implementation Details
+
 - Location: `backend/src/routes/sandbox.js`
 - Service: `backend/src/services/sandboxService.js`
 - Configuration: `backend/src/config/sandbox.config.js`
@@ -52,12 +55,12 @@ Create a comprehensive execution sandboxing service with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers testing Soroban contracts |
-| Effort estimate | Large (5-6 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables safe testing, gas estimation, and development workflow improvements |
+| Dimension        | Assessment                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers testing Soroban contracts                                               |
+| Effort estimate  | Large (5-6 days)                                                                       |
+| Breaking change? | No                                                                                     |
+| MVP impact       | Critical - enables safe testing, gas estimation, and development workflow improvements |
 
 ## 🔗 Related Issues or References
 

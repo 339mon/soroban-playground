@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Airdrop Contract 
 ---
 
 ## References
-- Issue reference: Fixes #989
 
+- Issue reference: Fixes #989

@@ -5,5 +5,5 @@ Specification and architecture guide for Robust Error Handling in Bounty Board o
 ---
 
 ## References
-- Issue reference: Fixes #1005
 
+- Issue reference: Fixes #1005

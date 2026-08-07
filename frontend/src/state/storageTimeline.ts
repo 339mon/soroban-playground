@@ -1,6 +1,13 @@
-import { create } from 'zustand';
-import type { LedgerState, TransactionCallNode } from "@/utils/transactionGraph";
-import { cloneValue, deepFreeze, immutableLedgerState } from "@/utils/immutableState";
+import { create } from "zustand";
+import type {
+  LedgerState,
+  TransactionCallNode,
+} from "@/utils/transactionGraph";
+import {
+  cloneValue,
+  deepFreeze,
+  immutableLedgerState,
+} from "@/utils/immutableState";
 
 export interface StorageSnapshot {
   id: string;
@@ -79,14 +86,27 @@ export function storageTimelineReducer(
 }
 
 interface StorageTimelineActions {
-  resetWithDeployment: (contractId: string, state: LedgerState, capturedAt?: string) => void;
-  appendTransactionFrames: (nodes: TransactionCallNode[], txHash?: string, capturedAt?: string) => void;
+  resetWithDeployment: (
+    contractId: string,
+    state: LedgerState,
+    capturedAt?: string,
+  ) => void;
+  appendTransactionFrames: (
+    nodes: TransactionCallNode[],
+    txHash?: string,
+    capturedAt?: string,
+  ) => void;
   selectSnapshotIndex: (index: number) => void;
   selectSnapshotForNode: (nodeId: string) => void;
-  reduce: (state: StorageTimelineState, action: StorageTimelineAction) => StorageTimelineState;
+  reduce: (
+    state: StorageTimelineState,
+    action: StorageTimelineAction,
+  ) => StorageTimelineState;
 }
 
-export const useStorageTimelineStore = create<StorageTimelineState & StorageTimelineActions>()((set, get) => ({
+export const useStorageTimelineStore = create<
+  StorageTimelineState & StorageTimelineActions
+>()((set, get) => ({
   snapshots: [],
   currentIndex: -1,
   nodeToSnapshotIndex: {},
@@ -119,7 +139,12 @@ export const useStorageTimelineStore = create<StorageTimelineState & StorageTime
 
     for (const node of nodes) {
       const nextIndex = nextSnapshots.length;
-      const snapshot = buildTransactionSnapshot(node, nextIndex, txHash, resolvedCapturedAt);
+      const snapshot = buildTransactionSnapshot(
+        node,
+        nextIndex,
+        txHash,
+        resolvedCapturedAt,
+      );
       nextSnapshots.push(snapshot);
       nextNodeMap[node.id] = nextIndex;
     }
@@ -177,7 +202,12 @@ export const useStorageTimelineStore = create<StorageTimelineState & StorageTime
 
         for (const node of action.nodes) {
           const nextIndex = nextSnapshots.length;
-          const snapshot = buildTransactionSnapshot(node, nextIndex, action.txHash, capturedAt);
+          const snapshot = buildTransactionSnapshot(
+            node,
+            nextIndex,
+            action.txHash,
+            capturedAt,
+          );
           nextSnapshots.push(snapshot);
           nextNodeMap[node.id] = nextIndex;
         }
@@ -194,7 +224,10 @@ export const useStorageTimelineStore = create<StorageTimelineState & StorageTime
           return state;
         }
 
-        const clampedIndex = Math.max(0, Math.min(action.index, state.snapshots.length - 1));
+        const clampedIndex = Math.max(
+          0,
+          Math.min(action.index, state.snapshots.length - 1),
+        );
         return {
           ...state,
           currentIndex: clampedIndex,

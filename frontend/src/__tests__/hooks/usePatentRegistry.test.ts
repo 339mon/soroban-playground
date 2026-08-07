@@ -1,13 +1,19 @@
 import { renderHook, act } from "@testing-library/react";
-import { usePatentRegistry, Stats, Patent, License, Dispute } from "@/hooks/usePatentRegistry";
+import {
+  usePatentRegistry,
+  Stats,
+  Patent,
+  License,
+  Dispute,
+} from "@/hooks/usePatentRegistry";
 
 const mockFetch = jest.fn();
 (global as any).fetch = mockFetch;
 
 beforeEach(() => {
   jest.resetAllMocks();
-  process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3001';
-  process.env.NEXT_PUBLIC_API_BASE_URL = '';
+  process.env.NEXT_PUBLIC_BACKEND_URL = "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_BASE_URL = "";
 });
 
 describe("usePatentRegistry", () => {
@@ -75,7 +81,7 @@ describe("usePatentRegistry", () => {
       expect(ret).toEqual(stats);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/patents/stats"),
-        expect.objectContaining({ headers: expect.any(Object) })
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
 
@@ -104,7 +110,7 @@ describe("usePatentRegistry", () => {
       expect(ret).toEqual(patent);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/patents/1"),
-        expect.objectContaining({ headers: expect.any(Object) })
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
 
@@ -132,7 +138,7 @@ describe("usePatentRegistry", () => {
       expect(ret).toEqual(license);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/patents/licenses/1"),
-        expect.objectContaining({ headers: expect.any(Object) })
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
 
@@ -160,7 +166,7 @@ describe("usePatentRegistry", () => {
       expect(ret).toEqual(dispute);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/patents/disputes/1"),
-        expect.objectContaining({ headers: expect.any(Object) })
+        expect.objectContaining({ headers: expect.any(Object) }),
       );
     });
   });
@@ -195,7 +201,7 @@ describe("usePatentRegistry", () => {
             description: "A new invention",
             expiryDate: 9999999999,
           }),
-        })
+        }),
       );
     });
 
@@ -216,7 +222,7 @@ describe("usePatentRegistry", () => {
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ admin: "0xadmin" }),
-        })
+        }),
       );
     });
 
@@ -237,7 +243,7 @@ describe("usePatentRegistry", () => {
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ admin: "0xadmin" }),
-        })
+        }),
       );
     });
   });

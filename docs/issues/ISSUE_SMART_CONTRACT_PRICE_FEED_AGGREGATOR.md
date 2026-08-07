@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement price feed aggregator contract for reliable asset pricing
 title: "[SMART CONTRACT] Implement Price Feed Aggregator Contract for Reliable Asset Pricing"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Financial applications like synthetic assets currently rely on single-source pri
 ## 💡 Proposed Solution
 
 Create a comprehensive price feed aggregator implementation with:
+
 - Standard price feed interface compliance
 - Multiple aggregation strategies (median, weighted average, trimmed mean)
 - Comprehensive security features (source validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive price feed aggregator implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `updatePrice()`, `getPrice()`, `getAggregatedPrice()` functions for price management
 - `addSource()`, `removeSource()`, `setWeight()` for source management
 - Event emissions (`PriceUpdated`, `SourceAdded`, `SourceRemoved`)
 - Security features: outlier detection, circuit breakers, source validation
 
 ### Implementation Details
+
 - Location: `contracts/price-feed-aggregator/`
 - Testing: `contracts/price-feed-aggregator/src/test.rs` with 80+ test cases
 - Documentation: `contracts/price-feed-aggregator/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive price feed aggregator implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building financial applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential infrastructure for synthetic assets, stablecoins, and other financial applications |
+| Dimension        | Assessment                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers building financial applications                                                          |
+| Effort estimate  | Medium (3-4 days)                                                                                       |
+| Breaking change? | No                                                                                                      |
+| MVP impact       | Critical - essential infrastructure for synthetic assets, stablecoins, and other financial applications |
 
 ## 🔗 Related Issues or References
 

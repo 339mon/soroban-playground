@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement centralized contract registry service
 title: "[BACKEND] Implement Centralized Contract Registry Service"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban contracts currently cannot be discovered or registered in a centralized 
 ## 💡 Proposed Solution
 
 Create a comprehensive contract registry service with:
+
 - REST API for contract registration and discovery
 - Database storage for contract metadata
 - Verification and validation capabilities
@@ -24,6 +25,7 @@ Create a comprehensive contract registry service with:
 - Integration with existing contract templates
 
 ### Key Features
+
 - `POST /registry/contracts`: Register new contract
 - `GET /registry/contracts`: List all contracts
 - `GET /registry/contracts/{id}`: Get contract details
@@ -31,6 +33,7 @@ Create a comprehensive contract registry service with:
 - `POST /registry/contracts/{id}/verify`: Verify contract source code
 
 ### Implementation Details
+
 - Location: `backend/src/routes/registry.js`
 - Service: `backend/src/services/registryService.js`
 - Database: PostgreSQL table `contract_registry`
@@ -52,12 +55,12 @@ Create a comprehensive contract registry service with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building interconnected applications |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables contract discoverability and ecosystem interoperability |
+| Dimension        | Assessment                                                                 |
+| ---------------- | -------------------------------------------------------------------------- |
+| Who benefits?    | All developers building interconnected applications                        |
+| Effort estimate  | Medium (4-5 days)                                                          |
+| Breaking change? | No                                                                         |
+| MVP impact       | Critical - enables contract discoverability and ecosystem interoperability |
 
 ## 🔗 Related Issues or References
 

@@ -27,7 +27,8 @@ export const rateLimiter = (options = {}) => {
   return async (req, res, next) => {
     let id;
     if (identifier === 'apiKey') {
-      id = req.headers['x-api-key'] || req.user?.apiKey || req.user?.id || req.ip;
+      id =
+        req.headers['x-api-key'] || req.user?.apiKey || req.user?.id || req.ip;
     } else if (identifier === 'endpoint') {
       id = `${req.ip}:${req.originalUrl}`;
     } else if (identifier === 'apiKeyOrIp') {
@@ -39,7 +40,8 @@ export const rateLimiter = (options = {}) => {
         req.headers['x-forwarded-for'] ||
         req.socket?.remoteAddress;
     } else {
-      id = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
+      id =
+        req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
     }
 
     const key = `ratelimit:${strategy.getName()}:${id}`;
@@ -55,7 +57,9 @@ export const rateLimiter = (options = {}) => {
       }
 
       const retryAfterSec = result.retryAfter || Math.ceil(windowMs / 1000);
-      const resetTimestamp = Math.ceil((Date.now() + retryAfterSec * 1000) / 1000);
+      const resetTimestamp = Math.ceil(
+        (Date.now() + retryAfterSec * 1000) / 1000
+      );
 
       res.set({
         'X-RateLimit-Limit': limit,

@@ -3,7 +3,8 @@
 import React from "react";
 import { X } from "lucide-react";
 
-export type FilterCategory = "all" | "defi" | "governance" | "nft" | "oracle" | "utility" | "gaming";
+export type FilterCategory =
+  "all" | "defi" | "governance" | "nft" | "oracle" | "utility" | "gaming";
 
 export interface TemplateFilters {
   category: FilterCategory;
@@ -26,18 +27,35 @@ const CATEGORIES: { value: FilterCategory; label: string }[] = [
 ];
 
 const FUNCTIONALITIES = [
-  "token", "voting", "staking", "escrow", "marketplace", "oracle",
-  "lottery", "bridge", "amm", "lending", "stablecoin", "identity",
+  "token",
+  "voting",
+  "staking",
+  "escrow",
+  "marketplace",
+  "oracle",
+  "lottery",
+  "bridge",
+  "amm",
+  "lending",
+  "stablecoin",
+  "identity",
 ];
 
-export default function TemplateFilter({ filters, onChange }: TemplateFilterProps) {
+export default function TemplateFilter({
+  filters,
+  onChange,
+}: TemplateFilterProps) {
   const setCategory = (category: FilterCategory) =>
     onChange({ ...filters, category });
 
   const toggleFunctionality = (fn: string) =>
-    onChange({ ...filters, functionality: filters.functionality === fn ? "" : fn });
+    onChange({
+      ...filters,
+      functionality: filters.functionality === fn ? "" : fn,
+    });
 
-  const hasActiveFilters = filters.category !== "all" || filters.functionality !== "";
+  const hasActiveFilters =
+    filters.category !== "all" || filters.functionality !== "";
 
   const clearAll = () => onChange({ category: "all", functionality: "" });
 

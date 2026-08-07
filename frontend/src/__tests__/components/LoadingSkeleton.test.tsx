@@ -44,7 +44,7 @@ describe("LoadingSkeleton – loading state", () => {
     render(<LoadingSkeleton />);
     expect(screen.getByRole("status")).toHaveAttribute(
       "aria-label",
-      "Loading content"
+      "Loading content",
     );
   });
 
@@ -67,7 +67,7 @@ describe("LoadingSkeleton – loading state", () => {
           { variant: "text", width: "80%" },
           { variant: "circle", width: "48px" },
         ]}
-      />
+      />,
     );
     const lines = screen.getAllByRole("presentation");
     expect(lines).toHaveLength(2);
@@ -79,7 +79,7 @@ describe("LoadingSkeleton – loading state", () => {
     render(<LoadingSkeleton ariaLabel="Loading wallet data" />);
     expect(screen.getByRole("status")).toHaveAttribute(
       "aria-label",
-      "Loading wallet data"
+      "Loading wallet data",
     );
   });
 
@@ -111,7 +111,7 @@ describe("LoadingSkeleton – loaded state", () => {
     render(
       <LoadingSkeleton isLoading={false}>
         <p>Contract compiled!</p>
-      </LoadingSkeleton>
+      </LoadingSkeleton>,
     );
     expect(screen.getByText("Contract compiled!")).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -133,7 +133,7 @@ describe("LoadingSkeleton – error state", () => {
     render(<LoadingSkeleton error={new Error("Network failure")} />);
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByTestId("skeleton-error-message")).toHaveTextContent(
-      "Network failure"
+      "Network failure",
     );
   });
 
@@ -141,35 +141,33 @@ describe("LoadingSkeleton – error state", () => {
     render(<LoadingSkeleton error="RPC timed out" />);
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByTestId("skeleton-error-message")).toHaveTextContent(
-      "RPC timed out"
+      "RPC timed out",
     );
   });
 
   it("renders a fallback message for an Error with an empty message", () => {
     render(<LoadingSkeleton error={new Error("")} />);
     expect(screen.getByTestId("skeleton-error-message")).toHaveTextContent(
-      "An unexpected error occurred."
+      "An unexpected error occurred.",
     );
   });
 
   it("renders a fallback message for an empty string error", () => {
     render(<LoadingSkeleton error="   " />);
     expect(screen.getByTestId("skeleton-error-message")).toHaveTextContent(
-      "An unexpected error occurred."
+      "An unexpected error occurred.",
     );
   });
 
   it("shows the Retry button when onRetry is provided", () => {
-    render(
-      <LoadingSkeleton error="Fetch failed" onRetry={jest.fn()} />
-    );
+    render(<LoadingSkeleton error="Fetch failed" onRetry={jest.fn()} />);
     expect(screen.getByTestId("skeleton-retry-button")).toBeInTheDocument();
   });
 
   it("does not show the Retry button when onRetry is absent", () => {
     render(<LoadingSkeleton error="Fetch failed" />);
     expect(
-      screen.queryByTestId("skeleton-retry-button")
+      screen.queryByTestId("skeleton-retry-button"),
     ).not.toBeInTheDocument();
   });
 
@@ -217,7 +215,7 @@ describe("SkeletonErrorBoundary", () => {
     render(
       <SkeletonErrorBoundary>
         <span>All good</span>
-      </SkeletonErrorBoundary>
+      </SkeletonErrorBoundary>,
     );
     expect(screen.getByText("All good")).toBeInTheDocument();
   });
@@ -226,7 +224,7 @@ describe("SkeletonErrorBoundary", () => {
     render(
       <SkeletonErrorBoundary>
         <Boom />
-      </SkeletonErrorBoundary>
+      </SkeletonErrorBoundary>,
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByTestId("skeleton-error-boundary")).toBeInTheDocument();
@@ -237,10 +235,10 @@ describe("SkeletonErrorBoundary", () => {
     render(
       <SkeletonErrorBoundary onRetry={jest.fn()}>
         <Boom />
-      </SkeletonErrorBoundary>
+      </SkeletonErrorBoundary>,
     );
     expect(
-      screen.getByRole("button", { name: /retry loading/i })
+      screen.getByRole("button", { name: /retry loading/i }),
     ).toBeInTheDocument();
   });
 
@@ -249,7 +247,7 @@ describe("SkeletonErrorBoundary", () => {
     render(
       <SkeletonErrorBoundary onRetry={onRetry}>
         <Boom />
-      </SkeletonErrorBoundary>
+      </SkeletonErrorBoundary>,
     );
     fireEvent.click(screen.getByRole("button", { name: /retry loading/i }));
     expect(onRetry).toHaveBeenCalledTimes(1);

@@ -21,7 +21,9 @@ class DatabaseServiceStub {
 export default class DatabaseService {
   constructor(dbPath = null) {
     const isReal = process.env.USE_REAL_DB === 'true';
-    this.impl = isReal ? new DatabaseServiceReal(dbPath) : new DatabaseServiceStub(dbPath);
+    this.impl = isReal
+      ? new DatabaseServiceReal(dbPath)
+      : new DatabaseServiceStub(dbPath);
   }
 
   async connect() {

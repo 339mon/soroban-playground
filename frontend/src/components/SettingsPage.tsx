@@ -16,16 +16,22 @@ export default function SettingsPage() {
     <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-3xl rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-slate-950/40">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">Settings</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">
+            Settings
+          </p>
           <h1 className="text-3xl font-semibold text-white">Preferences</h1>
           <p className="text-sm text-slate-400">
-            Customize the workspace defaults for your Soroban Playground experience.
+            Customize the workspace defaults for your Soroban Playground
+            experience.
           </p>
         </header>
 
         <section className="mt-8 space-y-6" aria-label="Preferences">
           <div className="space-y-2">
-            <label htmlFor="theme-select" className="block text-sm font-medium text-slate-200">
+            <label
+              htmlFor="theme-select"
+              className="block text-sm font-medium text-slate-200"
+            >
               Theme
             </label>
             <select
@@ -42,21 +48,31 @@ export default function SettingsPage() {
 
           <label className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-800/70 px-4 py-3">
             <span>
-              <span className="block text-sm font-medium text-white">Email notifications</span>
-              <span className="block text-xs text-slate-400">Receive updates when your workflows change.</span>
+              <span className="block text-sm font-medium text-white">
+                Email notifications
+              </span>
+              <span className="block text-xs text-slate-400">
+                Receive updates when your workflows change.
+              </span>
             </span>
             <input
               type="checkbox"
               checked={notificationsEnabled}
-              onChange={(event) => setNotificationsEnabled(event.target.checked)}
+              onChange={(event) =>
+                setNotificationsEnabled(event.target.checked)
+              }
               aria-label="Email notifications"
             />
           </label>
 
           <label className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-800/70 px-4 py-3">
             <span>
-              <span className="block text-sm font-medium text-white">Auto-save drafts</span>
-              <span className="block text-xs text-slate-400">Persist edits automatically while you work.</span>
+              <span className="block text-sm font-medium text-white">
+                Auto-save drafts
+              </span>
+              <span className="block text-xs text-slate-400">
+                Persist edits automatically while you work.
+              </span>
             </span>
             <input
               type="checkbox"

@@ -45,10 +45,15 @@ const DEFAULT_SKIP_PATHS = ['/healthz', '/health', '/ping', '/metrics'];
  * @param {Set<string>} sensitiveHeaders
  * @returns {Record<string, string|string[]>}
  */
-export function redactHeaders(headers = {}, sensitiveHeaders = DEFAULT_SENSITIVE_HEADERS) {
+export function redactHeaders(
+  headers = {},
+  sensitiveHeaders = DEFAULT_SENSITIVE_HEADERS
+) {
   const result = {};
   for (const [key, value] of Object.entries(headers)) {
-    result[key] = sensitiveHeaders.has(key.toLowerCase()) ? '[REDACTED]' : value;
+    result[key] = sensitiveHeaders.has(key.toLowerCase())
+      ? '[REDACTED]'
+      : value;
   }
   return result;
 }

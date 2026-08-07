@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement multisig wallet contract for decentralized governance
 title: "[SMART CONTRACT] Implement Multisig Wallet Contract for Decentralized Governance"
 labels: enhancement, smart-contract, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Treasury management and critical administrative operations currently lack multi-
 ## 💡 Proposed Solution
 
 Create a comprehensive multisig implementation with:
+
 - Standard multisig interface compliance
 - Flexible configuration (threshold, signers, minimum/maximum delay)
 - Comprehensive security features (transaction queuing, cancellation, execution validation)
@@ -24,12 +25,14 @@ Create a comprehensive multisig implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitTransaction()`, `confirmTransaction()`, `executeTransaction()` for operation management
 - `addOwner()`, `removeOwner()`, `changeThreshold()` for configuration
 - Event emissions (`Submission`, `Confirmation`, `Execution`, `OwnerAddition`, `OwnerRemoval`)
 - Security features: transaction queuing, cancellation, execution timing checks
 
 ### Implementation Details
+
 - Location: `contracts/multisig/`
 - Testing: `contracts/multisig/src/test.rs` with 90+ test cases
 - Documentation: `contracts/multisig/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive multisig implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building treasury and governance systems |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential security infrastructure for production deployments |
+| Dimension        | Assessment                                                              |
+| ---------------- | ----------------------------------------------------------------------- |
+| Who benefits?    | All developers building treasury and governance systems                 |
+| Effort estimate  | Medium (3-4 days)                                                       |
+| Breaking change? | No                                                                      |
+| MVP impact       | Critical - essential security infrastructure for production deployments |
 
 ## 🔗 Related Issues or References
 

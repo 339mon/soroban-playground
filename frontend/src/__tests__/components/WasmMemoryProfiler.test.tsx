@@ -7,8 +7,18 @@ describe("WasmMemoryProfiler", () => {
   const mockProfile: WasmMemoryProfile = {
     totalBytes: 128000,
     sections: [
-      { id: 10, name: "Code (Compiled Bytecode)", sizeBytes: 80000, percentage: 62.5 },
-      { id: 11, name: "Data (Static Memory Buffers)", sizeBytes: 20000, percentage: 15.6 },
+      {
+        id: 10,
+        name: "Code (Compiled Bytecode)",
+        sizeBytes: 80000,
+        percentage: 62.5,
+      },
+      {
+        id: 11,
+        name: "Data (Static Memory Buffers)",
+        sizeBytes: 20000,
+        percentage: 15.6,
+      },
     ],
     staticDataBytes: 20000,
     heapMinBytes: 65536,
@@ -22,7 +32,9 @@ describe("WasmMemoryProfiler", () => {
 
   it("renders null state message when no profile is passed", () => {
     render(<WasmMemoryProfiler profile={null} />);
-    expect(screen.getByText(/No WASM memory profile available/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No WASM memory profile available/i),
+    ).toBeInTheDocument();
   });
 
   it("renders metric cards and section distribution", () => {

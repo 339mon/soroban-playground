@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement upgradeable contract pattern for Soroban applications
 title: "[SMART CONTRACT] Implement Upgradeable Contract Pattern for Soroban Applications"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban applications currently cannot be upgraded after deployment, creating sig
 ## 💡 Proposed Solution
 
 Create a comprehensive upgradeable contract implementation with:
+
 - Standard upgradeable interface compliance
 - Flexible configuration (implementation address, admin control, upgrade permissions, initialization)
 - Comprehensive security features (admin validation, upgrade timing controls, initialization protection)
@@ -24,12 +25,14 @@ Create a comprehensive upgradeable contract implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `initialize()`, `upgradeTo()`, `upgradeToAndCall()` functions for upgrade management
 - `isInitialized()`, `getImplementation()` for state management
 - Event emissions (`Initialized`, `Upgraded`, `UpgradedAndCalled`)
 - Security features: admin validation, upgrade timing controls, initialization protection
 
 ### Implementation Details
+
 - Location: `contracts/upgradeable/`
 - Testing: `contracts/upgradeable/src/test.rs` with 80+ test cases
 - Documentation: `contracts/upgradeable/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive upgradeable contract implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building long-term applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables continuous improvement and maintenance of production applications |
+| Dimension        | Assessment                                                                       |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Who benefits?    | All developers building long-term applications                                   |
+| Effort estimate  | Medium (3-4 days)                                                                |
+| Breaking change? | No                                                                               |
+| MVP impact       | High - enables continuous improvement and maintenance of production applications |
 
 ## 🔗 Related Issues or References
 

@@ -7,7 +7,7 @@ developers secure, auditable, and roll-back-friendly migration tooling:
 
 1. **`MigrationExecutor`** — secure wrapper for executing single migration
    operations with admin-gated access and a `Pending → InProgress →
-   Completed / Failed / RolledBack` audit trail.
+Completed / Failed / RolledBack` audit trail.
 2. **`StateMigrator`** — utility for recording state transfers between
    contracts (success and failure variants) with full key-level audit.
 3. **`DataValidator`** — utility for verifying the integrity of migrated
@@ -37,78 +37,78 @@ developers secure, auditable, and roll-back-friendly migration tooling:
 
 ### Admin
 
-| Function | Access | Description |
-|---|---|---|
-| `initialize(admin)` | Anyone (once) | Bootstrap the contract |
-| `pause(admin)` | Admin | Halt mutation paths (rollbacks still allowed) |
-| `unpause(admin)` | Admin | Resume mutation paths |
-| `get_admin()` | Anyone | Current admin |
-| `is_initialized()` | Anyone | Whether `initialize` was called |
-| `is_paused()` | Anyone | Whether the contract is paused |
+| Function            | Access        | Description                                   |
+| ------------------- | ------------- | --------------------------------------------- |
+| `initialize(admin)` | Anyone (once) | Bootstrap the contract                        |
+| `pause(admin)`      | Admin         | Halt mutation paths (rollbacks still allowed) |
+| `unpause(admin)`    | Admin         | Resume mutation paths                         |
+| `get_admin()`       | Anyone        | Current admin                                 |
+| `is_initialized()`  | Anyone        | Whether `initialize` was called               |
+| `is_paused()`       | Anyone        | Whether the contract is paused                |
 
 ### 1) MigrationExecutor
 
-| Function | Access | Description |
-|---|---|---|
-| `queue_migration(admin, source, target, key, checksum, gas_budget)` | Admin | Register a new migration as `Pending` |
-| `execute_migration(admin, id, actual_hash)` | Admin | Run a queued migration; marks `Completed` on hash match, `Failed` otherwise |
-| `get_migration(id)` | Anyone | Read a stored migration |
-| `get_migration_count()` | Anyone | Total migrations ever queued |
+| Function                                                            | Access | Description                                                                 |
+| ------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------- |
+| `queue_migration(admin, source, target, key, checksum, gas_budget)` | Admin  | Register a new migration as `Pending`                                       |
+| `execute_migration(admin, id, actual_hash)`                         | Admin  | Run a queued migration; marks `Completed` on hash match, `Failed` otherwise |
+| `get_migration(id)`                                                 | Anyone | Read a stored migration                                                     |
+| `get_migration_count()`                                             | Anyone | Total migrations ever queued                                                |
 
 ### 2) StateMigrator
 
-| Function | Access | Description |
-|---|---|---|
-| `transfer_state(admin, source, target, key)` | Admin | Record a successful state transfer |
-| `record_transfer_failure(admin, source, target, key)` | Admin | Record a failed transfer (allowed even when paused) |
-| `get_transfer(id)` | Anyone | Read a transfer log |
-| `get_transfer_count()` | Anyone | Total transfer logs |
+| Function                                              | Access | Description                                         |
+| ----------------------------------------------------- | ------ | --------------------------------------------------- |
+| `transfer_state(admin, source, target, key)`          | Admin  | Record a successful state transfer                  |
+| `record_transfer_failure(admin, source, target, key)` | Admin  | Record a failed transfer (allowed even when paused) |
+| `get_transfer(id)`                                    | Anyone | Read a transfer log                                 |
+| `get_transfer_count()`                                | Anyone | Total transfer logs                                 |
 
 ### 3) DataValidator
 
-| Function | Access | Description |
-|---|---|---|
-| `validate_hash(admin, migration_id, expected, actual)` | Admin | Hash-pair check; `migration_id=0` is allowed for ad-hoc checks |
-| `validate_migration(admin, migration_id, actual_hash)` | Admin | Re-check a stored migration against an actual hash |
-| `get_validation(id)` | Anyone | Read a validation result |
-| `get_validation_count()` | Anyone | Total validations stored |
+| Function                                               | Access | Description                                                    |
+| ------------------------------------------------------ | ------ | -------------------------------------------------------------- |
+| `validate_hash(admin, migration_id, expected, actual)` | Admin  | Hash-pair check; `migration_id=0` is allowed for ad-hoc checks |
+| `validate_migration(admin, migration_id, actual_hash)` | Admin  | Re-check a stored migration against an actual hash             |
+| `get_validation(id)`                                   | Anyone | Read a validation result                                       |
+| `get_validation_count()`                               | Anyone | Total validations stored                                       |
 
 ### 4) BatchMigrator
 
-| Function | Access | Description |
-|---|---|---|
-| `open_batch(admin)` | Admin | Create a new `Open` batch; returns id |
-| `append_to_batch(admin, batch_id, op)` | Admin | Append a `MigrationOp` to an `Open` batch |
-| `execute_batch(admin, batch_id)` | Admin | Walk all ops and mark the batch `Completed` |
-| `get_batch(id)` | Anyone | Read a batch (with its `ops` vector) |
-| `get_batch_count()` | Anyone | Total batches created |
+| Function                               | Access | Description                                 |
+| -------------------------------------- | ------ | ------------------------------------------- |
+| `open_batch(admin)`                    | Admin  | Create a new `Open` batch; returns id       |
+| `append_to_batch(admin, batch_id, op)` | Admin  | Append a `MigrationOp` to an `Open` batch   |
+| `execute_batch(admin, batch_id)`       | Admin  | Walk all ops and mark the batch `Completed` |
+| `get_batch(id)`                        | Anyone | Read a batch (with its `ops` vector)        |
+| `get_batch_count()`                    | Anyone | Total batches created                       |
 
 ### 5) RollbackHandler
 
-| Function | Access | Description |
-|---|---|---|
-| `rollback_migration(admin, migration_id, reason)` | Admin | Revert a single migration; allowed even when paused |
-| `rollback_batch(admin, batch_id, reason)` | Admin | Revert a whole batch; allowed even when paused |
-| `get_rollback(id)` | Anyone | Read a rollback record |
-| `get_rollback_count()` | Anyone | Total rollback records |
+| Function                                          | Access | Description                                         |
+| ------------------------------------------------- | ------ | --------------------------------------------------- |
+| `rollback_migration(admin, migration_id, reason)` | Admin  | Revert a single migration; allowed even when paused |
+| `rollback_batch(admin, batch_id, reason)`         | Admin  | Revert a whole batch; allowed even when paused      |
+| `get_rollback(id)`                                | Anyone | Read a rollback record                              |
+| `get_rollback_count()`                            | Anyone | Total rollback records                              |
 
 ## Events
 
-| Topic | Data |
-|---|---|
-| `init` | admin |
-| `paused` / `unpaused` | admin |
-| `mig_q` | (id, admin) |
-| `mig_ex` | (id, final_status) |
-| `xfer` | id |
-| `xfer_f` | id |
-| `val` | (id, passed) |
-| `valm` | (id, passed) |
-| `b_open` | id |
-| `b_app` | (id, ops_len) |
-| `b_done` | (id, ops_len) |
-| `rb_m` | (migration_id, rollback_id) |
-| `rb_b` | (batch_id, rollback_id) |
+| Topic                 | Data                        |
+| --------------------- | --------------------------- |
+| `init`                | admin                       |
+| `paused` / `unpaused` | admin                       |
+| `mig_q`               | (id, admin)                 |
+| `mig_ex`              | (id, final_status)          |
+| `xfer`                | id                          |
+| `xfer_f`              | id                          |
+| `val`                 | (id, passed)                |
+| `valm`                | (id, passed)                |
+| `b_open`              | id                          |
+| `b_app`               | (id, ops_len)               |
+| `b_done`              | (id, ops_len)               |
+| `rb_m`                | (migration_id, rollback_id) |
+| `rb_b`                | (batch_id, rollback_id)     |
 
 ## Errors
 
@@ -167,12 +167,12 @@ client.rollback_batch(&admin, &bid, &String::from_str(&env, "aborted"));
 
 - **Single admin**: only `get_admin()` can mutate state, queue migrations,
   execute batches, or roll back.
-- **Pause** halts *mutation* paths (`queue_migration`, `execute_migration`,
+- **Pause** halts _mutation_ paths (`queue_migration`, `execute_migration`,
   `transfer_state`, `open_batch`, `append_to_batch`, `execute_batch`).
   **Reads and rollbacks remain available** so the admin can respond to
   incidents even while the contract is paused.
 - **Idempotency**: a migration can only be executed while `Pending`, and
-  rolled back only once.  Re-execution returns `InvalidMigrationState`.
+  rolled back only once. Re-execution returns `InvalidMigrationState`.
 - **Input validation**: every write path checks that the key is
   non-empty, the source and target are different, and (for migrations)
   the gas budget is either `0` (unknown) or `≥ 1_000`.

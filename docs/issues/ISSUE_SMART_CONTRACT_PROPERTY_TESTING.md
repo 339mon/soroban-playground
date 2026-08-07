@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban contract property-based testing utilities
 title: "[SMART CONTRACT] Implement Soroban Contract Property-Based Testing Utilities"
 labels: enhancement, smart-contract, testing, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement custom propert
 ## 💡 Proposed Solution
 
 Create a comprehensive set of property-based testing utility contracts including:
+
 - `PropertyTester`: Secure wrapper for property-based contract testing
 - `InvariantChecker`: Utility for checking contract invariants during testing
 - `BoundaryTester`: Utility for testing contract boundary conditions
@@ -24,6 +25,7 @@ Create a comprehensive set of property-based testing utility contracts including
 - `PropertyValidator`: Utility for validating contract properties and behaviors
 
 ### Key Features
+
 - Soroban-optimized property-based testing patterns
 - Comprehensive security validation (property validation, invariant checking)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of property-based testing utility contracts including
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/property-testing/`
 - Testing: `contracts/property-testing/src/test.rs` with 120+ test cases
 - Documentation: `contracts/property-testing/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of property-based testing utility contracts including
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers testing Soroban contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract testing |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | All developers testing Soroban contracts                                 |
+| Effort estimate  | Medium (3-4 days)                                                        |
+| Breaking change? | No                                                                       |
+| MVP impact       | High - improves security and developer productivity for contract testing |
 
 ## 🔗 Related Issues or References
 

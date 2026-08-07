@@ -10,7 +10,9 @@ export function cloneValue<T>(value: T): T {
   }
 
   const clone: Record<string, unknown> = {};
-  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+  for (const [key, nested] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
     clone[key] = cloneValue(nested);
   }
   return clone as T;

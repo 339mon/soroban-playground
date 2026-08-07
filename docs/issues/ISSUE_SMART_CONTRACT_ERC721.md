@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement ERC-721 Non-Fungible Token standard for Soroban
 title: "[SMART CONTRACT] Implement ERC-721 NFT Standard Contract"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The Soroban Playground currently lacks a standardized, audited ERC-721 implement
 ## 💡 Proposed Solution
 
 Create a comprehensive ERC-721 implementation with:
+
 - Standard ERC-721 interface compliance
 - Soroban-specific optimizations (storage layout, cross-contract calls)
 - Security best practices (reentrancy protection, overflow/underflow prevention)
@@ -24,12 +25,14 @@ Create a comprehensive ERC-721 implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `totalSupply()`, `balanceOf()`, `ownerOf()`, `transferFrom()`, `safeTransferFrom()` functions
 - `approve()`, `getApproved()`, `setApprovalForAll()`, `isApprovedForAll()` for permissions
 - Event emissions (`Transfer`, `Approval`, `ApprovalForAll`)
 - Optional extensions: enumerable, metadata, royalties
 
 ### Implementation Details
+
 - Location: `contracts/erc-721/`
 - Testing: `contracts/erc-721/src/test.rs` with 100+ test cases
 - Documentation: `contracts/erc-721/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive ERC-721 implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building NFT-based applications |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - foundational for digital asset infrastructure |
+| Dimension        | Assessment                                               |
+| ---------------- | -------------------------------------------------------- |
+| Who benefits?    | All developers building NFT-based applications           |
+| Effort estimate  | Medium (2-3 days)                                        |
+| Breaking change? | No                                                       |
+| MVP impact       | Critical - foundational for digital asset infrastructure |
 
 ## 🔗 Related Issues or References
 

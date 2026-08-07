@@ -93,21 +93,32 @@ export default function NetworkSwitcher() {
 
       if (res.ok) {
         const data = await res.json();
-        const isHealthy = data.result?.status === "healthy" || Boolean(data.result);
+        const isHealthy =
+          data.result?.status === "healthy" || Boolean(data.result);
         const status = !isHealthy
           ? "offline"
           : latency < 300
-          ? "healthy"
-          : "degraded";
+            ? "healthy"
+            : "degraded";
 
         setHealthMap((prev) => ({
           ...prev,
-          [netId]: { status, latencyMs: latency, lastChecked: Date.now(), error: !isHealthy ? "Unhealthy response" : undefined },
+          [netId]: {
+            status,
+            latencyMs: latency,
+            lastChecked: Date.now(),
+            error: !isHealthy ? "Unhealthy response" : undefined,
+          },
         }));
       } else {
         setHealthMap((prev) => ({
           ...prev,
-          [netId]: { status: "offline", latencyMs: latency, lastChecked: Date.now(), error: `HTTP ${res.status}` },
+          [netId]: {
+            status: "offline",
+            latencyMs: latency,
+            lastChecked: Date.now(),
+            error: `HTTP ${res.status}`,
+          },
         }));
       }
     } catch (err) {
@@ -121,7 +132,12 @@ export default function NetworkSwitcher() {
       }
       setHealthMap((prev) => ({
         ...prev,
-        [netId]: { status: "offline", latencyMs: null, lastChecked: Date.now(), error: errorMessage },
+        [netId]: {
+          status: "offline",
+          latencyMs: null,
+          lastChecked: Date.now(),
+          error: errorMessage,
+        },
       }));
     }
   }, []);
@@ -129,7 +145,9 @@ export default function NetworkSwitcher() {
   const pingAllNetworks = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.all(
-      (Object.keys(NETWORKS) as NetworkId[]).map((id) => checkNetworkLatency(id))
+      (Object.keys(NETWORKS) as NetworkId[]).map((id) =>
+        checkNetworkLatency(id),
+      ),
     );
     setIsRefreshing(false);
   }, [checkNetworkLatency]);
@@ -148,7 +166,10 @@ export default function NetworkSwitcher() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -180,8 +201,12 @@ export default function NetworkSwitcher() {
         aria-label="Select Network"
         aria-expanded={isOpen}
       >
-        <span className={`h-2 w-2 rounded-full ${getStatusDot(currentHealth.status)}`} />
-        <span className="font-semibold uppercase tracking-wider">{currentNet.name}</span>
+        <span
+          className={`h-2 w-2 rounded-full ${getStatusDot(currentHealth.status)}`}
+        />
+        <span className="font-semibold uppercase tracking-wider">
+          {currentNet.name}
+        </span>
         {currentHealth.latencyMs !== null ? (
           <span className="font-mono text-[10px] text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
             {currentHealth.latencyMs}ms
@@ -240,7 +265,9 @@ export default function NetworkSwitcher() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${getStatusDot(health.status)}`} />
+                    <span
+                      className={`h-2 w-2 rounded-full shrink-0 ${getStatusDot(health.status)}`}
+                    />
                     <div className="truncate">
                       <p className="text-xs font-semibold uppercase tracking-wider">
                         {net.name}
@@ -258,15 +285,22 @@ export default function NetworkSwitcher() {
                       </span>
                     ) : health.status === "offline" ? (
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-rose-400 font-medium">Offline</span>
+                        <span className="text-[10px] text-rose-400 font-medium">
+                          Offline
+                        </span>
                         {health.error && (
-                          <span className="text-[9px] text-rose-400/80 max-w-[90px] truncate" title={health.error}>
+                          <span
+                            className="text-[9px] text-rose-400/80 max-w-[90px] truncate"
+                            title={health.error}
+                          >
                             {health.error}
                           </span>
                         )}
                       </div>
                     ) : health.latencyMs !== null ? (
-                      <span className={`font-mono text-[10px] font-medium ${health.status === "degraded" ? "text-amber-400" : "text-teal-300"}`}>
+                      <span
+                        className={`font-mono text-[10px] font-medium ${health.status === "degraded" ? "text-amber-400" : "text-teal-300"}`}
+                      >
                         {health.latencyMs}ms
                       </span>
                     ) : (

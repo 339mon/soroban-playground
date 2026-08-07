@@ -272,7 +272,11 @@ router.post('/cache/warm', async (req, res) => {
 router.post('/cache/invalidate', async (req, res) => {
   try {
     const { hash, dependency, namespace } = req.body;
-    const result = await cacheService.invalidateCache({ hash, dependency, namespace });
+    const result = await cacheService.invalidateCache({
+      hash,
+      dependency,
+      namespace,
+    });
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });

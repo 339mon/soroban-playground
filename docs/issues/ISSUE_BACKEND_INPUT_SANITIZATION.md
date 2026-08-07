@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive input sanitization and validation
 title: "[BACKEND] Implement Comprehensive Input Sanitization and Validation"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive input sanitization, making it vulnerable
 ## 💡 Proposed Solution
 
 Create comprehensive input sanitization implementation with:
+
 - Input validation and sanitization middleware
 - Context-aware sanitization (SQL, HTML, JSON, etc.)
 - Output encoding
@@ -24,6 +25,7 @@ Create comprehensive input sanitization implementation with:
 - Integration with existing validation frameworks
 
 ### Key Features
+
 - Input validation and sanitization for all API endpoints
 - Context-aware sanitization for different input types
 - Output encoding for all user-generated content
@@ -32,6 +34,7 @@ Create comprehensive input sanitization implementation with:
 - Real-time sanitization monitoring and reporting
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/validation.js`
 - Service: `backend/src/services/validationService.js`
 - Configuration: `backend/src/config/validation.config.js`
@@ -53,12 +56,12 @@ Create comprehensive input sanitization implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All users of the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - protects against injection attacks and ensures data integrity |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | All users of the Soroban Playground                                      |
+| Effort estimate  | Medium (2-3 days)                                                        |
+| Breaking change? | No                                                                       |
+| MVP impact       | Critical - protects against injection attacks and ensures data integrity |
 
 ## 🔗 Related Issues or References
 

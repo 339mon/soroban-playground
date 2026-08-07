@@ -30,7 +30,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "hello-world",
     name: "Hello World",
-    description: "Minimal Soroban contract example that returns a greeting message",
+    description:
+      "Minimal Soroban contract example that returns a greeting message",
     category: "Getting Started",
     difficulty: "beginner",
     tags: ["basic", "hello", "starter"],
@@ -44,7 +45,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "counter",
     name: "Counter",
-    description: "Simple counter contract demonstrating state management and incrementation",
+    description:
+      "Simple counter contract demonstrating state management and incrementation",
     category: "Getting Started",
     difficulty: "beginner",
     tags: ["state", "counter", "basic"],
@@ -57,7 +59,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "token-contract",
     name: "Token Contract",
-    description: "Full-featured token implementation with minting, burning, and transfers",
+    description:
+      "Full-featured token implementation with minting, burning, and transfers",
     category: "Tokens",
     difficulty: "intermediate",
     tags: ["token", "stellar", "mint", "burn"],
@@ -70,7 +73,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "amm-pool",
     name: "AMM Pool",
-    description: "Automated Market Maker implementation for decentralized exchange",
+    description:
+      "Automated Market Maker implementation for decentralized exchange",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["dex", "amm", "trading", "liquidity"],
@@ -83,20 +87,27 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "lending-protocol",
     name: "Lending Protocol",
-    description: "Comprehensive lending protocol with collateral management and interest rates",
+    description:
+      "Comprehensive lending protocol with collateral management and interest rates",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["lending", "collateral", "interest", "defi"],
     path: "contracts/lending-protocol",
     hasReadme: true,
     documentationStatus: "partial",
-    features: ["Lending", "Borrowing", "Collateral management", "Interest calculation"],
+    features: [
+      "Lending",
+      "Borrowing",
+      "Collateral management",
+      "Interest calculation",
+    ],
     useCases: ["Decentralized lending", "Credit protocols"],
   },
   {
     id: "nft-marketplace",
     name: "NFT Marketplace",
-    description: "Complete NFT marketplace with listing, bidding, and trading capabilities",
+    description:
+      "Complete NFT marketplace with listing, bidding, and trading capabilities",
     category: "NFTs",
     difficulty: "advanced",
     tags: ["nft", "marketplace", "trading", "auction"],
@@ -109,7 +120,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "governance",
     name: "Governance",
-    description: "DAO governance contract with voting, proposals, and treasury management",
+    description:
+      "DAO governance contract with voting, proposals, and treasury management",
     category: "Governance",
     difficulty: "advanced",
     tags: ["governance", "dao", "voting", "proposals"],
@@ -122,7 +134,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "multisig-wallet",
     name: "Multisig Wallet",
-    description: "Multi-signature wallet requiring multiple approvals for transactions",
+    description:
+      "Multi-signature wallet requiring multiple approvals for transactions",
     category: "Security",
     difficulty: "intermediate",
     tags: ["wallet", "multisig", "security", "approval"],
@@ -142,13 +155,19 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
     path: "contracts/staking",
     hasReadme: true,
     documentationStatus: "complete",
-    features: ["Staking", "Reward distribution", "Lockup periods", "APY calculation"],
+    features: [
+      "Staking",
+      "Reward distribution",
+      "Lockup periods",
+      "APY calculation",
+    ],
     useCases: ["Token incentivization", "Yield generation"],
   },
   {
     id: "escrow",
     name: "Escrow",
-    description: "Escrow contract for secure asset transfer with third-party verification",
+    description:
+      "Escrow contract for secure asset transfer with third-party verification",
     category: "Security",
     difficulty: "intermediate",
     tags: ["escrow", "security", "settlement", "verification"],
@@ -161,20 +180,27 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "supply-chain",
     name: "Supply Chain",
-    description: "Supply chain tracking with product authentication and history logging",
+    description:
+      "Supply chain tracking with product authentication and history logging",
     category: "Enterprise",
     difficulty: "intermediate",
     tags: ["supply-chain", "tracking", "authentication", "logistics"],
     path: "contracts/supply-chain",
     hasReadme: true,
     documentationStatus: "partial",
-    features: ["Product tracking", "Authentication", "History logging", "Chain verification"],
+    features: [
+      "Product tracking",
+      "Authentication",
+      "History logging",
+      "Chain verification",
+    ],
     useCases: ["Supply chain transparency", "Product verification"],
   },
   {
     id: "did-registry",
     name: "DID Registry",
-    description: "Decentralized Identity registry for identity management and verification",
+    description:
+      "Decentralized Identity registry for identity management and verification",
     category: "Identity",
     difficulty: "advanced",
     tags: ["identity", "did", "verification", "decentralized"],
@@ -200,7 +226,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "quadratic-voting",
     name: "Quadratic Voting",
-    description: "Quadratic voting system for fair and efficient democratic decisions",
+    description:
+      "Quadratic voting system for fair and efficient democratic decisions",
     category: "Governance",
     difficulty: "advanced",
     tags: ["voting", "quadratic", "governance", "democracy"],
@@ -226,7 +253,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "synthetic-assets",
     name: "Synthetic Assets",
-    description: "Synthetic asset protocol for creating derivatives and exposure to assets",
+    description:
+      "Synthetic asset protocol for creating derivatives and exposure to assets",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["synthetic", "derivatives", "assets", "defi"],
@@ -239,7 +267,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "yield-farming",
     name: "Yield Farming",
-    description: "Yield farming protocol with multiple reward pools and farming strategies",
+    description:
+      "Yield farming protocol with multiple reward pools and farming strategies",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["yield-farming", "rewards", "pools", "defi"],
@@ -252,7 +281,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "flash-loan",
     name: "Flash Loan",
-    description: "Flash loan protocol for uncollateralized loans within a single transaction",
+    description:
+      "Flash loan protocol for uncollateralized loans within a single transaction",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["flash-loan", "defi", "lending", "uncollateralized"],
@@ -265,7 +295,8 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "music-royalty",
     name: "Music Royalty",
-    description: "Music royalty distribution contract for fair artist compensation",
+    description:
+      "Music royalty distribution contract for fair artist compensation",
     category: "Entertainment",
     difficulty: "intermediate",
     tags: ["music", "royalty", "distribution", "artists"],
@@ -278,20 +309,27 @@ export const TEMPLATES_CATALOG: TemplateMetadata[] = [
   {
     id: "stablecoin",
     name: "Stablecoin",
-    description: "Stablecoin protocol with collateral management and peg mechanisms",
+    description:
+      "Stablecoin protocol with collateral management and peg mechanisms",
     category: "DeFi",
     difficulty: "advanced",
     tags: ["stablecoin", "collateral", "peg", "defi"],
     path: "contracts/stablecoin",
     hasReadme: true,
     documentationStatus: "complete",
-    features: ["Minting", "Burning", "Collateral management", "Peg maintenance"],
+    features: [
+      "Minting",
+      "Burning",
+      "Collateral management",
+      "Peg maintenance",
+    ],
     useCases: ["Stable value transfers", "DeFi primitive"],
   },
   {
     id: "token-vesting",
     name: "Token Vesting",
-    description: "Token vesting contract with cliff and linear release schedules",
+    description:
+      "Token vesting contract with cliff and linear release schedules",
     category: "Tokens",
     difficulty: "intermediate",
     tags: ["vesting", "token", "release-schedule", "cliff"],
@@ -310,7 +348,10 @@ export function getCategories(): TemplateCategory[] {
   const categoryMap = new Map<string, number>();
 
   TEMPLATES_CATALOG.forEach((template) => {
-    categoryMap.set(template.category, (categoryMap.get(template.category) || 0) + 1);
+    categoryMap.set(
+      template.category,
+      (categoryMap.get(template.category) || 0) + 1,
+    );
   });
 
   return Array.from(categoryMap.entries())
@@ -333,14 +374,16 @@ export function searchTemplates(query: string): TemplateMetadata[] {
       template.name.toLowerCase().includes(lowerQuery) ||
       template.description.toLowerCase().includes(lowerQuery) ||
       template.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)) ||
-      template.category.toLowerCase().includes(lowerQuery)
+      template.category.toLowerCase().includes(lowerQuery),
   );
 }
 
 /**
  * Filter templates by category
  */
-export function filterTemplatesByCategory(category: string): TemplateMetadata[] {
+export function filterTemplatesByCategory(
+  category: string,
+): TemplateMetadata[] {
   if (category === "all") return TEMPLATES_CATALOG;
   return TEMPLATES_CATALOG.filter((template) => template.category === category);
 }
@@ -350,7 +393,7 @@ export function filterTemplatesByCategory(category: string): TemplateMetadata[] 
  */
 export function filterTemplatesByDifficulty(
   templates: TemplateMetadata[],
-  difficulty: string
+  difficulty: string,
 ): TemplateMetadata[] {
   if (difficulty === "all") return templates;
   return templates.filter((template) => template.difficulty === difficulty);
@@ -361,10 +404,12 @@ export function filterTemplatesByDifficulty(
  */
 export function filterTemplatesByDocStatus(
   templates: TemplateMetadata[],
-  status: string
+  status: string,
 ): TemplateMetadata[] {
   if (status === "all") return templates;
-  return templates.filter((template) => template.documentationStatus === status);
+  return templates.filter(
+    (template) => template.documentationStatus === status,
+  );
 }
 
 /**

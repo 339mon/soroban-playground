@@ -1,34 +1,38 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useFreighterWallet } from '@/hooks/useFreighterWallet';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useFreighterWallet } from "@/hooks/useFreighterWallet";
 
-const STORAGE_KEY = 'template-library-favorites';
+const STORAGE_KEY = "template-library-favorites";
 
-export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+export type SyncStatus = "idle" | "syncing" | "synced" | "error" | "offline";
 
 function loadLocalFavorites(): string[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((v): v is string => typeof v === "string")
+      : [];
   } catch {
     return [];
   }
 }
 
 function saveLocalFavorites(favorites: string[]) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
 }
 
-async function fetchRemoteFavorites(walletAddress: string): Promise<{ favorites: string[]; updatedAt: string } | null> {
+async function fetchRemoteFavorites(
+  walletAddress: string,
+): Promise<{ favorites: string[]; updatedAt: string } | null> {
   try {
-    const res = await fetch('/api/favorites', {
-      headers: { 'x-wallet-address': walletAddress },
+    const res = await fetch("/api/favorites", {
+      headers: { "x-wallet-address": walletAddress },
     });
     if (!res.ok) return null;
     return await res.json();
@@ -37,13 +41,16 @@ async function fetchRemoteFavorites(walletAddress: string): Promise<{ favorites:
   }
 }
 
-async function pushRemoteFavorites(walletAddress: string, favorites: string[]): Promise<boolean> {
+async function pushRemoteFavorites(
+  walletAddress: string,
+  favorites: string[],
+): Promise<boolean> {
   try {
-    const res = await fetch('/api/favorites', {
-      method: 'POST',
+    const res = await fetch("/api/favorites", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-wallet-address': walletAddress,
+        "Content-Type": "application/json",
+        "x-wallet-address": walletAddress,
       },
       body: JSON.stringify({ favorites }),
     });
@@ -65,27 +72,27 @@ export function useFavorites() {
 
   const [favorites, setFavorites] = useState<string[]>(loadLocalFavorites);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(
-    isAuthenticated && walletAddress ? 'idle' : 'offline'
+    isAuthenticated && walletAddress ? "idle" : "offline",
   );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sync = useCallback(
     async (currentFavorites: string[]) => {
       if (!walletAddress) return;
-      setSyncStatus('syncing');
+      setSyncStatus("syncing");
       const ok = await pushRemoteFavorites(walletAddress, currentFavorites);
-      setSyncStatus(ok ? 'synced' : 'error');
+      setSyncStatus(ok ? "synced" : "error");
     },
-    [walletAddress]
+    [walletAddress],
   );
 
   useEffect(() => {
     if (!isAuthenticated || !walletAddress) {
-      setSyncStatus('offline');
+      setSyncStatus("offline");
       return;
     }
 
-    setSyncStatus('idle');
+    setSyncStatus("idle");
 
     const local = loadLocalFavorites();
     if (local.length > 0) {
@@ -99,9 +106,9 @@ export function useFavorites() {
           saveLocalFavorites(merged);
           return merged;
         });
-        setSyncStatus('synced');
+        setSyncStatus("synced");
       } else {
-        setSyncStatus('error');
+        setSyncStatus("error");
       }
     });
   }, [isAuthenticated, walletAddress]);
@@ -122,7 +129,7 @@ export function useFavorites() {
         return next;
       });
     },
-    [sync]
+    [sync],
   );
 
   const retrySync = useCallback(() => {

@@ -50,7 +50,8 @@ export interface AllocationEntry {
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  (process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com")
+  (process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com")
 ).replace(/\/$/, "");
 
 async function apiPost(path: string, body: unknown) {
@@ -89,7 +90,15 @@ function bpsToPercent(bps: number) {
   return (bps / 100).toFixed(2) + "%";
 }
 
-function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
+function StatCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex items-center gap-3">
       <div className="text-indigo-400">{icon}</div>
@@ -103,7 +112,10 @@ function StatCard({ label, value, icon }: { label: string; value: string | numbe
 
 function ErrorMsg({ msg }: { msg: string }) {
   return (
-    <p className="text-xs text-red-400 mt-1 flex items-center gap-1" role="alert">
+    <p
+      className="text-xs text-red-400 mt-1 flex items-center gap-1"
+      role="alert"
+    >
       <AlertTriangle size={12} /> {msg}
     </p>
   );
@@ -153,7 +165,9 @@ export default function YieldOptimizerPanel({
       const params = { contractId, network };
       const [status, best] = await Promise.all([
         apiGet("/api/yield-optimizer/status", params),
-        apiGet("/api/yield-optimizer/best-strategy", params).catch(() => ({ strategyId: null })),
+        apiGet("/api/yield-optimizer/best-strategy", params).catch(() => ({
+          strategyId: null,
+        })),
       ]);
       setPaused(status.paused ?? false);
       setStrategyCount(status.strategyCount ?? 0);
@@ -165,13 +179,17 @@ export default function YieldOptimizerPanel({
     }
   }, [contractId, network, showToast]);
 
-  useEffect(() => { refreshStats(); }, [refreshStats]);
+  useEffect(() => {
+    refreshStats();
+  }, [refreshStats]);
 
   async function togglePause() {
     if (!walletAddress) return showToast("Wallet address required", false);
     try {
       await apiPost(`/api/yield-optimizer/${paused ? "unpause" : "pause"}`, {
-        contractId, admin: walletAddress, network,
+        contractId,
+        admin: walletAddress,
+        network,
       });
       showToast(paused ? "Unpaused" : "Paused");
       await refreshStats();
@@ -205,12 +223,26 @@ export default function YieldOptimizerPanel({
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Strategies" value={strategyCount} icon={<Layers size={18} />} />
-        <StatCard label="Best Strategy" value={bestId ? `#${bestId}` : "—"} icon={<TrendingUp size={18} />} />
+        <StatCard
+          label="Strategies"
+          value={strategyCount}
+          icon={<Layers size={18} />}
+        />
+        <StatCard
+          label="Best Strategy"
+          value={bestId ? `#${bestId}` : "—"}
+          icon={<TrendingUp size={18} />}
+        />
         <StatCard
           label="Status"
           value={paused ? "Paused" : "Active"}
-          icon={paused ? <PauseCircle size={18} className="text-yellow-400" /> : <PlayCircle size={18} className="text-green-400" />}
+          icon={
+            paused ? (
+              <PauseCircle size={18} className="text-yellow-400" />
+            ) : (
+              <PlayCircle size={18} className="text-green-400" />
+            )
+          }
         />
         <StatCard label="Network" value={network} icon={<Zap size={18} />} />
       </div>
@@ -228,7 +260,9 @@ export default function YieldOptimizerPanel({
           <button
             onClick={togglePause}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              paused ? "bg-green-700 hover:bg-green-600 text-white" : "bg-yellow-700 hover:bg-yellow-600 text-white"
+              paused
+                ? "bg-green-700 hover:bg-green-600 text-white"
+                : "bg-yellow-700 hover:bg-yellow-600 text-white"
             }`}
           >
             {paused ? <PlayCircle size={13} /> : <PauseCircle size={13} />}
@@ -254,16 +288,36 @@ export default function YieldOptimizerPanel({
       </div>
 
       {tab === "strategies" && (
-        <StrategiesTab contractId={contractId} walletAddress={walletAddress} network={network} showToast={showToast} onRefresh={refreshStats} />
+        <StrategiesTab
+          contractId={contractId}
+          walletAddress={walletAddress}
+          network={network}
+          showToast={showToast}
+          onRefresh={refreshStats}
+        />
       )}
       {tab === "position" && (
-        <PositionTab contractId={contractId} walletAddress={walletAddress} network={network} showToast={showToast} />
+        <PositionTab
+          contractId={contractId}
+          walletAddress={walletAddress}
+          network={network}
+          showToast={showToast}
+        />
       )}
       {tab === "allocate" && (
-        <AllocateTab contractId={contractId} walletAddress={walletAddress} network={network} showToast={showToast} />
+        <AllocateTab
+          contractId={contractId}
+          walletAddress={walletAddress}
+          network={network}
+          showToast={showToast}
+        />
       )}
       {tab === "backtest" && (
-        <BacktestTab contractId={contractId} network={network} showToast={showToast} />
+        <BacktestTab
+          contractId={contractId}
+          network={network}
+          showToast={showToast}
+        />
       )}
     </div>
   );
@@ -281,7 +335,13 @@ interface TabProps {
 
 // ── StrategiesTab ─────────────────────────────────────────────────────────────
 
-function StrategiesTab({ contractId, walletAddress, network, showToast, onRefresh }: TabProps) {
+function StrategiesTab({
+  contractId,
+  walletAddress,
+  network,
+  showToast,
+  onRefresh,
+}: TabProps) {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(false);
   const [lookupId, setLookupId] = useState("");
@@ -294,7 +354,10 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
     if (!id) return showToast("Enter a valid strategy ID", false);
     setLoading(true);
     try {
-      const data = await apiGet(`/api/yield-optimizer/strategies/${id}`, { contractId, network });
+      const data = await apiGet(`/api/yield-optimizer/strategies/${id}`, {
+        contractId,
+        network,
+      });
       setStrategies([{ id, ...data.strategy }]);
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -321,8 +384,11 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
     setSubmitting(true);
     try {
       const data = await apiPost("/api/yield-optimizer/strategies", {
-        contractId, admin: walletAddress, name: form.name.trim(),
-        apyBps: Number(form.apyBps), network,
+        contractId,
+        admin: walletAddress,
+        name: form.name.trim(),
+        apyBps: Number(form.apyBps),
+        network,
       });
       showToast(`Strategy added (ID: ${data.strategyId})`);
       setForm((f) => ({ ...f, name: "" }));
@@ -338,10 +404,15 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
     if (!walletAddress) return showToast("Wallet address required", false);
     try {
       await apiPatch(`/api/yield-optimizer/strategies/${s.id}/active`, {
-        contractId, admin: walletAddress, active: !s.isActive, network,
+        contractId,
+        admin: walletAddress,
+        active: !s.isActive,
+        network,
       });
       showToast(s.isActive ? "Strategy paused" : "Strategy activated");
-      setStrategies((prev) => prev.map((x) => x.id === s.id ? { ...x, isActive: !x.isActive } : x));
+      setStrategies((prev) =>
+        prev.map((x) => (x.id === s.id ? { ...x, isActive: !x.isActive } : x)),
+      );
     } catch (e: unknown) {
       showToast((e as Error).message, false);
     }
@@ -353,7 +424,12 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
         <SectionHeader title="Add Strategy" />
         <form onSubmit={addStrategy} className="space-y-3" noValidate>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="strat-name">Strategy Name</label>
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="strat-name"
+            >
+              Strategy Name
+            </label>
             <input
               id="strat-name"
               value={form.name}
@@ -364,7 +440,10 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
             {formErr.name && <ErrorMsg msg={formErr.name} />}
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="strat-apy">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="strat-apy"
+            >
               APY (basis points, e.g. 1000 = 10%)
             </label>
             <input
@@ -373,12 +452,16 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
               min={0}
               max={50000}
               value={form.apyBps}
-              onChange={(e) => setForm((f) => ({ ...f, apyBps: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, apyBps: e.target.value }))
+              }
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
             />
             {formErr.apyBps && <ErrorMsg msg={formErr.apyBps} />}
             {form.apyBps && !formErr.apyBps && (
-              <p className="text-xs text-gray-500 mt-0.5">= {bpsToPercent(Number(form.apyBps))} APY</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                = {bpsToPercent(Number(form.apyBps))} APY
+              </p>
             )}
           </div>
           <button
@@ -407,7 +490,11 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
             disabled={loading}
             className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors disabled:opacity-50"
           >
-            {loading ? <RefreshCw size={14} className="animate-spin" /> : "Fetch"}
+            {loading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              "Fetch"
+            )}
           </button>
         </div>
       </div>
@@ -415,14 +502,25 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
       {strategies.length > 0 && (
         <div className="space-y-2">
           {strategies.map((s) => (
-            <div key={s.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex items-start justify-between gap-3">
+            <div
+              key={s.id}
+              className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex items-start justify-between gap-3"
+            >
               <div className="space-y-0.5">
-                <p className="text-sm font-medium text-white">#{s.id} — {s.name}</p>
-                <p className="text-xs text-indigo-300 font-medium">APY: {bpsToPercent(s.apyBps)}</p>
-                <p className="text-xs text-gray-400">TVL: {s.totalDeposited?.toLocaleString()} stroops</p>
+                <p className="text-sm font-medium text-white">
+                  #{s.id} — {s.name}
+                </p>
+                <p className="text-xs text-indigo-300 font-medium">
+                  APY: {bpsToPercent(s.apyBps)}
+                </p>
+                <p className="text-xs text-gray-400">
+                  TVL: {s.totalDeposited?.toLocaleString()} stroops
+                </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.isActive ? "bg-green-900/40 text-green-300 border border-green-700" : "bg-red-900/40 text-red-300 border border-red-700"}`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.isActive ? "bg-green-900/40 text-green-300 border border-green-700" : "bg-red-900/40 text-red-300 border border-red-700"}`}
+                >
                   {s.isActive ? "Active" : "Paused"}
                 </span>
                 {walletAddress && (
@@ -444,20 +542,31 @@ function StrategiesTab({ contractId, walletAddress, network, showToast, onRefres
 
 // ── PositionTab ───────────────────────────────────────────────────────────────
 
-function PositionTab({ contractId, walletAddress, network, showToast }: TabProps) {
+function PositionTab({
+  contractId,
+  walletAddress,
+  network,
+  showToast,
+}: TabProps) {
   const [position, setPosition] = useState<Position | null>(null);
   const [strategyId, setStrategyId] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState<"deposit" | "withdraw" | "compound" | null>(null);
+  const [submitting, setSubmitting] = useState<
+    "deposit" | "withdraw" | "compound" | null
+  >(null);
 
   async function fetchPosition() {
     const sid = Number(strategyId);
-    if (!sid || !walletAddress) return showToast("Strategy ID and wallet required", false);
+    if (!sid || !walletAddress)
+      return showToast("Strategy ID and wallet required", false);
     setLoading(true);
     try {
       const data = await apiGet("/api/yield-optimizer/position", {
-        contractId, user: walletAddress, strategyId: String(sid), network,
+        contractId,
+        user: walletAddress,
+        strategyId: String(sid),
+        network,
       });
       setPosition(data.position);
     } catch (e: unknown) {
@@ -470,11 +579,16 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
   async function deposit() {
     const sid = Number(strategyId);
     const amt = Number(amount);
-    if (!sid || !amt || !walletAddress) return showToast("Fill all fields", false);
+    if (!sid || !amt || !walletAddress)
+      return showToast("Fill all fields", false);
     setSubmitting("deposit");
     try {
       await apiPost("/api/yield-optimizer/deposit", {
-        contractId, user: walletAddress, strategyId: sid, amount: amt, network,
+        contractId,
+        user: walletAddress,
+        strategyId: sid,
+        amount: amt,
+        network,
       });
       showToast("Deposited successfully");
       await fetchPosition();
@@ -488,11 +602,16 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
   async function withdraw() {
     const sid = Number(strategyId);
     const amt = Number(amount);
-    if (!sid || !amt || !walletAddress) return showToast("Fill all fields", false);
+    if (!sid || !amt || !walletAddress)
+      return showToast("Fill all fields", false);
     setSubmitting("withdraw");
     try {
       await apiPost("/api/yield-optimizer/withdraw", {
-        contractId, user: walletAddress, strategyId: sid, amount: amt, network,
+        contractId,
+        user: walletAddress,
+        strategyId: sid,
+        amount: amt,
+        network,
       });
       showToast("Withdrawn successfully");
       await fetchPosition();
@@ -505,13 +624,19 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
 
   async function compound() {
     const sid = Number(strategyId);
-    if (!sid || !walletAddress) return showToast("Strategy ID and wallet required", false);
+    if (!sid || !walletAddress)
+      return showToast("Strategy ID and wallet required", false);
     setSubmitting("compound");
     try {
       const data = await apiPost("/api/yield-optimizer/compound", {
-        contractId, user: walletAddress, strategyId: sid, network,
+        contractId,
+        user: walletAddress,
+        strategyId: sid,
+        network,
       });
-      showToast(`Compounded — new balance: ${data.newBalance?.toLocaleString()}`);
+      showToast(
+        `Compounded — new balance: ${data.newBalance?.toLocaleString()}`,
+      );
       await fetchPosition();
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -526,7 +651,12 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
         <SectionHeader title="My Position" />
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="pos-sid">Strategy ID</label>
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="pos-sid"
+            >
+              Strategy ID
+            </label>
             <input
               id="pos-sid"
               type="number"
@@ -537,7 +667,12 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="pos-amt">Amount (stroops)</label>
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="pos-amt"
+            >
+              Amount (stroops)
+            </label>
             <input
               id="pos-amt"
               type="number"
@@ -554,7 +689,11 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
             disabled={loading}
             className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition-colors disabled:opacity-50"
           >
-            {loading ? <RefreshCw size={12} className="animate-spin inline" /> : "Fetch Position"}
+            {loading ? (
+              <RefreshCw size={12} className="animate-spin inline" />
+            ) : (
+              "Fetch Position"
+            )}
           </button>
           <button
             onClick={deposit}
@@ -575,7 +714,8 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
             disabled={submitting === "compound"}
             className="flex items-center gap-1 px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white text-xs rounded transition-colors disabled:opacity-50"
           >
-            <Zap size={12} /> {submitting === "compound" ? "Compounding…" : "Compound"}
+            <Zap size={12} />{" "}
+            {submitting === "compound" ? "Compounding…" : "Compound"}
           </button>
         </div>
       </div>
@@ -586,16 +726,24 @@ function PositionTab({ contractId, walletAddress, network, showToast }: TabProps
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Deposited</p>
-              <p className="text-sm font-bold text-white">{position.deposited?.toLocaleString()}</p>
+              <p className="text-sm font-bold text-white">
+                {position.deposited?.toLocaleString()}
+              </p>
             </div>
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Compounded Balance</p>
-              <p className="text-sm font-bold text-green-300">{position.compoundedBalance?.toLocaleString()}</p>
+              <p className="text-sm font-bold text-green-300">
+                {position.compoundedBalance?.toLocaleString()}
+              </p>
             </div>
           </div>
           {position.compoundedBalance > position.deposited && (
             <p className="text-xs text-green-400">
-              +{(position.compoundedBalance - position.deposited).toLocaleString()} rewards accrued
+              +
+              {(
+                position.compoundedBalance - position.deposited
+              ).toLocaleString()}{" "}
+              rewards accrued
             </p>
           )}
         </div>
@@ -618,7 +766,9 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
   const weightSum = rows.reduce((s, r) => s + r.weightBps, 0);
 
   function updateRow(i: number, field: keyof AllocationEntry, val: number) {
-    setRows((prev) => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+    setRows((prev) =>
+      prev.map((r, idx) => (idx === i ? { ...r, [field]: val } : r)),
+    );
   }
 
   function addRow() {
@@ -633,12 +783,16 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
     e.preventDefault();
     const amt = Number(totalAmount);
     if (!amt || amt <= 0) return showToast("Total amount must be > 0", false);
-    if (weightSum !== 10000) return showToast("Weights must sum to 10 000 bps (100%)", false);
+    if (weightSum !== 10000)
+      return showToast("Weights must sum to 10 000 bps (100%)", false);
     setSubmitting(true);
     try {
       const data = await apiPost("/api/yield-optimizer/allocate", {
         contractId,
-        allocations: rows.map((r) => ({ strategyId: r.strategyId, weightBps: r.weightBps })),
+        allocations: rows.map((r) => ({
+          strategyId: r.strategyId,
+          weightBps: r.weightBps,
+        })),
         totalAmount: amt,
         network,
       });
@@ -657,7 +811,10 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
         <SectionHeader title="Portfolio Allocation" />
         <form onSubmit={allocate} className="space-y-3" noValidate>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="alloc-total">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="alloc-total"
+            >
               Total Amount (stroops)
             </label>
             <input
@@ -673,7 +830,9 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs text-gray-400">Allocations</p>
-              <span className={`text-xs font-medium ${weightSum === 10000 ? "text-green-400" : "text-yellow-400"}`}>
+              <span
+                className={`text-xs font-medium ${weightSum === 10000 ? "text-green-400" : "text-yellow-400"}`}
+              >
                 {weightSum} / 10 000 bps
               </span>
             </div>
@@ -683,7 +842,9 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
                   type="number"
                   min={1}
                   value={r.strategyId}
-                  onChange={(e) => updateRow(i, "strategyId", Number(e.target.value))}
+                  onChange={(e) =>
+                    updateRow(i, "strategyId", Number(e.target.value))
+                  }
                   placeholder="Strategy ID"
                   aria-label={`Strategy ID for row ${i + 1}`}
                   className="w-24 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-indigo-500"
@@ -693,12 +854,16 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
                   min={0}
                   max={10000}
                   value={r.weightBps}
-                  onChange={(e) => updateRow(i, "weightBps", Number(e.target.value))}
+                  onChange={(e) =>
+                    updateRow(i, "weightBps", Number(e.target.value))
+                  }
                   placeholder="Weight bps"
                   aria-label={`Weight bps for row ${i + 1}`}
                   className="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
-                <span className="text-xs text-gray-400 w-12 text-right">{bpsToPercent(r.weightBps)}</span>
+                <span className="text-xs text-gray-400 w-12 text-right">
+                  {bpsToPercent(r.weightBps)}
+                </span>
                 <button
                   type="button"
                   onClick={() => removeRow(i)}
@@ -723,7 +888,8 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
             disabled={submitting || weightSum !== 10000}
             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors"
           >
-            <BarChart2 size={14} /> {submitting ? "Calculating…" : "Calculate Allocation"}
+            <BarChart2 size={14} />{" "}
+            {submitting ? "Calculating…" : "Calculate Allocation"}
           </button>
         </form>
       </div>
@@ -733,9 +899,16 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
           <SectionHeader title="Allocation Result" />
           <div className="space-y-2">
             {rows.map((r, i) => (
-              <div key={i} className="flex justify-between items-center text-sm">
-                <span className="text-gray-300">Strategy #{r.strategyId} ({bpsToPercent(r.weightBps)})</span>
-                <span className="font-medium text-white">{result[i]?.toLocaleString()} stroops</span>
+              <div
+                key={i}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="text-gray-300">
+                  Strategy #{r.strategyId} ({bpsToPercent(r.weightBps)})
+                </span>
+                <span className="font-medium text-white">
+                  {result[i]?.toLocaleString()} stroops
+                </span>
               </div>
             ))}
           </div>
@@ -747,8 +920,16 @@ function AllocateTab({ contractId, network, showToast }: TabProps) {
 
 // ── BacktestTab ───────────────────────────────────────────────────────────────
 
-function BacktestTab({ contractId, network, showToast }: Omit<TabProps, "walletAddress">) {
-  const [form, setForm] = useState({ strategyId: "1", initialAmount: "1000000", durationDays: "365" });
+function BacktestTab({
+  contractId,
+  network,
+  showToast,
+}: Omit<TabProps, "walletAddress">) {
+  const [form, setForm] = useState({
+    strategyId: "1",
+    initialAmount: "1000000",
+    durationDays: "365",
+  });
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -782,35 +963,56 @@ function BacktestTab({ contractId, network, showToast }: Omit<TabProps, "walletA
         <form onSubmit={runBacktest} className="space-y-3" noValidate>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1" htmlFor="bt-sid">Strategy ID</label>
+              <label
+                className="block text-xs text-gray-400 mb-1"
+                htmlFor="bt-sid"
+              >
+                Strategy ID
+              </label>
               <input
                 id="bt-sid"
                 type="number"
                 min={1}
                 value={form.strategyId}
-                onChange={(e) => setForm((f) => ({ ...f, strategyId: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, strategyId: e.target.value }))
+                }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1" htmlFor="bt-amt">Initial Amount</label>
+              <label
+                className="block text-xs text-gray-400 mb-1"
+                htmlFor="bt-amt"
+              >
+                Initial Amount
+              </label>
               <input
                 id="bt-amt"
                 type="number"
                 min={1}
                 value={form.initialAmount}
-                onChange={(e) => setForm((f) => ({ ...f, initialAmount: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, initialAmount: e.target.value }))
+                }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1" htmlFor="bt-dur">Duration (days)</label>
+              <label
+                className="block text-xs text-gray-400 mb-1"
+                htmlFor="bt-dur"
+              >
+                Duration (days)
+              </label>
               <input
                 id="bt-dur"
                 type="number"
                 min={1}
                 value={form.durationDays}
-                onChange={(e) => setForm((f) => ({ ...f, durationDays: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, durationDays: e.target.value }))
+                }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
@@ -831,19 +1033,27 @@ function BacktestTab({ contractId, network, showToast }: Omit<TabProps, "walletA
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Initial Amount</p>
-              <p className="text-sm font-bold text-white">{result.initialAmount?.toLocaleString()}</p>
+              <p className="text-sm font-bold text-white">
+                {result.initialAmount?.toLocaleString()}
+              </p>
             </div>
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Final Amount</p>
-              <p className="text-sm font-bold text-green-300">{result.finalAmount?.toLocaleString()}</p>
+              <p className="text-sm font-bold text-green-300">
+                {result.finalAmount?.toLocaleString()}
+              </p>
             </div>
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Net Gain</p>
-              <p className="text-sm font-bold text-green-400">+{result.gain?.toLocaleString()}</p>
+              <p className="text-sm font-bold text-green-400">
+                +{result.gain?.toLocaleString()}
+              </p>
             </div>
             <div className="bg-gray-700/50 rounded p-2">
               <p className="text-xs text-gray-400">Effective APY</p>
-              <p className="text-sm font-bold text-indigo-300">{bpsToPercent(result.effectiveApyBps)}</p>
+              <p className="text-sm font-bold text-indigo-300">
+                {bpsToPercent(result.effectiveApyBps)}
+              </p>
             </div>
           </div>
           <p className="text-xs text-gray-400">

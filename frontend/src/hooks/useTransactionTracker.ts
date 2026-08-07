@@ -37,7 +37,11 @@ type ClearTransactionsAction = {
   type: "clear";
 };
 
-type Action = SetTransactionsAction | AddTransactionAction | UpdateTransactionAction | ClearTransactionsAction;
+type Action =
+  | SetTransactionsAction
+  | AddTransactionAction
+  | UpdateTransactionAction
+  | ClearTransactionsAction;
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -48,7 +52,7 @@ function reducer(state: State, action: Action): State {
     case "update":
       return {
         transactions: state.transactions.map((tx) =>
-          tx.id === action.id ? { ...tx, ...action.update } : tx
+          tx.id === action.id ? { ...tx, ...action.update } : tx,
         ),
       };
     case "clear":
@@ -71,10 +75,13 @@ export function useTransactionTracker() {
   }, []);
 
   const updateTx = useCallback(
-    (id: string, update: Partial<Pick<Transaction, "status" | "hash" | "error">>) => {
+    (
+      id: string,
+      update: Partial<Pick<Transaction, "status" | "hash" | "error">>,
+    ) => {
       dispatch({ type: "update", id, update });
     },
-    []
+    [],
   );
 
   const clearTx = useCallback(() => dispatch({ type: "clear" }), []);

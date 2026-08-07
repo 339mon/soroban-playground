@@ -77,7 +77,9 @@ describe('fileService', () => {
       const files = await listFiles();
 
       expect(files).toHaveLength(3);
-      expect(mockDb.all).toHaveBeenCalledWith('SELECT * FROM files ORDER BY id ASC');
+      expect(mockDb.all).toHaveBeenCalledWith(
+        'SELECT * FROM files ORDER BY id ASC'
+      );
     });
 
     it('maps database columns to camelCase fields', async () => {

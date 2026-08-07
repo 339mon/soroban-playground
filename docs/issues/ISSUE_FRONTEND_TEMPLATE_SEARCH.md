@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement advanced contract template search and filtering
 title: "[FRONTEND] Implement Advanced Contract Template Search and Filtering"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive template search and filtering implementation with:
+
 - Full-text search across template names, descriptions, and README content
 - Advanced filtering by category, functionality, and technical requirements
 - Smart suggestions and autocomplete
@@ -24,6 +25,7 @@ Create comprehensive template search and filtering implementation with:
 - Performance optimization for large template sets
 
 ### Key Features
+
 - Full-text search across all 54+ contract templates
 - Filter by category (financial, governance, utility, etc.)
 - Filter by functionality (token, voting, oracle, etc.)
@@ -32,6 +34,7 @@ Create comprehensive template search and filtering implementation with:
 - Search history and saved search filters
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/TemplateSearchBar.tsx`, `TemplateFilter.tsx`
 - Integration with existing contract metadata and README files
@@ -52,12 +55,12 @@ Create comprehensive template search and filtering implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer productivity and template discovery |
+| Dimension        | Assessment                                                                  |
+| ---------------- | --------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground                                 |
+| Effort estimate  | Medium (2-3 days)                                                           |
+| Breaking change? | No                                                                          |
+| MVP impact       | High - significantly improves developer productivity and template discovery |
 
 ## 🔗 Related Issues or References
 

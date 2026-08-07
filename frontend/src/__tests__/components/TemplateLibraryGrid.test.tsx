@@ -21,7 +21,7 @@ describe("TemplateLibraryGrid", () => {
         templates={[]}
         favorites={[]}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByText("No templates found.")).toBeInTheDocument();
   });
@@ -32,11 +32,15 @@ describe("TemplateLibraryGrid", () => {
         templates={mockTemplates}
         favorites={[]}
         onToggleFavorite={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByText("Hello World")).toBeInTheDocument();
     expect(screen.getByText("Counter")).toBeInTheDocument();
-    expect(screen.getByText("Minimal Soroban contract that returns a greeting string.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Minimal Soroban contract that returns a greeting string.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renders correct favorite button state and calls onToggleFavorite when clicked", () => {
@@ -46,11 +50,13 @@ describe("TemplateLibraryGrid", () => {
         templates={mockTemplates}
         favorites={["hello-world"]}
         onToggleFavorite={onToggleFavorite}
-      />
+      />,
     );
 
     // hello-world is favorited
-    const removeFavBtn = screen.getByLabelText("Remove Hello World from favorites");
+    const removeFavBtn = screen.getByLabelText(
+      "Remove Hello World from favorites",
+    );
     expect(removeFavBtn).toBeInTheDocument();
 
     // counter is not favorited

@@ -2,18 +2,18 @@
 
 This package provides reusable, gas‑efficient utilities to test Soroban smart contracts using property‑based, invariant, boundary, and fuzz testing techniques.
 
-
 ## What is Property-Based Testing in Soroban?
 
 Property‑based testing validates that a contract behaves correctly for a wide range of inputs, not just a small set of hand‑picked test cases. Instead of writing individual tests, you define properties (invariants) that must always hold true, then provide a collection of inputs to verify them.
 
-
 ## Utilities Overview
 
 ### 1. PropertyTester
+
 Executes property tests against multiple inputs, tracking failures and iteration counts.
 
 #### Example Usage
+
 ```rust
 use soroban_sdk::{Env, String, Vec};
 use property_testing::{PropertyTester, PropertyTestResult};
@@ -37,11 +37,12 @@ let result: PropertyTestResult = tester.test(inputs, |&x| {
 assert!(result.passed);
 ```
 
-
 ### 2. InvariantChecker
+
 Maintains and checks a collection of invariants (conditions that must always be true) during state transitions.
 
 #### Example Usage
+
 ```rust
 use soroban_sdk::{Env, String};
 use property_testing::InvariantChecker;
@@ -61,11 +62,12 @@ checker.add_invariant("balance valid", || {
 assert!(checker.check_all().is_ok());
 ```
 
-
 ### 3. BoundaryTester
+
 Explicitly tests boundary conditions, overflows, underflows, and edge‑case values.
 
 #### Example Usage
+
 ```rust
 use soroban_sdk::{Env, String};
 use property_testing::BoundaryTester;
@@ -86,11 +88,12 @@ let results = tester.test_i128_boundaries(|x| {
 let sum = tester.checked_add_i128(100, 200).unwrap();
 ```
 
-
 ### 4. FuzzGenerator
+
 Generates pseudo‑random test inputs of common Soroban types, using a deterministic seed for reproducibility.
 
 #### Example Usage
+
 ```rust
 use soroban_sdk::Env;
 use property_testing::FuzzGenerator;
@@ -105,11 +108,12 @@ let random_string = gen.gen_string(5, 15);
 let random_vec = gen.gen_vec_u64(2, 10);
 ```
 
-
 ### 5. PropertyValidator
+
 Provides simple, reusable assertions for validating runtime contract behaviors.
 
 #### Example Usage
+
 ```rust
 use soroban_sdk::{Env, String, Vec};
 use property_testing::PropertyValidator;
@@ -126,18 +130,21 @@ validations.push_back(validator.assert_ge(100, 0, "ge failed"));
 assert!(validator.validate_all(validations).is_ok());
 ```
 
-
 ## Setup & Execution Instructions
 
 ### Installation
+
 The package is already set up as part of the Soroban playground workspace. Just include it in your contract's Cargo.toml (for testing):
+
 ```toml
 [dev-dependencies]
 property-testing = { path = "../property-testing" }
 ```
 
 ### Running Tests
+
 To run the test suite:
+
 ```bash
 cd contracts/property-testing
 cargo test

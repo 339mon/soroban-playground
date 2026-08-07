@@ -26,7 +26,8 @@ export type TemplateFunctionality =
   | "Cross-chain"
   | "Advanced";
 
-export type ComplexityLevel = "Beginner" | "Intermediate" | "Advanced" | "Expert";
+export type ComplexityLevel =
+  "Beginner" | "Intermediate" | "Advanced" | "Expert";
 
 export type DeploymentStatus = "Not Deployed" | "Testnet" | "Production";
 

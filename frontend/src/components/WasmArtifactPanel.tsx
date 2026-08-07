@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Activity, Binary, Braces, Cpu, FunctionSquare, HardDrive, MemoryStick, UploadCloud } from "lucide-react";
+import {
+  Activity,
+  Binary,
+  Braces,
+  Cpu,
+  FunctionSquare,
+  HardDrive,
+  MemoryStick,
+  UploadCloud,
+} from "lucide-react";
 import { List, type RowComponentProps } from "react-window";
 import type { WasmArtifactAnalysis } from "@/utils/wasmInspector";
 import WasmMemoryProfiler from "./WasmMemoryProfiler";
@@ -47,7 +56,9 @@ export default function WasmArtifactPanel({
   parseError,
   onFileUpload,
 }: WasmArtifactPanelProps) {
-  const [activeTab, setActiveTab] = useState<"assembly" | "profiler">("assembly");
+  const [activeTab, setActiveTab] = useState<"assembly" | "profiler">(
+    "assembly",
+  );
   const [isDragOver, setIsDragOver] = useState(false);
 
   const watRowProps = useMemo(
@@ -58,7 +69,8 @@ export default function WasmArtifactPanel({
   );
 
   const memorySummary = analysis?.memory;
-  const resolvedMemory = memorySummary && memorySummary.source !== "none" ? memorySummary : null;
+  const resolvedMemory =
+    memorySummary && memorySummary.source !== "none" ? memorySummary : null;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -108,7 +120,9 @@ export default function WasmArtifactPanel({
             <button
               onClick={() => setActiveTab("assembly")}
               className={`rounded px-2.5 py-1 font-medium transition-all ${
-                activeTab === "assembly" ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-gray-400 hover:text-white"
+                activeTab === "assembly"
+                  ? "bg-cyan-500/20 text-cyan-300 font-bold"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
               WAT Assembly
@@ -116,7 +130,9 @@ export default function WasmArtifactPanel({
             <button
               onClick={() => setActiveTab("profiler")}
               className={`rounded px-2.5 py-1 font-medium transition-all ${
-                activeTab === "profiler" ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-gray-400 hover:text-white"
+                activeTab === "profiler"
+                  ? "bg-cyan-500/20 text-cyan-300 font-bold"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
               Memory Profiler
@@ -131,12 +147,20 @@ export default function WasmArtifactPanel({
           <UploadCloud size={18} className="text-cyan-400 shrink-0" />
           <div>
             <p className="font-semibold text-white">Drag & Drop .wasm File</p>
-            <p className="text-[11px] text-gray-400">Drop compiled WebAssembly binary to decompile & profile in-browser.</p>
+            <p className="text-[11px] text-gray-400">
+              Drop compiled WebAssembly binary to decompile & profile
+              in-browser.
+            </p>
           </div>
         </div>
         <label className="cursor-pointer rounded-lg bg-cyan-500/20 px-3 py-1.5 font-semibold text-cyan-300 transition-all hover:bg-cyan-500/30">
           Browse File
-          <input type="file" accept=".wasm" onChange={handleFileInputChange} className="hidden" />
+          <input
+            type="file"
+            accept=".wasm"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
         </label>
       </div>
 
@@ -147,11 +171,16 @@ export default function WasmArtifactPanel({
       )}
 
       {parseError && (
-        <div className="rounded-lg border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-sm text-rose-200">{parseError}</div>
+        <div className="rounded-lg border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-sm text-rose-200">
+          {parseError}
+        </div>
       )}
 
       {!analysis && !isAnalyzing && !parseError && (
-        <p className="text-sm text-gray-500">Compile a contract or drag and drop a .wasm binary to inspect assembly and memory metrics.</p>
+        <p className="text-sm text-gray-500">
+          Compile a contract or drag and drop a .wasm binary to inspect assembly
+          and memory metrics.
+        </p>
       )}
 
       {analysis && activeTab === "profiler" && (
@@ -162,28 +191,43 @@ export default function WasmArtifactPanel({
         <>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="rounded-lg border border-gray-800 bg-gray-950 p-3">
-              <p className="mb-2 text-xs tracking-wider text-gray-500 uppercase">Artifact</p>
-              <p className="truncate font-mono text-xs text-gray-300">{artifactName ?? "soroban_contract.wasm"}</p>
+              <p className="mb-2 text-xs tracking-wider text-gray-500 uppercase">
+                Artifact
+              </p>
+              <p className="truncate font-mono text-xs text-gray-300">
+                {artifactName ?? "soroban_contract.wasm"}
+              </p>
               <p className="mt-2 flex items-center text-sm text-gray-100">
                 <HardDrive size={14} className="mr-2 text-emerald-300" />
                 {formatBytes(analysis.sizeBytes)} ({analysis.sizeKiB} KiB)
               </p>
               {artifactCreatedAt && (
-                <p className="mt-2 text-xs text-gray-500">Built {new Date(artifactCreatedAt).toLocaleString()}</p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Built {new Date(artifactCreatedAt).toLocaleString()}
+                </p>
               )}
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-gray-950 p-3">
-              <p className="mb-2 text-xs tracking-wider text-gray-500 uppercase">Memory Metrics</p>
+              <p className="mb-2 text-xs tracking-wider text-gray-500 uppercase">
+                Memory Metrics
+              </p>
               {!resolvedMemory ? (
-                <p className="text-sm text-gray-400">No memory section declared.</p>
+                <p className="text-sm text-gray-400">
+                  No memory section declared.
+                </p>
               ) : (
                 <div className="space-y-1 text-sm text-gray-200">
                   <p className="flex items-center text-xs text-gray-400 uppercase tracking-wider">
                     <MemoryStick size={13} className="mr-2 text-indigo-300" />
-                    {resolvedMemory.source === "defined" ? "Defined in module" : "Imported memory"}
+                    {resolvedMemory.source === "defined"
+                      ? "Defined in module"
+                      : "Imported memory"}
                   </p>
-                  <p>Minimum: {resolvedMemory.minPages} pages ({formatBytes(resolvedMemory.minBytes)})</p>
+                  <p>
+                    Minimum: {resolvedMemory.minPages} pages (
+                    {formatBytes(resolvedMemory.minBytes)})
+                  </p>
                   <p>
                     Maximum:{" "}
                     {resolvedMemory.maxPages === null
@@ -191,7 +235,8 @@ export default function WasmArtifactPanel({
                       : `${resolvedMemory.maxPages} pages (${formatBytes(resolvedMemory.maxBytes)})`}
                   </p>
                   <p>
-                    Shared: {resolvedMemory.shared ? "yes" : "no"} | 64-bit memory: {resolvedMemory.memory64 ? "yes" : "no"}
+                    Shared: {resolvedMemory.shared ? "yes" : "no"} | 64-bit
+                    memory: {resolvedMemory.memory64 ? "yes" : "no"}
                   </p>
                 </div>
               )}
@@ -205,11 +250,16 @@ export default function WasmArtifactPanel({
                 Exported Functions ({analysis.exportFunctions.length})
               </p>
               {analysis.exportFunctions.length === 0 ? (
-                <p className="text-sm text-gray-500">No function exports detected.</p>
+                <p className="text-sm text-gray-500">
+                  No function exports detected.
+                </p>
               ) : (
                 <div className="max-h-36 space-y-1 overflow-y-auto pr-1 font-mono text-xs text-gray-200">
                   {analysis.exportFunctions.map((name) => (
-                    <div key={name} className="rounded border border-gray-800 bg-gray-900/70 px-2 py-1">
+                    <div
+                      key={name}
+                      className="rounded border border-gray-800 bg-gray-900/70 px-2 py-1"
+                    >
                       {name}
                     </div>
                   ))}
@@ -224,7 +274,10 @@ export default function WasmArtifactPanel({
               </p>
               <div className="space-y-1 font-mono text-xs text-gray-200">
                 {Object.entries(analysis.exportKinds).map(([kind, count]) => (
-                  <div key={kind} className="flex items-center justify-between rounded border border-gray-800 bg-gray-900/70 px-2 py-1">
+                  <div
+                    key={kind}
+                    className="flex items-center justify-between rounded border border-gray-800 bg-gray-900/70 px-2 py-1"
+                  >
                     <span>{kind}</span>
                     <span>{count}</span>
                   </div>
@@ -239,7 +292,9 @@ export default function WasmArtifactPanel({
                 <Braces size={13} className="mr-2 text-cyan-300" />
                 WebAssembly Text (WAT) Disassembly
               </p>
-              <p className="font-mono text-xs text-gray-500">{analysis.watLines.length.toLocaleString()} lines</p>
+              <p className="font-mono text-xs text-gray-500">
+                {analysis.watLines.length.toLocaleString()} lines
+              </p>
             </div>
 
             <div className="h-[360px] w-full overflow-hidden">

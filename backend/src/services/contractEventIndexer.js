@@ -41,13 +41,21 @@ function categorizeError(error) {
   if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEOUT') {
     return ErrorCategory.RPC_CONNECTION;
   }
-  if (msg.includes('fetch') || msg.includes('network') || msg.includes('timeout')) {
+  if (
+    msg.includes('fetch') ||
+    msg.includes('network') ||
+    msg.includes('timeout')
+  ) {
     return ErrorCategory.RPC_CONNECTION;
   }
   if (msg.includes('parse') || msg.includes('xdr') || msg.includes('decode')) {
     return ErrorCategory.PARSE;
   }
-  if (msg.includes('database') || msg.includes('sqlite') || msg.includes('sql')) {
+  if (
+    msg.includes('database') ||
+    msg.includes('sqlite') ||
+    msg.includes('sql')
+  ) {
     return ErrorCategory.DATABASE;
   }
   if (msg.includes('handler')) {
@@ -178,7 +186,10 @@ class ContractEventIndexer {
     this._status.lastError = entry;
     this._status.consecutiveErrors++;
 
-    if (cat === ErrorCategory.RPC_CONNECTION || cat === ErrorCategory.RPC_RESPONSE) {
+    if (
+      cat === ErrorCategory.RPC_CONNECTION ||
+      cat === ErrorCategory.RPC_RESPONSE
+    ) {
       this._recordFailure();
     }
 
@@ -260,10 +271,7 @@ class ContractEventIndexer {
         processed++;
       } catch (e) {
         failed++;
-        this._recordError(
-          e,
-          e._category || categorizeError(e)
-        );
+        this._recordError(e, e._category || categorizeError(e));
       }
       if (raw.ledger > latestLedger) latestLedger = raw.ledger;
     }

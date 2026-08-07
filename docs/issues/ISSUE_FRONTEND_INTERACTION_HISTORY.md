@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract interaction history and transaction explorer
 title: "[FRONTEND] Implement Contract Interaction History and Transaction Explorer"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently have no way to view their contract interaction history or e
 ## 💡 Proposed Solution
 
 Create a comprehensive contract interaction history UI with:
+
 - Interactive timeline view of all interactions
 - Advanced search and filtering capabilities
 - Detailed transaction exploration
@@ -24,6 +25,7 @@ Create a comprehensive contract interaction history UI with:
 - Export functionality for debugging
 
 ### Key Features
+
 - Timeline view showing all contract interactions (deploy, invoke, read)
 - Search by contract ID, function name, status, date range
 - Filter by interaction type (deploy, invoke, read, event)
@@ -32,6 +34,7 @@ Create a comprehensive contract interaction history UI with:
 - Export to JSON for debugging and analysis
 
 ### Implementation Details
+
 - Location: `frontend/src/app/interaction-history/page.tsx`
 - Components: `frontend/src/components/InteractionTimeline.tsx`, `TransactionExplorer.tsx`, `InteractionFilter.tsx`
 - Integration with backend interaction logging and API routes
@@ -52,12 +55,12 @@ Create a comprehensive contract interaction history UI with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers interacting with contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves debugging and monitoring capabilities |
+| Dimension        | Assessment                                                          |
+| ---------------- | ------------------------------------------------------------------- |
+| Who benefits?    | All developers interacting with contracts                           |
+| Effort estimate  | Medium (3-4 days)                                                   |
+| Breaking change? | No                                                                  |
+| MVP impact       | High - significantly improves debugging and monitoring capabilities |
 
 ## 🔗 Related Issues or References
 

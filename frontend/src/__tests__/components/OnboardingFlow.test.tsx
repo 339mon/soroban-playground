@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import OnboardingFlow from "../../components/OnboardingFlow";
 import type { OnboardingStep } from "../../components/OnboardingFlow";
 
@@ -23,7 +29,9 @@ describe("OnboardingFlow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    await waitFor(() => expect(screen.getByText("Choose a network")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Choose a network")).toBeInTheDocument(),
+    );
     expect(action).toHaveBeenCalledTimes(1);
   });
 
@@ -33,7 +41,9 @@ describe("OnboardingFlow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Wallet locked"));
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Wallet locked"),
+    );
     expect(screen.getByText("Connect a wallet")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
@@ -47,7 +57,7 @@ describe("OnboardingFlow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("No provider found")
+      expect(screen.getByRole("alert")).toHaveTextContent("No provider found"),
     );
   });
 
@@ -58,7 +68,9 @@ describe("OnboardingFlow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong")
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Something went wrong",
+      ),
     );
   });
 
@@ -73,27 +85,35 @@ describe("OnboardingFlow", () => {
     await waitFor(() => screen.getByRole("button", { name: "Retry" }));
 
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    await waitFor(() => expect(screen.getByText("Choose a network")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Choose a network")).toBeInTheDocument(),
+    );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("offers a skip on optional steps", () => {
     render(<OnboardingFlow steps={steps([{ optional: true }])} />);
-    expect(screen.getByRole("button", { name: "Skip this step" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Skip this step" }),
+    ).toBeInTheDocument();
   });
 
   it("offers a skip after a step fails twice", async () => {
     const action = jest.fn().mockRejectedValue(new Error("RPC unreachable"));
     render(<OnboardingFlow steps={steps([{ action }])} />);
 
-    expect(screen.queryByRole("button", { name: "Skip this step" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Skip this step" }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await waitFor(() => screen.getByRole("button", { name: "Retry" }));
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Skip this step" })).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", { name: "Skip this step" }),
+      ).toBeInTheDocument(),
     );
   });
 
@@ -101,7 +121,9 @@ describe("OnboardingFlow", () => {
     jest.useFakeTimers();
     try {
       const action = jest.fn(() => new Promise<void>(() => {}));
-      render(<OnboardingFlow steps={steps([{ action }])} stepTimeoutMs={1000} />);
+      render(
+        <OnboardingFlow steps={steps([{ action }])} stepTimeoutMs={1000} />,
+      );
 
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
       await act(async () => {
@@ -127,6 +149,8 @@ describe("OnboardingFlow", () => {
 
   it("renders a fallback instead of crashing on an empty step list", () => {
     render(<OnboardingFlow steps={[]} />);
-    expect(screen.getByText("No onboarding steps are configured.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No onboarding steps are configured."),
+    ).toBeInTheDocument();
   });
 });

@@ -84,7 +84,10 @@ export function setupWebsocketServer(httpServer) {
     socket.on('message', (data) => {
       try {
         const payload = JSON.parse(data);
-        if (payload.type === 'collaboration-join' || payload.type === 'collaboration-cursor') {
+        if (
+          payload.type === 'collaboration-join' ||
+          payload.type === 'collaboration-cursor'
+        ) {
           socket.docId = payload.docId || 'default-doc';
           if (payload.user) {
             socket.collaboratorName = payload.user.name;
@@ -99,7 +102,14 @@ export function setupWebsocketServer(httpServer) {
               cursor: s.cursor,
               lastActive: new Date().toISOString(),
             }));
-          safeSend(socket, safeStringify({ type: 'collaboration-presence', docId: socket.docId, peers }));
+          safeSend(
+            socket,
+            safeStringify({
+              type: 'collaboration-presence',
+              docId: socket.docId,
+              peers,
+            })
+          );
         }
       } catch {
         // ignore invalid payload

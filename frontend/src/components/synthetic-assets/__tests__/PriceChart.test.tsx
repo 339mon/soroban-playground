@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import PriceChart from '../PriceChart';
+import { render, screen } from "@testing-library/react";
+import PriceChart from "../PriceChart";
 
 const sampleData = [
   { timestamp: 1700000000, price: 100 },
@@ -9,72 +8,78 @@ const sampleData = [
   { timestamp: 1700010800, price: 105 },
 ];
 
-describe('PriceChart', () => {
-  it('renders asset symbol in heading', () => {
+describe("PriceChart", () => {
+  it("renders asset symbol in heading", () => {
     render(<PriceChart assetSymbol="XLM" />);
-    expect(screen.getByText('XLM Price Chart')).toBeInTheDocument();
+    expect(screen.getByText("XLM Price Chart")).toBeInTheDocument();
   });
 
-  it('renders timeframe buttons', () => {
+  it("renders timeframe buttons", () => {
     render(<PriceChart assetSymbol="XLM" />);
-    expect(screen.getByRole('tab', { name: '1H' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '1D' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '1W' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '1M' })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "1H" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "1D" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "1W" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "1M" })).toBeInTheDocument();
   });
 
-  it('shows loading state', () => {
+  it("shows loading state", () => {
     render(<PriceChart assetSymbol="XLM" isLoading />);
-    expect(screen.getByLabelText('Loading chart data')).toBeInTheDocument();
+    expect(screen.getByLabelText("Loading chart data")).toBeInTheDocument();
   });
 
-  it('shows error state', () => {
+  it("shows error state", () => {
     render(<PriceChart assetSymbol="XLM" error="Network error" />);
     expect(screen.getByText(/Failed to load chart data/)).toBeInTheDocument();
     expect(screen.getByText(/Network error/)).toBeInTheDocument();
   });
 
-  it('shows empty state when data has fewer than 2 points', () => {
-    render(<PriceChart assetSymbol="XLM" data={[{ timestamp: 1, price: 100 }]} />);
+  it("shows empty state when data has fewer than 2 points", () => {
+    render(
+      <PriceChart assetSymbol="XLM" data={[{ timestamp: 1, price: 100 }]} />,
+    );
     expect(screen.getByText(/Insufficient data/)).toBeInTheDocument();
   });
 
-  it('renders SVG chart when sufficient data provided', () => {
-    const { container } = render(<PriceChart assetSymbol="XLM" data={sampleData} />);
-    const svg = container.querySelector('.price-chart-svg');
+  it("renders SVG chart when sufficient data provided", () => {
+    const { container } = render(
+      <PriceChart assetSymbol="XLM" data={sampleData} />,
+    );
+    const svg = container.querySelector(".price-chart-svg");
     expect(svg).toBeInTheDocument();
-    expect(svg).toHaveAttribute('role', 'img');
+    expect(svg).toHaveAttribute("role", "img");
   });
 
-  it('renders positive change in green', () => {
+  it("renders positive change in green", () => {
     render(<PriceChart assetSymbol="XLM" priceChangePercent={5.2} />);
-    const change = screen.getByText('+5.20%');
-    expect(change).toHaveClass('positive');
+    const change = screen.getByText("+5.20%");
+    expect(change).toHaveClass("positive");
   });
 
-  it('renders negative change in red', () => {
+  it("renders negative change in red", () => {
     render(<PriceChart assetSymbol="XLM" priceChangePercent={-3.1} />);
-    const change = screen.getByText('-3.10%');
-    expect(change).toHaveClass('negative');
+    const change = screen.getByText("-3.10%");
+    expect(change).toHaveClass("negative");
   });
 
-  it('formats large volume values', () => {
+  it("formats large volume values", () => {
     render(<PriceChart assetSymbol="XLM" volume24h={2_456_789} />);
-    expect(screen.getByText('$2.5M')).toBeInTheDocument();
+    expect(screen.getByText("$2.5M")).toBeInTheDocument();
   });
 
-  it('formats market cap values', () => {
+  it("formats market cap values", () => {
     render(<PriceChart assetSymbol="XLM" marketCap={125_456_789} />);
-    expect(screen.getByText('$125.5M')).toBeInTheDocument();
+    expect(screen.getByText("$125.5M")).toBeInTheDocument();
   });
 
-  it('renders 0% change by default', () => {
+  it("renders 0% change by default", () => {
     render(<PriceChart assetSymbol="XLM" />);
-    expect(screen.getByText('0.00%')).toBeInTheDocument();
+    expect(screen.getByText("0.00%")).toBeInTheDocument();
   });
 
-  it('has accessible region label', () => {
+  it("has accessible region label", () => {
     render(<PriceChart assetSymbol="XLM" />);
-    expect(screen.getByRole('region', { name: /XLM price chart/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: /XLM price chart/ }),
+    ).toBeInTheDocument();
   });
 });

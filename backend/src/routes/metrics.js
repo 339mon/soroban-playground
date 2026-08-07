@@ -136,10 +136,16 @@ export function recordHttpRequest(method, route, status) {
 
 export function updateSystemMetrics() {
   const usage = process.cpuUsage();
-  if (processCpuSecondsTotal && typeof processCpuSecondsTotal.set === 'function') {
+  if (
+    processCpuSecondsTotal &&
+    typeof processCpuSecondsTotal.set === 'function'
+  ) {
     processCpuSecondsTotal.set((usage.user + usage.system) / 1e6);
   }
-  if (processMemoryRssBytes && typeof processMemoryRssBytes.set === 'function') {
+  if (
+    processMemoryRssBytes &&
+    typeof processMemoryRssBytes.set === 'function'
+  ) {
     processMemoryRssBytes.set(process.memoryUsage().rss);
   }
 }

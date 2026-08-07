@@ -987,8 +987,6 @@ fn test_validate_return_type_invalid_types() {
         .unwrap());
 }
 
-#![cfg(test)]
-
 use super::*;
 use soroban_sdk::{testutils::Address as _, vec, Address, Env, Symbol};
 

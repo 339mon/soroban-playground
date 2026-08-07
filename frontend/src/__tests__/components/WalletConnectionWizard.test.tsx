@@ -8,14 +8,26 @@ describe("WalletConnectionWizard", () => {
     render(
       <WalletProvider>
         <WalletConnectionWizard />
-      </WalletProvider>
+      </WalletProvider>,
     );
 
-    expect(screen.getByText(/Unified Stellar Wallet Suite/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Freighter/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Albedo Link/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /xBull Wallet/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Rango Suite/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Soroban Wallet/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Unified Stellar Wallet Suite/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Freighter/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Albedo Link/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /xBull Wallet/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Rango Suite/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Soroban Wallet/i }),
+    ).toBeInTheDocument();
   });
 });

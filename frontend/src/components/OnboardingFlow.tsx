@@ -50,8 +50,13 @@ function toErrorMessage(error: unknown): string {
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
-      () => reject(new Error(`This step timed out after ${Math.round(timeoutMs / 1000)}s.`)),
-      timeoutMs
+      () =>
+        reject(
+          new Error(
+            `This step timed out after ${Math.round(timeoutMs / 1000)}s.`,
+          ),
+        ),
+      timeoutMs,
     );
     promise.then(
       (value) => {
@@ -61,7 +66,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
       (error) => {
         clearTimeout(timer);
         reject(error);
-      }
+      },
     );
   });
 }
@@ -82,7 +87,7 @@ export default function OnboardingFlow({
   const isLast = index === steps.length - 1;
   const progress = useMemo(
     () => (steps.length ? Math.round((index / steps.length) * 100) : 0),
-    [index, steps.length]
+    [index, steps.length],
   );
 
   const advance = useCallback(() => {
@@ -107,7 +112,10 @@ export default function OnboardingFlow({
     setError(null);
     try {
       // Wrap in Promise.resolve so synchronous throws are caught here too.
-      await withTimeout(Promise.resolve().then(() => step.action?.()), stepTimeoutMs);
+      await withTimeout(
+        Promise.resolve().then(() => step.action?.()),
+        stepTimeoutMs,
+      );
       advance();
     } catch (err) {
       // Stay on the current step — advancing past a failed action would leave
@@ -138,8 +146,12 @@ export default function OnboardingFlow({
   // An empty step list is a caller bug, but it must not crash the app.
   if (!step) {
     return (
-      <div className={`rounded-lg border border-gray-700 bg-gray-900 p-4 ${className}`}>
-        <p className="text-sm text-gray-400">No onboarding steps are configured.</p>
+      <div
+        className={`rounded-lg border border-gray-700 bg-gray-900 p-4 ${className}`}
+      >
+        <p className="text-sm text-gray-400">
+          No onboarding steps are configured.
+        </p>
       </div>
     );
   }

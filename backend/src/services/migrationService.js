@@ -8,7 +8,8 @@ import { getDatabase, saveDatabase } from './dbService.js';
 class MigrationService {
   constructor(dbPath = null, migrationsPath = null) {
     this.dbService = new DatabaseService(dbPath);
-    this.migrationsPath = migrationsPath || path.join(process.cwd(), 'migrations');
+    this.migrationsPath =
+      migrationsPath || path.join(process.cwd(), 'migrations');
     this.migrationTable = '_schema_migrations';
   }
 

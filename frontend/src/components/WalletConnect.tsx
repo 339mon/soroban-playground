@@ -8,7 +8,7 @@ import { useWallet } from "./providers/WalletProvider";
 export default function WalletConnect() {
   const { status, address, network, activeWallet } = useWallet();
 
-  const shortAddress = (addr: string) => 
+  const shortAddress = (addr: string) =>
     `${addr.slice(0, 8)}...${addr.slice(-6)}`;
 
   return (
@@ -37,21 +37,27 @@ export default function WalletConnect() {
                 {network ?? "TESTNET"}
               </p>
             </div>
-            <p className="font-mono text-xs text-slate-200 truncate">{shortAddress(address)}</p>
+            <p className="font-mono text-xs text-slate-200 truncate">
+              {shortAddress(address)}
+            </p>
           </div>
-          
+
           <Link
             href="/wallet-management"
             className="group flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-all border border-white/5"
           >
             Manage Wallet
-            <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+            <ArrowRight
+              size={14}
+              className="transition-transform group-hover:translate-x-1"
+            />
           </Link>
         </div>
       ) : (
         <div className="space-y-4">
           <p className="text-xs text-slate-400 leading-relaxed">
-            Connect your Stellar wallet to interact with smart contracts on the Testnet.
+            Connect your Stellar wallet to interact with smart contracts on the
+            Testnet.
           </p>
           <Link
             href="/wallet-management"

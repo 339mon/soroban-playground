@@ -29,12 +29,10 @@ describe('Async WASM Compilation Queue API', () => {
   });
 
   it('POST /api/compile/async queues a compilation job', async () => {
-    const res = await request(app)
-      .post('/api/compile/async')
-      .send({
-        source: 'pub fn hello() {}',
-        contractName: 'test_contract',
-      });
+    const res = await request(app).post('/api/compile/async').send({
+      source: 'pub fn hello() {}',
+      contractName: 'test_contract',
+    });
 
     expect(res.status).toBe(202);
     expect(res.body.success).toBe(true);
@@ -43,11 +41,9 @@ describe('Async WASM Compilation Queue API', () => {
   });
 
   it('GET /api/compile/job/:jobId checks queued job status', async () => {
-    const postRes = await request(app)
-      .post('/api/compile/async')
-      .send({
-        source: 'pub fn test() {}',
-      });
+    const postRes = await request(app).post('/api/compile/async').send({
+      source: 'pub fn test() {}',
+    });
 
     const jobId = postRes.body.jobId;
     const getRes = await request(app).get(`/api/compile/job/${jobId}`);

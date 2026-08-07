@@ -10,7 +10,11 @@ interface AbiViewerProps {
   onFieldChange: (name: string, value: unknown) => void;
 }
 
-export default function AbiViewer({ abiFunction, values, onFieldChange }: AbiViewerProps) {
+export default function AbiViewer({
+  abiFunction,
+  values,
+  onFieldChange,
+}: AbiViewerProps) {
   return (
     <div className="space-y-3 rounded-xl border border-gray-800 bg-gray-950/60 p-4">
       <div className="flex items-center justify-between border-b border-gray-800 pb-2">

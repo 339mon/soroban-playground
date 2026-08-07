@@ -123,7 +123,10 @@ try {
     hasCertificates = true;
   }
 } catch (err) {
-  console.warn('[SSL] Could not load certificates, falling back to HTTP:', err.message);
+  console.warn(
+    '[SSL] Could not load certificates, falling back to HTTP:',
+    err.message
+  );
 }
 
 // Fallback to HTTP if no certs are provided, otherwise use HTTPS
@@ -196,7 +199,10 @@ app.use('/api/backup', backupRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/background-jobs', backgroundJobsRoute);
 
-if (config.app?.env === 'development' || process.env.NODE_ENV === 'development') {
+if (
+  config.app?.env === 'development' ||
+  process.env.NODE_ENV === 'development'
+) {
   app.use('/admin/queues', queueDashboard);
 }
 

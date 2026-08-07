@@ -5,5 +5,5 @@ Architecture and implementation specification for Robust Error Handling in Code 
 ---
 
 ## References
-- Issue reference: Fixes #948
 
+- Issue reference: Fixes #948

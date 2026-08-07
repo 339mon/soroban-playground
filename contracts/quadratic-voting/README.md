@@ -67,6 +67,7 @@ voting_power = floor(sqrt(token_balance))
 ```
 
 Examples:
+
 - 1 token → 1 vote
 - 4 tokens → 2 votes
 - 9 tokens → 3 votes
@@ -97,6 +98,7 @@ cargo test
 ```
 
 The test suite includes:
+
 - Initialization tests
 - Token minting and balance tracking
 - Pause/unpause functionality

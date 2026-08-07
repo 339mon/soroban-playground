@@ -8,7 +8,7 @@ Technical specification for automated parametric agricultural insurance payouts 
 
 Insurance policy triggers automatic claims if oracle rainfall $R_{\text{actual}}$ falls below drought threshold $R_{\text{min}}$ during coverage window $[T_{\text{start}}, T_{\text{end}}]$:
 
-$$\text{Payout}(R_{\text{actual}}) = \begin{cases}
+$$ \text{Payout}(R_{\text{actual}}) = \begin{cases}
 \text{Max Coverage Amount} & \text{if } R_{\text{actual}} \le R_{\text{severe}} \\
 \lfloor \frac{\text{Max Coverage} \times (R_{\text{min}} - R_{\text{actual}})}{R_{\text{min}} - R_{\text{severe}}} \rfloor & \text{if } R_{\text{severe}} < R_{\text{actual}} < R_{\text{min}} \\
 0 & \text{if } R_{\text{actual}} \ge R_{\text{min}}
@@ -27,3 +27,4 @@ $$\text{Payout}(R_{\text{actual}}) = \begin{cases}
 
 - Implementation: [`contracts/crop_insurance/src/lib.rs`](../contracts/crop_insurance/src/lib.rs)
 - Issue reference: Fixes #1040
+$$

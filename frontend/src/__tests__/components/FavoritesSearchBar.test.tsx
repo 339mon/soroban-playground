@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import FavoritesSearchBar from "../../components/FavoritesSearchBar";
 
 // Mock localStorage
@@ -6,9 +12,15 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, val: string) => { store[key] = val; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
+    setItem: (key: string, val: string) => {
+      store[key] = val;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
   };
 })();
 Object.defineProperty(window, "localStorage", { value: localStorageMock });
@@ -20,7 +32,9 @@ jest.useFakeTimers();
 describe("FavoritesSearchBar", () => {
   it("renders the search input", () => {
     render(<FavoritesSearchBar onSearch={jest.fn()} />);
-    expect(screen.getByRole("textbox", { name: /search favorites/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /search favorites/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onSearch with debounced query on input", async () => {
@@ -72,13 +86,17 @@ describe("FavoritesSearchBar", () => {
 
     expect(onSearch).toHaveBeenCalledWith("escrow");
 
-    const saved = JSON.parse(localStorage.getItem("favorites_search_history") ?? "[]");
+    const saved = JSON.parse(
+      localStorage.getItem("favorites_search_history") ?? "[]",
+    );
     expect(saved).toContain("escrow");
   });
 
   it("filters suggestions by current query", async () => {
     const suggestions = ["Escrow", "Fungible Token", "NFT Mint"];
-    render(<FavoritesSearchBar onSearch={jest.fn()} suggestions={suggestions} />);
+    render(
+      <FavoritesSearchBar onSearch={jest.fn()} suggestions={suggestions} />,
+    );
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);
@@ -91,7 +109,7 @@ describe("FavoritesSearchBar", () => {
   it("shows recent history on focus when input is empty", () => {
     localStorage.setItem(
       "favorites_search_history",
-      JSON.stringify(["oracle", "vesting"])
+      JSON.stringify(["oracle", "vesting"]),
     );
     render(<FavoritesSearchBar onSearch={jest.fn()} />);
     const input = screen.getByRole("textbox");
@@ -103,16 +121,23 @@ describe("FavoritesSearchBar", () => {
   });
 
   it("removes item from history when X is clicked", () => {
-    localStorage.setItem("favorites_search_history", JSON.stringify(["oracle"]));
+    localStorage.setItem(
+      "favorites_search_history",
+      JSON.stringify(["oracle"]),
+    );
     render(<FavoritesSearchBar onSearch={jest.fn()} />);
 
     fireEvent.focus(screen.getByRole("textbox"));
 
-    const removeBtn = screen.getByRole("button", { name: /remove oracle from history/i });
+    const removeBtn = screen.getByRole("button", {
+      name: /remove oracle from history/i,
+    });
     fireEvent.click(removeBtn);
 
     expect(screen.queryByText("oracle")).not.toBeInTheDocument();
-    const saved = JSON.parse(localStorage.getItem("favorites_search_history") ?? "[]");
+    const saved = JSON.parse(
+      localStorage.getItem("favorites_search_history") ?? "[]",
+    );
     expect(saved).not.toContain("oracle");
   });
 });

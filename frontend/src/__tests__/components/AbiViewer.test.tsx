@@ -24,12 +24,16 @@ describe("AbiViewer", () => {
 
   it("renders doc string when present", () => {
     wrap(<AbiViewer abiFunction={fn} values={{}} onFieldChange={jest.fn()} />);
-    expect(screen.getByText("Transfer tokens to recipient")).toBeInTheDocument();
+    expect(
+      screen.getByText("Transfer tokens to recipient"),
+    ).toBeInTheDocument();
   });
 
   it("does not render doc section when doc is absent", () => {
     const noDoc: ContractAbiFunction = { name: "ping", inputs: [] };
-    wrap(<AbiViewer abiFunction={noDoc} values={{}} onFieldChange={jest.fn()} />);
+    wrap(
+      <AbiViewer abiFunction={noDoc} values={{}} onFieldChange={jest.fn()} />,
+    );
     expect(screen.queryByRole("paragraph")).not.toBeInTheDocument();
   });
 
@@ -46,7 +50,7 @@ describe("AbiViewer", () => {
         abiFunction={fn}
         values={{ to: "", amount: "" }}
         onFieldChange={onFieldChange}
-      />
+      />,
     );
     fireEvent.change(screen.getByPlaceholderText(/1000000000000000000/i), {
       target: { value: "42" },
@@ -56,7 +60,13 @@ describe("AbiViewer", () => {
 
   it("shows zero parameters badge for function with no inputs", () => {
     const noInputs: ContractAbiFunction = { name: "pause", inputs: [] };
-    wrap(<AbiViewer abiFunction={noInputs} values={{}} onFieldChange={jest.fn()} />);
+    wrap(
+      <AbiViewer
+        abiFunction={noInputs}
+        values={{}}
+        onFieldChange={jest.fn()}
+      />,
+    );
     expect(screen.getByText("0 Parameters")).toBeInTheDocument();
   });
 });

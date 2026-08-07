@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Royalty Distribut
 ---
 
 ## References
-- Issue reference: Fixes #1001
 
+- Issue reference: Fixes #1001

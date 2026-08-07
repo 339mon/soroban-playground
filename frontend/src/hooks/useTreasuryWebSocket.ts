@@ -26,7 +26,7 @@
  * orphaned socket instances.
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export interface TreasuryEvent {
   type: string;
@@ -42,10 +42,11 @@ function backoffDelay(attempt: number): number {
 
 export function useTreasuryWebSocket(
   url = (
-    process.env.NEXT_PUBLIC_BACKEND_URL || 'https://soroban-playground.onrender.com'
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com"
   )
-    .replace('https://', 'wss://')
-    .replace('http://', 'ws://') + '/ws',
+    .replace("https://", "wss://")
+    .replace("http://", "ws://") + "/ws",
 ) {
   const [events, setEvents] = useState<TreasuryEvent[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -97,7 +98,7 @@ export function useTreasuryWebSocket(
       socket = new WebSocket(url);
     } catch (err) {
       // Malformed URL or environments without WebSocket — schedule a retry.
-      console.error('[TreasuryWS] Failed to create WebSocket:', err);
+      console.error("[TreasuryWS] Failed to create WebSocket:", err);
       if (!intentionalRef.current) {
         const delay = backoffDelay(attemptRef.current);
         attemptRef.current += 1;
@@ -109,7 +110,7 @@ export function useTreasuryWebSocket(
     wsRef.current = socket;
 
     socket.onopen = () => {
-      console.log('[TreasuryWS] Connected');
+      console.log("[TreasuryWS] Connected");
       setIsConnected(true);
       // Reset backoff counter after a successful connection.
       attemptRef.current = 0;
@@ -118,22 +119,22 @@ export function useTreasuryWebSocket(
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'treasury-event') {
+        if (data.type === "treasury-event") {
           // Keep the last 50 events in state.
           setEvents((prev) => [data, ...prev].slice(0, 50));
         }
       } catch (e) {
-        console.error('[TreasuryWS] Failed to parse message:', e);
+        console.error("[TreasuryWS] Failed to parse message:", e);
       }
     };
 
     socket.onerror = () => {
       // onclose fires after onerror — reconnect logic lives there.
-      console.warn('[TreasuryWS] Socket error');
+      console.warn("[TreasuryWS] Socket error");
     };
 
     socket.onclose = () => {
-      console.log('[TreasuryWS] Disconnected');
+      console.log("[TreasuryWS] Disconnected");
       setIsConnected(false);
 
       // Null out handlers on this specific socket since it is now closed,

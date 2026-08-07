@@ -8,7 +8,9 @@ jest.mock("@/services/templateService", () => ({
 
 import { filterTemplates } from "@/services/templateService";
 
-const mockFilterTemplates = filterTemplates as jest.MockedFunction<typeof filterTemplates>;
+const mockFilterTemplates = filterTemplates as jest.MockedFunction<
+  typeof filterTemplates
+>;
 
 const mockTemplates: TemplateMetadata[] = [
   {
@@ -81,7 +83,7 @@ describe("useTemplateFilter", () => {
       [],
       [],
       [],
-      []
+      [],
     );
   });
 
@@ -96,7 +98,9 @@ describe("useTemplateFilter", () => {
     act(() => {
       result.current.toggleCategory("DeFi");
     });
-    expect(result.current.filterState.criteria.categories).not.toContain("DeFi");
+    expect(result.current.filterState.criteria.categories).not.toContain(
+      "DeFi",
+    );
   });
 
   it("resetFilters restores initial criteria", () => {
@@ -131,6 +135,9 @@ describe("useTemplateFilter", () => {
       result.current.setSearch("coin");
     });
 
-    expect(result.current.filteredTemplates).toEqual([mockTemplates[0], mockTemplates[1]]);
+    expect(result.current.filteredTemplates).toEqual([
+      mockTemplates[0],
+      mockTemplates[1],
+    ]);
   });
 });

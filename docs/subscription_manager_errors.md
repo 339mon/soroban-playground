@@ -5,5 +5,5 @@ Specification and architecture guide for Robust Error Handling in Subscription M
 ---
 
 ## References
-- Issue reference: Fixes #1002
 
+- Issue reference: Fixes #1002

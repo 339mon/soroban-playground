@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive health checks and status endpoints
 title: "[BACKEND] Implement Comprehensive Health Checks and Status Endpoints"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive health check capabilities, making it dif
 ## 💡 Proposed Solution
 
 Create comprehensive health check implementation with:
+
 - Liveness and readiness probes
 - Dependency health checks (database, Redis, Soroban CLI)
 - Custom health check endpoints
@@ -24,6 +25,7 @@ Create comprehensive health check implementation with:
 - Status dashboard integration
 
 ### Key Features
+
 - `/health/live` endpoint for liveness checks
 - `/health/ready` endpoint for readiness checks
 - `/health/status` endpoint for detailed status information
@@ -32,6 +34,7 @@ Create comprehensive health check implementation with:
 - Soroban CLI availability checks
 
 ### Implementation Details
+
 - Location: `backend/src/health/`
 - Service: `backend/src/services/healthService.js`
 - Configuration: `backend/src/config/health.config.js`
@@ -53,12 +56,12 @@ Create comprehensive health check implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables monitoring of system health and operational readiness |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground         |
+| Effort estimate  | Small (1-2 days)                                                         |
+| Breaking change? | No                                                                       |
+| MVP impact       | Critical - enables monitoring of system health and operational readiness |
 
 ## 🔗 Related Issues or References
 

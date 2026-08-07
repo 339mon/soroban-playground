@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Token Contract
 ---
 
 ## References
-- Issue reference: Fixes #982
 
+- Issue reference: Fixes #982

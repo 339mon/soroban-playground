@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 class JobError extends Error {
-  constructor(message, { retryable = true, code = 'UNKNOWN', details = null } = {}) {
+  constructor(
+    message,
+    { retryable = true, code = 'UNKNOWN', details = null } = {}
+  ) {
     super(message);
     this.name = 'JobError';
     this.retryable = retryable;

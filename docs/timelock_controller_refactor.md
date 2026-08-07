@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Time-Lock Control
 ---
 
 ## References
-- Issue reference: Fixes #998
 
+- Issue reference: Fixes #998

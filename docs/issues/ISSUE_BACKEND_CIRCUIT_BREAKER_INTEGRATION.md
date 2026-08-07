@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement circuit breaker integration with monitoring and observability
 title: "[BACKEND] Implement Circuit Breaker Integration with Monitoring and Observability"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks circuit breaker integration with monitoring systems, m
 ## 💡 Proposed Solution
 
 Create comprehensive circuit breaker monitoring integration with:
+
 - Prometheus metrics for circuit breaker status
 - Grafana dashboard integration
 - Alerting for circuit breaker trips
@@ -24,6 +25,7 @@ Create comprehensive circuit breaker monitoring integration with:
 - Integration with existing monitoring stack
 
 ### Key Features
+
 - Prometheus metrics for circuit breaker status (open, half-open, closed)
 - Grafana dashboard showing circuit breaker status across all dependencies
 - Alerting for circuit breaker trips and failures
@@ -31,6 +33,7 @@ Create comprehensive circuit breaker monitoring integration with:
 - Integration with existing monitoring and observability stack
 
 ### Implementation Details
+
 - Location: `backend/src/metrics/circuitBreaker.js`
 - Service: `backend/src/services/circuitBreakerMonitoringService.js`
 - Configuration: `backend/src/config/circuitBreakerMonitoring.config.js`
@@ -52,12 +55,12 @@ Create comprehensive circuit breaker monitoring integration with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables proactive detection of circuit breaker trips and system health analysis |
+| Dimension        | Assessment                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground                           |
+| Effort estimate  | Medium (2-3 days)                                                                          |
+| Breaking change? | No                                                                                         |
+| MVP impact       | Critical - enables proactive detection of circuit breaker trips and system health analysis |
 
 ## 🔗 Related Issues or References
 

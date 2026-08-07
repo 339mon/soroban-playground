@@ -12,7 +12,10 @@ import {
 import type { Edge, Node } from "reactflow";
 import "reactflow/dist/style.css";
 import type { TransactionCallGraph } from "@/utils/transactionGraph";
-import { createNodeStyle, createEdgeStyle } from "@/utils/transactionGraphStyles";
+import {
+  createNodeStyle,
+  createEdgeStyle,
+} from "@/utils/transactionGraphStyles";
 
 interface TransactionCallGraphCanvasProps {
   graph: TransactionCallGraph;
@@ -37,11 +40,19 @@ export default function TransactionCallGraphCanvas({
       data: {
         label: (
           <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-wider text-gray-400">{node.contractId}</p>
-            <p className="text-sm font-semibold text-gray-100">{node.functionName}</p>
-            <p className="text-xs text-cyan-300 break-all">{node.argsSummary}</p>
+            <p className="text-[10px] uppercase tracking-wider text-gray-400">
+              {node.contractId}
+            </p>
+            <p className="text-sm font-semibold text-gray-100">
+              {node.functionName}
+            </p>
+            <p className="text-xs text-cyan-300 break-all">
+              {node.argsSummary}
+            </p>
             {node.resultSummary && (
-              <p className="text-xs text-emerald-300 break-all">↳ {node.resultSummary}</p>
+              <p className="text-xs text-emerald-300 break-all">
+                ↳ {node.resultSummary}
+              </p>
             )}
           </div>
         ),
@@ -93,7 +104,9 @@ export default function TransactionCallGraphCanvas({
         zoomable
         position="bottom-right"
         className="!bg-gray-900 !border !border-gray-700"
-        nodeColor={(node) => (node.id === selectedNodeId ? "#38bdf8" : "#64748b")}
+        nodeColor={(node) =>
+          node.id === selectedNodeId ? "#38bdf8" : "#64748b"
+        }
       />
       <Controls className="!bg-gray-900 !border !border-gray-700" />
       <Background gap={18} size={1} color="#1f2937" />

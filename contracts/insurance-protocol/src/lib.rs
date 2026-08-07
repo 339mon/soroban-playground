@@ -119,7 +119,10 @@ impl InsuranceProtocol {
         let policy_count = get_policy_count(&env);
         for pid in 1..=policy_count {
             if let Ok(existing_policy) = get_policy(&env, pid) {
-                if existing_policy.holder == holder && existing_policy.product_id == product_id && existing_policy.is_active {
+                if existing_policy.holder == holder
+                    && existing_policy.product_id == product_id
+                    && existing_policy.is_active
+                {
                     return Err(Error::PolicyAlreadyExists);
                 }
             }
@@ -192,12 +195,7 @@ impl InsuranceProtocol {
     }
 
     /// Vote on a pending claim. `approve = true` votes for payout.
-    pub fn vote_claim(
-        env: Env,
-        voter: Address,
-        claim_id: u32,
-        approve: bool,
-    ) -> Result<(), Error> {
+    pub fn vote_claim(env: Env, voter: Address, claim_id: u32, approve: bool) -> Result<(), Error> {
         Self::assert_initialized(&env)?;
         voter.require_auth();
 

@@ -4,11 +4,19 @@ import YieldOptimizerPanel from "../../components/YieldOptimizerPanel";
 
 jest.mock("../../components/YieldOptimizerPanel", () => ({
   __esModule: true,
-  default: jest.fn(({ contractId, walletAddress }: { contractId: string; walletAddress: string }) => (
-    <div data-testid="yield-optimizer-panel">
-      {contractId} / {walletAddress}
-    </div>
-  )),
+  default: jest.fn(
+    ({
+      contractId,
+      walletAddress,
+    }: {
+      contractId: string;
+      walletAddress: string;
+    }) => (
+      <div data-testid="yield-optimizer-panel">
+        {contractId} / {walletAddress}
+      </div>
+    ),
+  ),
 }));
 
 describe("YieldOptimizerPage", () => {
@@ -20,10 +28,12 @@ describe("YieldOptimizerPage", () => {
   it("renders the connection settings form and empty state by default", () => {
     render(<YieldOptimizerPage />);
 
-    expect(screen.getByRole("heading", { name: /yield optimizer/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /yield optimizer/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/connection/i)).toBeInTheDocument();
     expect(
-      screen.getByText("Enter a contract ID above to get started.")
+      screen.getByText("Enter a contract ID above to get started."),
     ).toBeInTheDocument();
   });
 
@@ -40,9 +50,11 @@ describe("YieldOptimizerPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /connect/i }));
 
     expect(
-      screen.getByText("Contract ID must start with C and be 56 characters.")
+      screen.getByText("Contract ID must start with C and be 56 characters."),
     ).toBeInTheDocument();
-    expect(screen.queryByTestId("yield-optimizer-panel")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("yield-optimizer-panel"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the panel when a valid contract id is submitted", () => {
@@ -63,7 +75,7 @@ describe("YieldOptimizerPage", () => {
         contractId: "C".repeat(56),
         walletAddress: "GDEMOWALLET000000000000000000000000000000000",
       }),
-      expect.anything()
+      expect.anything(),
     );
   });
 });

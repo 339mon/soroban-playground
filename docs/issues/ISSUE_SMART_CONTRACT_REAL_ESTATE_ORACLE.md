@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement real estate oracle contract for reliable property data
 title: "[SMART CONTRACT] Implement Real Estate Oracle Contract for Reliable Property Data"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like real estate tokenization currently lack reliable property data
 ## 💡 Proposed Solution
 
 Create a comprehensive real estate oracle implementation with:
+
 - Standard property data interface compliance
 - Multiple data source integration (property databases, appraisal services, title registries)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive real estate oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitPropertyData()`, `getPropertyData()`, `getValuationData()` functions for property management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`PropertyDataSubmitted`, `PropertyDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/real-estate-oracle/`
 - Testing: `contracts/real-estate-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/real-estate-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive real estate oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building real estate tokenization and property valuation applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables real estate tokenization and property valuation |
+| Dimension        | Assessment                                                                       |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Who benefits?    | Developers building real estate tokenization and property valuation applications |
+| Effort estimate  | Medium (3-4 days)                                                                |
+| Breaking change? | No                                                                               |
+| MVP impact       | High - enables real estate tokenization and property valuation                   |
 
 ## 🔗 Related Issues or References
 

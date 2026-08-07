@@ -5,5 +5,5 @@ Specification and architecture guide for Robust Error Handling in Oracle Contrac
 ---
 
 ## References
-- Issue reference: Fixes #984
 
+- Issue reference: Fixes #984

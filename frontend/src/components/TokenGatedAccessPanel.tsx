@@ -73,7 +73,10 @@ function TierBadge({ tier }: { tier: Tier }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com" }: Props) {
+export default function TokenGatedAccessPanel({
+  apiBase = process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com",
+}: Props) {
   const base = `${apiBase}/api/token-gated`;
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -85,16 +88,30 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Mint form
-  const [mintForm, setMintForm] = useState({ recipient: "", tier: "Basic" as Tier, metadataUri: "" });
+  const [mintForm, setMintForm] = useState({
+    recipient: "",
+    tier: "Basic" as Tier,
+    metadataUri: "",
+  });
   const [minting, setMinting] = useState(false);
 
   // Access check
-  const [checkForm, setCheckForm] = useState({ address: "", minTier: "Basic" as Tier });
-  const [checkResult, setCheckResult] = useState<{ granted: boolean; tier?: Tier; reason: string } | null>(null);
+  const [checkForm, setCheckForm] = useState({
+    address: "",
+    minTier: "Basic" as Tier,
+  });
+  const [checkResult, setCheckResult] = useState<{
+    granted: boolean;
+    tier?: Tier;
+    reason: string;
+  } | null>(null);
   const [checking, setChecking] = useState(false);
 
   // Upgrade form
-  const [upgradeForm, setUpgradeForm] = useState({ tokenId: "", newTier: "Premium" as Tier });
+  const [upgradeForm, setUpgradeForm] = useState({
+    tokenId: "",
+    newTier: "Premium" as Tier,
+  });
 
   // ── API helpers ────────────────────────────────────────────────────────────
 
@@ -140,7 +157,9 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Mint failed");
-      flash(`Minted token #${data.data.tokenId} to ${short(mintForm.recipient)}`);
+      flash(
+        `Minted token #${data.data.tokenId} to ${short(mintForm.recipient)}`,
+      );
       setMintForm({ recipient: "", tier: "Basic", metadataUri: "" });
       fetchMembers();
     } catch (err: unknown) {
@@ -154,7 +173,9 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
     if (!confirm(`Revoke token #${tokenId}?`)) return;
     setError(null);
     try {
-      const res = await fetch(`${base}/revoke/${tokenId}`, { method: "DELETE" });
+      const res = await fetch(`${base}/revoke/${tokenId}`, {
+        method: "DELETE",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Revoke failed");
       flash(`Token #${tokenId} revoked`);
@@ -191,7 +212,10 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
     setCheckResult(null);
     setError(null);
     try {
-      const params = new URLSearchParams({ address: checkForm.address.trim(), minTier: checkForm.minTier });
+      const params = new URLSearchParams({
+        address: checkForm.address.trim(),
+        minTier: checkForm.minTier,
+      });
       const res = await fetch(`${base}/check-access?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Check failed");
@@ -209,13 +233,19 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
     <div className="space-y-6">
       {/* Notifications */}
       {error && (
-        <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+        >
           <XCircle size={14} className="shrink-0" />
           {error}
         </div>
       )}
       {successMsg && (
-        <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+        <div
+          role="status"
+          className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"
+        >
           <CheckCircle size={14} className="shrink-0" />
           {successMsg}
         </div>
@@ -225,14 +255,42 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
       {analytics && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: "Total Members", value: analytics.totalMembers, icon: <Users size={14} /> },
-            { label: "Basic", value: analytics.basicCount, icon: <Shield size={14} />, color: "text-sky-400" },
-            { label: "Premium", value: analytics.premiumCount, icon: <Shield size={14} />, color: "text-violet-400" },
-            { label: "Elite", value: analytics.eliteCount, icon: <Shield size={14} />, color: "text-amber-400" },
-            { label: "Access Checks", value: analytics.totalAccessChecks, icon: <BarChart3 size={14} /> },
+            {
+              label: "Total Members",
+              value: analytics.totalMembers,
+              icon: <Users size={14} />,
+            },
+            {
+              label: "Basic",
+              value: analytics.basicCount,
+              icon: <Shield size={14} />,
+              color: "text-sky-400",
+            },
+            {
+              label: "Premium",
+              value: analytics.premiumCount,
+              icon: <Shield size={14} />,
+              color: "text-violet-400",
+            },
+            {
+              label: "Elite",
+              value: analytics.eliteCount,
+              icon: <Shield size={14} />,
+              color: "text-amber-400",
+            },
+            {
+              label: "Access Checks",
+              value: analytics.totalAccessChecks,
+              icon: <BarChart3 size={14} />,
+            },
           ].map((s, i) => (
-            <div key={i} className="rounded-xl border border-white/5 bg-white/5 p-4">
-              <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 ${s.color ?? ""}`}>
+            <div
+              key={i}
+              className="rounded-xl border border-white/5 bg-white/5 p-4"
+            >
+              <div
+                className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 ${s.color ?? ""}`}
+              >
                 {s.icon}
                 {s.label}
               </div>
@@ -249,9 +307,16 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
             <Plus size={14} className="text-emerald-400" />
             Mint Membership NFT
           </h2>
-          <form onSubmit={handleMint} className="space-y-3" aria-label="Mint membership form">
+          <form
+            onSubmit={handleMint}
+            className="space-y-3"
+            aria-label="Mint membership form"
+          >
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="mint-recipient">
+              <label
+                className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+                htmlFor="mint-recipient"
+              >
                 Recipient Address
               </label>
               <input
@@ -260,26 +325,38 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
                 required
                 placeholder="G... or contract address"
                 value={mintForm.recipient}
-                onChange={(e) => setMintForm((f) => ({ ...f, recipient: e.target.value }))}
+                onChange={(e) =>
+                  setMintForm((f) => ({ ...f, recipient: e.target.value }))
+                }
                 className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-violet-500 focus:outline-none"
                 aria-required="true"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="mint-tier">
+              <label
+                className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+                htmlFor="mint-tier"
+              >
                 Tier
               </label>
               <select
                 id="mint-tier"
                 value={mintForm.tier}
-                onChange={(e) => setMintForm((f) => ({ ...f, tier: e.target.value as Tier }))}
+                onChange={(e) =>
+                  setMintForm((f) => ({ ...f, tier: e.target.value as Tier }))
+                }
                 className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-violet-500 focus:outline-none"
               >
-                {TIERS.map((t) => <option key={t}>{t}</option>)}
+                {TIERS.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="mint-uri">
+              <label
+                className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+                htmlFor="mint-uri"
+              >
                 Metadata URI (optional)
               </label>
               <input
@@ -287,7 +364,9 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
                 type="text"
                 placeholder="ipfs://..."
                 value={mintForm.metadataUri}
-                onChange={(e) => setMintForm((f) => ({ ...f, metadataUri: e.target.value }))}
+                onChange={(e) =>
+                  setMintForm((f) => ({ ...f, metadataUri: e.target.value }))
+                }
                 className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-violet-500 focus:outline-none"
               />
             </div>
@@ -307,9 +386,16 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
             <Key size={14} className="text-violet-400" />
             Check Access
           </h2>
-          <form onSubmit={handleCheckAccess} className="space-y-3" aria-label="Check access form">
+          <form
+            onSubmit={handleCheckAccess}
+            className="space-y-3"
+            aria-label="Check access form"
+          >
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="check-address">
+              <label
+                className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+                htmlFor="check-address"
+              >
                 Address
               </label>
               <input
@@ -318,22 +404,34 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
                 required
                 placeholder="G... address"
                 value={checkForm.address}
-                onChange={(e) => setCheckForm((f) => ({ ...f, address: e.target.value }))}
+                onChange={(e) =>
+                  setCheckForm((f) => ({ ...f, address: e.target.value }))
+                }
                 className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-violet-500 focus:outline-none"
                 aria-required="true"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="check-tier">
+              <label
+                className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+                htmlFor="check-tier"
+              >
                 Minimum Tier Required
               </label>
               <select
                 id="check-tier"
                 value={checkForm.minTier}
-                onChange={(e) => setCheckForm((f) => ({ ...f, minTier: e.target.value as Tier }))}
+                onChange={(e) =>
+                  setCheckForm((f) => ({
+                    ...f,
+                    minTier: e.target.value as Tier,
+                  }))
+                }
                 className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-violet-500 focus:outline-none"
               >
-                {TIERS.map((t) => <option key={t}>{t}</option>)}
+                {TIERS.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
             </div>
             <button
@@ -361,7 +459,9 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
                 <Lock size={18} className="text-rose-400 shrink-0" />
               )}
               <div>
-                <p className={`text-sm font-bold ${checkResult.granted ? "text-emerald-300" : "text-rose-300"}`}>
+                <p
+                  className={`text-sm font-bold ${checkResult.granted ? "text-emerald-300" : "text-rose-300"}`}
+                >
                   {checkResult.granted ? "Access Granted" : "Access Denied"}
                 </p>
                 <p className="text-[11px] text-slate-400">
@@ -380,9 +480,16 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
           <ArrowUpCircle size={14} className="text-amber-400" />
           Upgrade Membership
         </h2>
-        <form onSubmit={handleUpgrade} className="flex flex-wrap gap-3 items-end" aria-label="Upgrade membership form">
+        <form
+          onSubmit={handleUpgrade}
+          className="flex flex-wrap gap-3 items-end"
+          aria-label="Upgrade membership form"
+        >
           <div className="flex-1 min-w-[140px]">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="upgrade-token">
+            <label
+              className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+              htmlFor="upgrade-token"
+            >
               Token ID
             </label>
             <input
@@ -392,22 +499,34 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
               required
               placeholder="1"
               value={upgradeForm.tokenId}
-              onChange={(e) => setUpgradeForm((f) => ({ ...f, tokenId: e.target.value }))}
+              onChange={(e) =>
+                setUpgradeForm((f) => ({ ...f, tokenId: e.target.value }))
+              }
               className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:border-amber-500 focus:outline-none"
               aria-required="true"
             />
           </div>
           <div className="flex-1 min-w-[140px]">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1" htmlFor="upgrade-tier">
+            <label
+              className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1"
+              htmlFor="upgrade-tier"
+            >
               New Tier
             </label>
             <select
               id="upgrade-tier"
               value={upgradeForm.newTier}
-              onChange={(e) => setUpgradeForm((f) => ({ ...f, newTier: e.target.value as Tier }))}
+              onChange={(e) =>
+                setUpgradeForm((f) => ({
+                  ...f,
+                  newTier: e.target.value as Tier,
+                }))
+              }
               className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
             >
-              {TIERS.map((t) => <option key={t}>{t}</option>)}
+              {TIERS.map((t) => (
+                <option key={t}>{t}</option>
+              ))}
             </select>
           </div>
           <button
@@ -442,7 +561,11 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
             {loading ? "Loading…" : "No members yet. Mint the first NFT above."}
           </p>
         ) : (
-          <div className="overflow-x-auto" role="region" aria-label="Members table">
+          <div
+            className="overflow-x-auto"
+            role="region"
+            aria-label="Members table"
+          >
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -457,11 +580,26 @@ export default function TokenGatedAccessPanel({ apiBase = process.env.NEXT_PUBLI
               <tbody className="divide-y divide-white/5">
                 {members.map((m) => (
                   <tr key={m.tokenId} className="hover:bg-white/5 transition">
-                    <td className="py-2.5 font-mono text-slate-300">#{m.tokenId}</td>
-                    <td className="py-2.5 font-mono text-slate-400" title={m.owner}>{short(m.owner)}</td>
-                    <td className="py-2.5"><TierBadge tier={m.tier} /></td>
-                    <td className="py-2.5 text-slate-500 text-xs">{new Date(m.issuedAt).toLocaleDateString()}</td>
-                    <td className="py-2.5 text-slate-500 text-xs">{m.expiresAt ? new Date(m.expiresAt).toLocaleDateString() : "Never"}</td>
+                    <td className="py-2.5 font-mono text-slate-300">
+                      #{m.tokenId}
+                    </td>
+                    <td
+                      className="py-2.5 font-mono text-slate-400"
+                      title={m.owner}
+                    >
+                      {short(m.owner)}
+                    </td>
+                    <td className="py-2.5">
+                      <TierBadge tier={m.tier} />
+                    </td>
+                    <td className="py-2.5 text-slate-500 text-xs">
+                      {new Date(m.issuedAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2.5 text-slate-500 text-xs">
+                      {m.expiresAt
+                        ? new Date(m.expiresAt).toLocaleDateString()
+                        : "Never"}
+                    </td>
                     <td className="py-2.5 text-right">
                       <button
                         onClick={() => handleRevoke(m.tokenId)}

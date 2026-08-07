@@ -7,7 +7,7 @@ const CONTRACT_ID_RE = /^C[A-Z0-9]{55}$/;
 
 export default function ReitPage() {
   const [contractId, setContractId] = useState(
-    process.env.NEXT_PUBLIC_REIT_CONTRACT_ID?.trim() ?? ""
+    process.env.NEXT_PUBLIC_REIT_CONTRACT_ID?.trim() ?? "",
   );
   const [walletAddress, setWalletAddress] = useState("");
   const [inputContract, setInputContract] = useState(contractId);
@@ -30,7 +30,8 @@ export default function ReitPage() {
         <header>
           <h1 className="text-2xl font-bold text-white">🏢 Tokenized REIT</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Fractional real estate investment with on-chain dividend distribution on Stellar Soroban.
+            Fractional real estate investment with on-chain dividend
+            distribution on Stellar Soroban.
           </p>
         </header>
 
@@ -41,7 +42,10 @@ export default function ReitPage() {
           <h2 className="text-sm font-semibold text-gray-200">Connection</h2>
           <div className="space-y-2">
             <div>
-              <label htmlFor="reit-contract-id" className="block text-xs text-gray-400 mb-1">
+              <label
+                htmlFor="reit-contract-id"
+                className="block text-xs text-gray-400 mb-1"
+              >
                 Contract ID
               </label>
               <input
@@ -50,16 +54,25 @@ export default function ReitPage() {
                 onChange={(e) => setInputContract(e.target.value)}
                 placeholder="C…"
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                aria-describedby={contractError ? "reit-contract-error" : undefined}
+                aria-describedby={
+                  contractError ? "reit-contract-error" : undefined
+                }
               />
               {contractError && (
-                <p id="reit-contract-error" className="text-xs text-red-400 mt-1" role="alert">
+                <p
+                  id="reit-contract-error"
+                  className="text-xs text-red-400 mt-1"
+                  role="alert"
+                >
                   {contractError}
                 </p>
               )}
             </div>
             <div>
-              <label htmlFor="reit-wallet" className="block text-xs text-gray-400 mb-1">
+              <label
+                htmlFor="reit-wallet"
+                className="block text-xs text-gray-400 mb-1"
+              >
                 Wallet Address (needed for write operations)
               </label>
               <input

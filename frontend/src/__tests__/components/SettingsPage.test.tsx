@@ -5,7 +5,9 @@ describe("SettingsPage", () => {
   it("renders the preferences form with the expected default values", () => {
     render(<SettingsPage />);
 
-    expect(screen.getByRole("heading", { name: /preferences/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /preferences/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/theme/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email notifications/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/auto-save drafts/i)).toBeInTheDocument();
@@ -25,7 +27,9 @@ describe("SettingsPage", () => {
     fireEvent.click(screen.getByLabelText(/auto-save drafts/i));
     fireEvent.click(screen.getByRole("button", { name: /save preferences/i }));
 
-    expect(screen.getByRole("status")).toHaveTextContent(/preferences saved successfully/i);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /preferences saved successfully/i,
+    );
     expect(screen.getByLabelText(/theme/i)).toHaveValue("light");
     expect(screen.getByLabelText(/auto-save drafts/i)).toBeChecked();
   });
@@ -39,6 +43,8 @@ describe("SettingsPage", () => {
 
     expect(screen.getByLabelText(/email notifications/i)).not.toBeChecked();
     expect(screen.getByLabelText(/auto-save drafts/i)).toBeChecked();
-    expect(screen.getByRole("status")).toHaveTextContent(/preferences saved successfully/i);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /preferences saved successfully/i,
+    );
   });
 });

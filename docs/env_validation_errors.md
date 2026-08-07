@@ -5,5 +5,5 @@ Specification and architecture guide for Robust Error Handling in Environment Va
 ---
 
 ## References
-- Issue reference: Fixes #978
 
+- Issue reference: Fixes #978

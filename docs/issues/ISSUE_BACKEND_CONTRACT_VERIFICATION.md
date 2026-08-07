@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract verification and source code publishing service
 title: "[BACKEND] Implement Contract Verification and Source Code Publishing Service"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban contracts currently cannot be verified against their source code, creati
 ## 💡 Proposed Solution
 
 Create a comprehensive contract verification service with:
+
 - Source code submission and storage
 - Bytecode verification against source code
 - Verification status tracking and display
@@ -24,6 +25,7 @@ Create a comprehensive contract verification service with:
 - Security validation and integrity checking
 
 ### Key Features
+
 - `POST /verify/contracts`: Submit source code for verification
 - `GET /verify/contracts/{id}`: Get verification status
 - `GET /verify/contracts/{id}/source`: Get verified source code
@@ -31,6 +33,7 @@ Create a comprehensive contract verification service with:
 - `GET /verify/contracts/search`: Search verified contracts
 
 ### Implementation Details
+
 - Location: `backend/src/routes/verification.js`
 - Service: `backend/src/services/verificationService.js`
 - Database: PostgreSQL table `contract_verification`
@@ -52,12 +55,12 @@ Create a comprehensive contract verification service with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers and users of Soroban contracts |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | Critical - provides transparency, security, and trust for contract users |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | All developers and users of Soroban contracts                            |
+| Effort estimate  | Medium (4-5 days)                                                        |
+| Breaking change? | No                                                                       |
+| MVP impact       | Critical - provides transparency, security, and trust for contract users |
 
 ## 🔗 Related Issues or References
 

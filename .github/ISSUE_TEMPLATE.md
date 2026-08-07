@@ -7,6 +7,7 @@ Implement a comprehensive test suite for the Synthetic Assets backend functional
 ## Context
 
 The synthetic assets feature is a flagship capability of the Soroban Playground, with:
+
 - 662-line service implementation (`src/services/syntheticAssetsService.js`)
 - 448-line API routes (`src/routes/v1/synthetic-assets.js`)
 - 133-line database migrations (`migrations/V003__synthetic_assets.up.sql`)
@@ -18,6 +19,7 @@ However, there are no backend test files in `backend/tests/` or `backend/test/` 
 ## Impact
 
 Without proper testing, this critical financial infrastructure cannot be deployed to production safely. Missing test coverage creates significant risk for:
+
 - Financial loss due to bugs in collateral management, liquidation logic, or price oracle integration
 - Production outages from untested edge cases
 - Difficulty maintaining and extending the feature
@@ -36,11 +38,13 @@ Without proper testing, this critical financial infrastructure cannot be deploye
 ## Implementation Details
 
 ### Test Structure
+
 - Create `backend/tests/syntheticAssets.test.js` for unit tests
 - Create `backend/tests/syntheticAssets.integration.test.js` for integration tests
 - Create `backend/tests/syntheticAssets.e2e.test.js` for end-to-end tests
 
 ### Key Test Coverage Areas
+
 1. **API Routes**: All 20+ endpoints including `/register`, `/mint`, `/burn`, `/price`, `/position/:id`, etc.
 2. **Service Layer**: All 25+ service methods including `registerAsset()`, `mintSynthetic()`, `burnSynthetic()`, `getAssetPrice()`, `isLiquidatable()`, etc.
 3. **Database Integration**: Verify proper data persistence and retrieval for positions, assets, prices, events
@@ -48,6 +52,7 @@ Without proper testing, this critical financial infrastructure cannot be deploye
 5. **Edge Cases**: Liquidation scenarios, price oracle failures, collateral ratio calculations, protocol parameter updates
 
 ### Testing Tools
+
 - Jest for test runner
 - Supertest for HTTP API testing
 - Jest mock for database and contract interactions
@@ -55,15 +60,18 @@ Without proper testing, this critical financial infrastructure cannot be deploye
 - Proper test fixtures and mocks for Soroban contract interactions
 
 ## Dependencies
+
 - Database migration V003 must be applied
 - Synthetic assets contract must be deployed and configured in environment variables
 - Redis service must be available for caching tests
 
 ## Estimated Effort
+
 - 3-5 days of focused development
 - Requires deep understanding of synthetic assets architecture and testing best practices
 
 ## Priority
+
 High - Critical path to MVP deployment and production readiness
 
 // issue starter

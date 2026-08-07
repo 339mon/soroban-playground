@@ -21,7 +21,9 @@ jest.mock('../src/services/redisService.js', () => ({
   __esModule: true,
   default: {
     isConnected: true,
-    get: jest.fn().mockImplementation(async (key) => mockStore.get(key) || null),
+    get: jest
+      .fn()
+      .mockImplementation(async (key) => mockStore.get(key) || null),
     set: jest.fn().mockImplementation(async (key, value) => {
       mockStore.set(key, value);
       return 'OK';

@@ -1,5 +1,7 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import DataTypeFormatter, { detectType } from "../../components/DataTypeFormatter";
+import DataTypeFormatter, {
+  detectType,
+} from "../../components/DataTypeFormatter";
 import StorageSearchBar from "../../components/StorageSearchBar";
 import type { StorageSearchState } from "../../components/StorageSearchBar";
 
@@ -80,7 +82,9 @@ const defaultState: StorageSearchState = { query: "", types: [] };
 describe("StorageSearchBar", () => {
   it("renders search input and all type filters", () => {
     render(<StorageSearchBar value={defaultState} onChange={jest.fn()} />);
-    expect(screen.getByRole("textbox", { name: /search storage/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /search storage/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "hex" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "address" })).toBeInTheDocument();
   });
@@ -88,16 +92,22 @@ describe("StorageSearchBar", () => {
   it("calls onChange with debounced query", () => {
     const onChange = jest.fn();
     render(<StorageSearchBar value={defaultState} onChange={onChange} />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "counter" } });
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "counter" },
+    });
     act(() => jest.advanceTimersByTime(250));
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ query: "counter" }));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "counter" }),
+    );
   });
 
   it("toggles data type filter on button click", () => {
     const onChange = jest.fn();
     render(<StorageSearchBar value={defaultState} onChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: "hex" }));
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ types: ["hex"] }));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ types: ["hex"] }),
+    );
   });
 
   it("removes active type filter on second click", () => {
@@ -105,7 +115,9 @@ describe("StorageSearchBar", () => {
     const state: StorageSearchState = { query: "", types: ["hex"] };
     render(<StorageSearchBar value={state} onChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: "hex" }));
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ types: [] }));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ types: [] }),
+    );
   });
 
   it("shows clear button when query is set and clears on click", () => {
@@ -121,12 +133,17 @@ describe("StorageSearchBar", () => {
   it("shows clear button when type filters are active", () => {
     const state: StorageSearchState = { query: "", types: ["json"] };
     render(<StorageSearchBar value={state} onChange={jest.fn()} />);
-    expect(screen.getByRole("button", { name: /clear filters/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /clear filters/i }),
+    ).toBeInTheDocument();
   });
 
   it("marks active type filter with aria-pressed=true", () => {
     const state: StorageSearchState = { query: "", types: ["integer"] };
     render(<StorageSearchBar value={state} onChange={jest.fn()} />);
-    expect(screen.getByRole("button", { name: "integer" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "integer" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

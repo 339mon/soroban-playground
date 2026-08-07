@@ -44,7 +44,9 @@ export function useFavorites() {
   }, [favorites]);
 
   const toggle = (id: string) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [id, ...prev]));
+    setFavorites((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [id, ...prev],
+    );
   };
 
   const isFavorite = (id: string) => favorites.includes(id);
@@ -67,16 +69,25 @@ export default function FavoritesManager({
 
   return (
     <div className="p-3 bg-slate-900/40 border border-slate-800 rounded-xl">
-      <h3 className="text-xs font-semibold text-slate-300 uppercase mb-2">Favorites</h3>
+      <h3 className="text-xs font-semibold text-slate-300 uppercase mb-2">
+        Favorites
+      </h3>
       {favTemplates.length === 0 ? (
-        <p className="text-[12px] text-slate-500">No favorites yet — click the star on a template.</p>
+        <p className="text-[12px] text-slate-500">
+          No favorites yet — click the star on a template.
+        </p>
       ) : (
         <div className="space-y-2">
           {favTemplates.map((t) => (
-            <div key={t.id} className="flex items-center justify-between bg-slate-800/50 p-2 rounded">
+            <div
+              key={t.id}
+              className="flex items-center justify-between bg-slate-800/50 p-2 rounded"
+            >
               <div>
                 <div className="text-sm font-medium text-white">{t.name}</div>
-                <div className="text-[11px] text-slate-400">{t.description}</div>
+                <div className="text-[11px] text-slate-400">
+                  {t.description}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button

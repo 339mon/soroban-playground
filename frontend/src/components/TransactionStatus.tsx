@@ -35,7 +35,11 @@ export default function TransactionStatus({
         </button>
       </div>
 
-      <ul className="space-y-1.5 max-h-48 overflow-y-auto" role="list" aria-label="Transaction list">
+      <ul
+        className="space-y-1.5 max-h-48 overflow-y-auto"
+        role="list"
+        aria-label="Transaction list"
+      >
         {transactions.map((tx) => (
           <li
             key={tx.id}
@@ -46,7 +50,12 @@ export default function TransactionStatus({
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-300 truncate">{tx.label}</p>
               {tx.error && (
-                <p className="text-[10px] text-rose-400 mt-0.5 truncate" aria-live="assertive">{tx.error}</p>
+                <p
+                  className="text-[10px] text-rose-400 mt-0.5 truncate"
+                  aria-live="assertive"
+                >
+                  {tx.error}
+                </p>
               )}
               {tx.hash && (
                 <a

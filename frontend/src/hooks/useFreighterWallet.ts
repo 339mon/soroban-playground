@@ -2,7 +2,8 @@
 
 import { useWallet } from "../components/providers/WalletProvider";
 
-export type WalletStatus = "idle" | "connecting" | "connected" | "error" | "unavailable";
+export type WalletStatus =
+  "idle" | "connecting" | "connected" | "error" | "unavailable";
 
 export interface WalletState {
   status: WalletStatus;

@@ -9,7 +9,7 @@ type MonacoEditorModule = {
 type IdleWindow = Window & {
   requestIdleCallback?: (
     callback: IdleRequestCallback,
-    options?: IdleRequestOptions
+    options?: IdleRequestOptions,
   ) => number;
   cancelIdleCallback?: (handle: number) => void;
 };
@@ -20,7 +20,7 @@ export function scheduleEditorLoad(
   task: () => void | Promise<void>,
   targetWindow: IdleWindow | undefined = typeof window === "undefined"
     ? undefined
-    : (window as IdleWindow)
+    : (window as IdleWindow),
 ): () => void {
   if (!targetWindow) {
     void task();
@@ -32,7 +32,7 @@ export function scheduleEditorLoad(
       () => {
         void task();
       },
-      { timeout: 1500 }
+      { timeout: 1500 },
     );
 
     return () => {
@@ -50,7 +50,8 @@ export function scheduleEditorLoad(
 }
 
 export function loadMonacoEditor(
-  importer: () => Promise<MonacoEditorModule> = () => import("@monaco-editor/react")
+  importer: () => Promise<MonacoEditorModule> = () =>
+    import("@monaco-editor/react"),
 ): Promise<MonacoEditorModule> {
   if (!monacoEditorPromise) {
     monacoEditorPromise = importer();

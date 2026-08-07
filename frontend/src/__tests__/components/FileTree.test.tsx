@@ -113,9 +113,7 @@ describe("FileTree", () => {
     });
 
     it("has aria-selected='true' when it is the active node", () => {
-      render(
-        <FileTree nodes={[fileRs]} activeNodeId="src/lib.rs" />
-      );
+      render(<FileTree nodes={[fileRs]} activeNodeId="src/lib.rs" />);
       const item = screen.getByRole("treeitem", { name: "lib.rs" });
       expect(item).toHaveAttribute("aria-selected", "true");
     });
@@ -251,7 +249,7 @@ describe("FileTree", () => {
     it("does not throw when onSelectFile is not provided and a file is clicked", () => {
       render(<FileTree nodes={[fileRs]} />);
       expect(() =>
-        fireEvent.click(screen.getByRole("treeitem", { name: "lib.rs" }))
+        fireEvent.click(screen.getByRole("treeitem", { name: "lib.rs" })),
       ).not.toThrow();
     });
   });

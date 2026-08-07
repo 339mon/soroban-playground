@@ -176,7 +176,8 @@ export const resolvers = {
         slowCompiles: stats?.slowCompiles ?? 0,
         memoryPeakBytes: 130023424,
         cacheBytes: 12582912,
-        artifactsCount: snapshot?.history?.length ?? snapshot?.artifacts?.length ?? 0,
+        artifactsCount:
+          snapshot?.history?.length ?? snapshot?.artifacts?.length ?? 0,
       };
 
       await setCached(cacheKey, {}, result, 10_000);
@@ -260,14 +261,34 @@ export const resolvers = {
 
   // ── Type-level field resolvers (relations routed through DataLoaders) ────────
   Project: {
-    creatorId: (parent) => parent.creatorId !== undefined ? parent.creatorId : parent.creator_id,
-    creatorName: (parent) => parent.creatorName !== undefined ? parent.creatorName : parent.creator_name,
-    fundingGoal: (parent) => parent.fundingGoal !== undefined ? parent.fundingGoal : parent.funding_goal,
-    currentFunding: (parent) => parent.currentFunding !== undefined ? parent.currentFunding : parent.current_funding,
-    completionRate: (parent) => parent.completionRate !== undefined ? parent.completionRate : parent.completion_rate,
-    creator_id: (parent) => parent.creator_id !== undefined ? parent.creator_id : parent.creatorId,
-    creator_name: (parent) => parent.creator_name !== undefined ? parent.creator_name : parent.creatorName,
-    funding_goal: (parent) => parent.funding_goal !== undefined ? parent.funding_goal : parent.fundingGoal,
+    creatorId: (parent) =>
+      parent.creatorId !== undefined ? parent.creatorId : parent.creator_id,
+    creatorName: (parent) =>
+      parent.creatorName !== undefined
+        ? parent.creatorName
+        : parent.creator_name,
+    fundingGoal: (parent) =>
+      parent.fundingGoal !== undefined
+        ? parent.fundingGoal
+        : parent.funding_goal,
+    currentFunding: (parent) =>
+      parent.currentFunding !== undefined
+        ? parent.currentFunding
+        : parent.current_funding,
+    completionRate: (parent) =>
+      parent.completionRate !== undefined
+        ? parent.completionRate
+        : parent.completion_rate,
+    creator_id: (parent) =>
+      parent.creator_id !== undefined ? parent.creator_id : parent.creatorId,
+    creator_name: (parent) =>
+      parent.creator_name !== undefined
+        ? parent.creator_name
+        : parent.creatorName,
+    funding_goal: (parent) =>
+      parent.funding_goal !== undefined
+        ? parent.funding_goal
+        : parent.fundingGoal,
     files: (parent, _args, context) =>
       context.loaders.filesByProject.load(parent.id),
   },

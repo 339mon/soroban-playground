@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for NFT Marketplac
 ---
 
 ## References
-- Issue reference: Fixes #1000
 
+- Issue reference: Fixes #1000

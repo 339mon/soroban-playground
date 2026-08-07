@@ -61,7 +61,7 @@ const DEMO_SNAPSHOT_FRAMES: SnapshotFrame[] = [
       active_auctions: 0,
       "balances.user_a": 5000,
       "nonce.user_a": 1,
-      "temp_session_key": "sess_8923748291",
+      temp_session_key: "sess_8923748291",
     },
   },
   {
@@ -81,7 +81,7 @@ const DEMO_SNAPSHOT_FRAMES: SnapshotFrame[] = [
       "auction.101.seller": "user_a",
       "auction.101.start_price": 1000,
       "auction.101.status": "active",
-      "temp_session_key": "sess_8923748291",
+      temp_session_key: "sess_8923748291",
     },
   },
   {
@@ -112,12 +112,15 @@ const DEMO_SNAPSHOT_FRAMES: SnapshotFrame[] = [
 export default function StorageStateDiffDebugger() {
   const [frames, setFrames] = useState<SnapshotFrame[]>(DEMO_SNAPSHOT_FRAMES);
   const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0);
-  const [selectedCategory, setSelectedCategory] = useState<"all" | StorageCategory>("all");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "all" | StorageCategory
+  >("all");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const currentFrame = frames[currentFrameIndex] ?? frames[0];
-  const previousFrame = currentFrameIndex > 0 ? frames[currentFrameIndex - 1] : undefined;
+  const previousFrame =
+    currentFrameIndex > 0 ? frames[currentFrameIndex - 1] : undefined;
 
   const handleNextFrame = () => {
     if (currentFrameIndex < frames.length - 1) {
@@ -142,7 +145,10 @@ export default function StorageStateDiffDebugger() {
     const q = searchQuery.toLowerCase();
     const result: LedgerState = {};
     for (const [key, val] of Object.entries(currentFrame.state)) {
-      if (key.toLowerCase().includes(q) || String(val).toLowerCase().includes(q)) {
+      if (
+        key.toLowerCase().includes(q) ||
+        String(val).toLowerCase().includes(q)
+      ) {
         result[key] = val;
       }
     }
@@ -155,7 +161,10 @@ export default function StorageStateDiffDebugger() {
     const q = searchQuery.toLowerCase();
     const result: LedgerState = {};
     for (const [key, val] of Object.entries(previousFrame.state)) {
-      if (key.toLowerCase().includes(q) || String(val).toLowerCase().includes(q)) {
+      if (
+        key.toLowerCase().includes(q) ||
+        String(val).toLowerCase().includes(q)
+      ) {
         result[key] = val;
       }
     }
@@ -212,7 +221,10 @@ export default function StorageStateDiffDebugger() {
         <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
             <span className="truncate">
-              Method: <strong className="text-teal-300">{currentFrame.contractMethod}</strong>
+              Method:{" "}
+              <strong className="text-teal-300">
+                {currentFrame.contractMethod}
+              </strong>
             </span>
             <span className="text-slate-500">{currentFrame.timestamp}</span>
           </div>
@@ -229,24 +241,29 @@ export default function StorageStateDiffDebugger() {
         {/* Category filter tabs */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
           <div className="flex items-center gap-1.5">
-            {(["all", "instance", "persistent", "temporary"] as const).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition ${
-                  selectedCategory === cat
-                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {(["all", "instance", "persistent", "temporary"] as const).map(
+              (cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition ${
+                    selectedCategory === cat
+                      ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ),
+            )}
           </div>
 
           {/* Filter Search input */}
           <div className="relative w-full sm:w-64">
-            <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+            <Search
+              size={14}
+              className="absolute left-3 top-2.5 text-slate-500"
+            />
             <input
               type="text"
               placeholder="Search storage key/val…"

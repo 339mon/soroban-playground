@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement rate limiting and abuse protection for API endpoints
 title: "[BACKEND] Implement Rate Limiting and Abuse Protection for API Endpoints"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Backend API endpoints currently lack rate limiting, making them vulnerable to ab
 ## 💡 Proposed Solution
 
 Create a comprehensive rate limiting service with:
+
 - Per-endpoint rate limiting configuration
 - IP-based and token-based rate limiting
 - Configurable limits (requests per minute/hour)
@@ -24,6 +25,7 @@ Create a comprehensive rate limiting service with:
 - Integration with existing middleware
 
 ### Key Features
+
 - `POST /rate-limit/config`: Configure rate limiting rules
 - `GET /rate-limit/status`: Get current rate limiting status
 - `GET /rate-limit/logs`: View rate limiting logs
@@ -31,6 +33,7 @@ Create a comprehensive rate limiting service with:
 - Configurable limits per endpoint (compile, deploy, invoke, etc.)
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/rateLimit.js`
 - Service: `backend/src/services/rateLimitService.js`
 - Database: PostgreSQL table `rate_limit_logs`
@@ -52,12 +55,12 @@ Create a comprehensive rate limiting service with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All users of the Soroban Playground API |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - prevents abuse, ensures fair resource usage, and protects against DoS attacks |
+| Dimension        | Assessment                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Who benefits?    | All users of the Soroban Playground API                                                  |
+| Effort estimate  | Medium (2-3 days)                                                                        |
+| Breaking change? | No                                                                                       |
+| MVP impact       | Critical - prevents abuse, ensures fair resource usage, and protects against DoS attacks |
 
 ## 🔗 Related Issues or References
 

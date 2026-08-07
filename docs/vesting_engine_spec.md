@@ -8,7 +8,7 @@ Technical design document for a gas-optimized token vesting schedule contract wi
 
 For a given vesting schedule with total allocation $A$, start ledger $L_{\text{start}}$, cliff ledger $L_{\text{cliff}}$, and end ledger $L_{\text{end}}$:
 
-$$\text{Vested Amount}(L) = \begin{cases} 
+$$ \text{Vested Amount}(L) = \begin{cases}
 0 & \text{if } L < L_{\text{cliff}} \\
 A & \text{if } L \ge L_{\text{end}} \\
 \lfloor \frac{A \times (L - L_{\text{start}})}{L_{\text{end}} - L_{\text{start}}} \rfloor & \text{if } L_{\text{cliff}} \le L < L_{\text{end}}
@@ -35,3 +35,4 @@ $$\text{Claimable Amount}(L) = \text{Vested Amount}(L) + \sum_{\text{completed }
 
 - Implementation: [`contracts/vesting_engine/src/lib.rs`](../contracts/vesting_engine/src/lib.rs)
 - Issue reference: Fixes #1037
+$$

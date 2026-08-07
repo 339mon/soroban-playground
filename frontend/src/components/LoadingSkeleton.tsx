@@ -84,7 +84,11 @@ export class SkeletonErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("[LoadingSkeleton] Uncaught error in skeleton subtree:", error, info);
+    console.error(
+      "[LoadingSkeleton] Uncaught error in skeleton subtree:",
+      error,
+      info,
+    );
   }
 
   private handleRetry = (): void => {
@@ -142,10 +146,14 @@ export class SkeletonErrorBoundary extends Component<
 // Helpers
 // ---------------------------------------------------------------------------
 
-function normaliseError(error: Error | string | null | undefined): string | null {
+function normaliseError(
+  error: Error | string | null | undefined,
+): string | null {
   if (!error) return null;
-  if (error instanceof Error) return error.message || "An unexpected error occurred.";
-  if (typeof error === "string") return error.trim() || "An unexpected error occurred.";
+  if (error instanceof Error)
+    return error.message || "An unexpected error occurred.";
+  if (typeof error === "string")
+    return error.trim() || "An unexpected error occurred.";
   return "An unexpected error occurred.";
 }
 
@@ -177,7 +185,9 @@ function SingleLine({
     background: "#e5e7eb",
     borderRadius: variant === "circle" ? "50%" : "4px",
     width,
-    height: height ?? (variant === "circle" ? width : variant === "card" ? "120px" : "16px"),
+    height:
+      height ??
+      (variant === "circle" ? width : variant === "card" ? "120px" : "16px"),
     marginBottom: variant === "card" ? "12px" : "8px",
   };
 
@@ -186,7 +196,9 @@ function SingleLine({
       role="presentation"
       aria-hidden="true"
       data-variant={variant}
-      className={[ANIMATION_CLASS[animation], className].filter(Boolean).join(" ")}
+      className={[ANIMATION_CLASS[animation], className]
+        .filter(Boolean)
+        .join(" ")}
       style={baseStyle}
     />
   );
@@ -271,7 +283,9 @@ export function LoadingSkeleton({
 
   // Guard against invalid/empty lines array
   if (!Array.isArray(resolvedLines) || resolvedLines.length === 0) {
-    console.warn("[LoadingSkeleton] No lines to render – falling back to default rows.");
+    console.warn(
+      "[LoadingSkeleton] No lines to render – falling back to default rows.",
+    );
     const fallback = buildLines(rows, variant);
     return renderSkeleton(fallback, ariaLabel, animation, className);
   }
@@ -283,7 +297,7 @@ function renderSkeleton(
   lines: SkeletonLine[],
   ariaLabel: string,
   animation: string,
-  className: string
+  className: string,
 ): React.ReactElement {
   return (
     <div

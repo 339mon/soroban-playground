@@ -5,7 +5,9 @@ import type { FavoritesFilterState } from "../../components/FavoritesFilter";
 const categories = ["Basics", "Tokens", "Finance"];
 const tags = ["defi", "beginner", "nft"];
 
-function defaultFilters(overrides: Partial<FavoritesFilterState> = {}): FavoritesFilterState {
+function defaultFilters(
+  overrides: Partial<FavoritesFilterState> = {},
+): FavoritesFilterState {
   return { categories: [], tags: [], ...overrides };
 }
 
@@ -17,7 +19,7 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters()}
         onFiltersChange={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByText("Basics")).toBeInTheDocument();
     expect(screen.getByText("defi")).toBeInTheDocument();
@@ -31,11 +33,11 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters()}
         onFiltersChange={onChange}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("Tokens"));
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ categories: ["Tokens"] })
+      expect.objectContaining({ categories: ["Tokens"] }),
     );
   });
 
@@ -47,12 +49,12 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters({ categories: ["Finance"] })}
         onFiltersChange={onChange}
-      />
+      />,
     );
     // clicking the active pill should deselect
     fireEvent.click(screen.getByText(/Finance/));
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ categories: [] })
+      expect.objectContaining({ categories: [] }),
     );
   });
 
@@ -64,11 +66,11 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters()}
         onFiltersChange={onChange}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("nft"));
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ tags: ["nft"] })
+      expect.objectContaining({ tags: ["nft"] }),
     );
   });
 
@@ -79,7 +81,7 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters({ categories: ["Basics"], tags: ["defi"] })}
         onFiltersChange={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByText("2")).toBeInTheDocument();
   });
@@ -92,7 +94,7 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters({ categories: ["Basics"] })}
         onFiltersChange={onChange}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("Clear"));
     expect(onChange).toHaveBeenCalledWith({ categories: [], tags: [] });
@@ -105,7 +107,7 @@ describe("FavoritesFilter", () => {
         availableTags={tags}
         filters={defaultFilters()}
         onFiltersChange={jest.fn()}
-      />
+      />,
     );
     expect(screen.queryByText("Clear")).not.toBeInTheDocument();
   });
@@ -117,7 +119,7 @@ describe("FavoritesFilter", () => {
         availableTags={[]}
         filters={defaultFilters()}
         onFiltersChange={jest.fn()}
-      />
+      />,
     );
     expect(screen.getByText(/no filters available/i)).toBeInTheDocument();
   });

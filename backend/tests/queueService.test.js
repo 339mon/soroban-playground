@@ -53,7 +53,7 @@ jest.mock('ioredis', () => {
     this.url = url;
     this.opts = opts;
     this.quit = mockQuit;
-    this.on = function() {};
+    this.on = function () {};
   }
   return {
     __esModule: true,

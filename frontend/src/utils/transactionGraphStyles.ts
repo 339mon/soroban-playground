@@ -1,3 +1,5 @@
+import { MarkerType } from "reactflow";
+
 export function createNodeStyle(isSelected: boolean) {
   return {
     width: 260,
@@ -17,7 +19,7 @@ export function createNodeStyle(isSelected: boolean) {
 export function createEdgeStyle() {
   return {
     markerEnd: {
-      type: "arrowclosed" as const,
+      type: MarkerType.ArrowClosed,
       color: "#38bdf8",
     },
     style: {

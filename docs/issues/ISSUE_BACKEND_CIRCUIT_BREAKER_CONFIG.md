@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement configurable circuit breaker policies and thresholds
 title: "[BACKEND] Implement Configurable Circuit Breaker Policies and Thresholds"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks configurable circuit breaker policies, making it diffi
 ## 💡 Proposed Solution
 
 Create comprehensive circuit breaker configuration implementation with:
+
 - Per-dependency circuit breaker configuration
 - Configurable failure thresholds and timeouts
 - Adaptive circuit breaker policies
@@ -24,6 +25,7 @@ Create comprehensive circuit breaker configuration implementation with:
 - Integration with existing configuration system
 
 ### Key Features
+
 - Per-dependency circuit breaker configuration (database, Redis, Soroban CLI)
 - Configurable failure thresholds (failure rate, timeout, request volume)
 - Adaptive circuit breaker policies based on service load and performance
@@ -31,6 +33,7 @@ Create comprehensive circuit breaker configuration implementation with:
 - Integration with existing configuration system
 
 ### Implementation Details
+
 - Location: `backend/src/config/circuitBreaker.config.js`
 - Service: `backend/src/services/circuitBreakerConfigService.js`
 - Configuration: `backend/src/config/circuitBreaker.config.js`
@@ -52,12 +55,12 @@ Create comprehensive circuit breaker configuration implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables fine-grained control over circuit breaker behavior based on service requirements |
+| Dimension        | Assessment                                                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground                                    |
+| Effort estimate  | Medium (2-3 days)                                                                                   |
+| Breaking change? | No                                                                                                  |
+| MVP impact       | Critical - enables fine-grained control over circuit breaker behavior based on service requirements |
 
 ## 🔗 Related Issues or References
 

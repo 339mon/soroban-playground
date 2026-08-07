@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive test suite for Synthetic Assets backend functionality
 title: "[FEATURE] Implement Synthetic Assets Backend Test Suite"
 labels: enhancement, testing, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -13,6 +13,7 @@ Implement a comprehensive test suite for the Synthetic Assets backend functional
 ## ❓ Problem or Motivation
 
 The synthetic assets feature is a flagship capability of the Soroban Playground, representing significant investment in:
+
 - 662-line service implementation (`src/services/syntheticAssetsService.js`)
 - 448-line API routes (`src/routes/v1/synthetic-assets.js`)
 - 133-line database migrations (`migrations/V003__synthetic_assets.up.sql`)
@@ -26,11 +27,13 @@ However, there are no backend test files in `backend/tests/` or `backend/test/` 
 Create a comprehensive Jest-based test suite covering all aspects of synthetic assets functionality:
 
 ### Test Structure
+
 - `backend/tests/syntheticAssets.unit.test.js`: Unit tests for service layer methods
 - `backend/tests/syntheticAssets.integration.test.js`: Integration tests for API routes + service + database
 - `backend/tests/syntheticAssets.e2e.test.js`: End-to-end tests simulating frontend interactions
 
 ### Key Coverage Areas
+
 1. **API Routes**: All 20+ endpoints including `/register`, `/mint`, `/burn`, `/price/:symbol`, `/position/:id`, `/trade/:id`, `/ratio/:id`, `/health/:id`, `/liquidatable/:id`, `/params`, `/assets`, `/max-mintable`
 2. **Service Layer**: All 25+ service methods including `registerAsset()`, `mintSynthetic()`, `burnSynthetic()`, `addCollateral()`, `openTrade()`, `closeTrade()`, `getAssetPrice()`, `getPosition()`, `getTradingPosition()`, `getCollateralRatio()`, `getHealthFactor()`, `isLiquidatable()`, `getProtocolParams()`, `updateProtocolParams()`, `getMaxMintable()`, `getTradingPnL()`, `getRegisteredAssets()`
 3. **Database Integration**: Verify proper data persistence and retrieval for positions, assets, prices, events, liquidation alerts
@@ -38,6 +41,7 @@ Create a comprehensive Jest-based test suite covering all aspects of synthetic a
 5. **Edge Cases**: Liquidation scenarios, price oracle failures, collateral ratio calculations, protocol parameter updates, trading PnL calculations
 
 ### Testing Infrastructure
+
 - Configure Jest with proper test environment setup
 - Implement Supertest for HTTP API testing
 - Use Jest mocks for database and contract interactions
@@ -67,16 +71,16 @@ No visual mockups needed as this is backend infrastructure work.
 - [ ] Contract Interaction
 - [ ] UI/UX
 - [ ] Documentation
-- [ ] Other: 
+- [ ] Other:
 
 ## 📊 Impact & Priority (your assessment)
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All users, developers, maintainers, and production deployments |
-| Effort estimate | Large (3-5 days of focused development) |
-| Breaking change? | No - adds new functionality without changing existing behavior |
-| MVP impact | Critical - enables production deployment of flagship synthetic assets feature |
+| Dimension        | Assessment                                                                    |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Who benefits?    | All users, developers, maintainers, and production deployments                |
+| Effort estimate  | Large (3-5 days of focused development)                                       |
+| Breaking change? | No - adds new functionality without changing existing behavior                |
+| MVP impact       | Critical - enables production deployment of flagship synthetic assets feature |
 
 ## 🔗 Related Issues or References
 

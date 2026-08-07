@@ -50,7 +50,11 @@ fn test_register_ok() {
     let (env, _, client) = setup();
     let owner = Address::generate(&env);
 
-    client.register(&owner, &n(&env, "Alice"), &n(&env, "https://example.com/alice"));
+    client.register(
+        &owner,
+        &n(&env, "Alice"),
+        &n(&env, "https://example.com/alice"),
+    );
 
     assert!(client.has_identity(&owner));
     let identity = client.get_identity(&owner);
@@ -72,7 +76,10 @@ fn test_register_name_too_long_fails() {
     let (env, _, client) = setup();
     let owner = Address::generate(&env);
     // 65 characters
-    let long = n(&env, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    let long = n(
+        &env,
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    );
 
     let result = client.try_register(&owner, &long, &n(&env, "https://example.com"));
     assert_eq!(result, Err(Ok(Error::DisplayNameTooLong)));
@@ -92,7 +99,11 @@ fn test_register_duplicate_fails() {
     let (env, _, client) = setup();
     let owner = Address::generate(&env);
 
-    client.register(&owner, &n(&env, "Alice"), &n(&env, "https://example.com/alice"));
+    client.register(
+        &owner,
+        &n(&env, "Alice"),
+        &n(&env, "https://example.com/alice"),
+    );
 
     let result = client.try_register(
         &owner,
@@ -225,7 +236,11 @@ fn test_update_metadata_ok() {
         info.timestamp += 100;
     });
 
-    client.update_metadata(&owner, &n(&env, "Jack Updated"), &n(&env, "https://jack.io/v2"));
+    client.update_metadata(
+        &owner,
+        &n(&env, "Jack Updated"),
+        &n(&env, "https://jack.io/v2"),
+    );
 
     let identity = client.get_identity(&owner);
     assert_eq!(identity.display_name, n(&env, "Jack Updated"));
@@ -286,7 +301,11 @@ fn test_full_lifecycle() {
     let owner = Address::generate(&env);
 
     // 1. Register
-    client.register(&owner, &n(&env, "Mallory"), &n(&env, "https://mallory.io/id"));
+    client.register(
+        &owner,
+        &n(&env, "Mallory"),
+        &n(&env, "https://mallory.io/id"),
+    );
     assert_eq!(client.get_identity(&owner).status, IdentityStatus::Pending);
 
     // 2. Verify
@@ -297,7 +316,11 @@ fn test_full_lifecycle() {
     env.ledger().with_mut(|info| {
         info.timestamp += 500;
     });
-    client.update_metadata(&owner, &n(&env, "Mallory V2"), &n(&env, "https://mallory.io/id/v2"));
+    client.update_metadata(
+        &owner,
+        &n(&env, "Mallory V2"),
+        &n(&env, "https://mallory.io/id/v2"),
+    );
 
     // 4. Revoke by owner
     client.revoke(&owner, &owner);

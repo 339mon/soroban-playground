@@ -5,5 +5,5 @@ Architecture and implementation specification for Optimize and Clean Up Wallet C
 ---
 
 ## References
-- Issue reference: Fixes #947
 
+- Issue reference: Fixes #947

@@ -24,8 +24,7 @@ export type ContractAbiValue =
 
 const STELLAR_ADDRESS_REGEX = /^(G[A-Z2-7]{55}|C[A-Z2-7]{55})$/;
 const SOROBAN_SYMBOL_REGEX = /^[a-zA-Z0-9_]{1,32}$/;
-const RUST_FN_SIGNATURE_REGEX =
-  /pub\s+fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)/g;
+const RUST_FN_SIGNATURE_REGEX = /pub\s+fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)/g;
 const RUST_DOC_COMMENT_REGEX = /\/\/\/\s*(.*)/g;
 const RUST_PARAM_SPLIT_REGEX = /\s*,\s*/;
 const RUST_PARAM_TYPE_SPLIT = /\s*:\s*/;
@@ -118,7 +117,10 @@ export function validateSorobanType(
       return `Field '${name}' must be a valid 128-bit integer string or number.`;
     }
     const num = BigInt(str);
-    if (num < BigInt("-170141183460469231731687303715884105728") || num > BigInt("340282366920938463463374607431768211455")) {
+    if (
+      num < BigInt("-170141183460469231731687303715884105728") ||
+      num > BigInt("340282366920938463463374607431768211455")
+    ) {
       return `Field '${name}' is out of range for a 128-bit integer.`;
     }
   }
@@ -163,9 +165,7 @@ export function validateSorobanType(
   return null;
 }
 
-function parseParamList(
-  paramsBlock: string,
-): ContractAbiFunctionInput[] {
+function parseParamList(paramsBlock: string): ContractAbiFunctionInput[] {
   if (!paramsBlock.trim()) return [];
 
   return paramsBlock
@@ -190,9 +190,7 @@ function parseParamList(
       }
 
       return {
-        name: rawName
-          .replace(/^&/, "")
-          .replace(/\s+/g, ""),
+        name: rawName.replace(/^&/, "").replace(/\s+/g, ""),
         type: stripLifetimeAnnotations(rawType).replace(/\s+/g, ""),
       };
     })
@@ -206,9 +204,7 @@ export function parseContractAbiFromSource(
   const functions: ContractAbiFunction[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(
-      /pub\s+fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)/,
-    );
+    const match = lines[i].match(/pub\s+fn\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)/);
     if (!match) continue;
 
     const [, name, paramsBlock] = match;

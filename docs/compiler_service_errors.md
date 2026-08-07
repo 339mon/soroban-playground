@@ -5,5 +5,5 @@ Architecture and implementation specification for Robust Error Handling in Compi
 ---
 
 ## References
-- Issue reference: Fixes #954
 
+- Issue reference: Fixes #954

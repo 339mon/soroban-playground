@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Identity Regis
 ---
 
 ## References
-- Issue reference: Fixes #1003
 
+- Issue reference: Fixes #1003

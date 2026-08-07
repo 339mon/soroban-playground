@@ -5,5 +5,5 @@ Architecture and implementation specification for Optimize and Clean Up RPC Prox
 ---
 
 ## References
-- Issue reference: Fixes #956
 
+- Issue reference: Fixes #956

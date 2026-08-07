@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive monitoring and observability
 title: "[BACKEND] Implement Comprehensive Monitoring and Observability"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive monitoring and observability capabilitie
 ## 💡 Proposed Solution
 
 Create comprehensive monitoring implementation with:
+
 - Metrics collection and visualization
 - Distributed tracing and request tracking
 - Structured logging and log aggregation
@@ -24,6 +25,7 @@ Create comprehensive monitoring implementation with:
 - Health checks and status endpoints
 
 ### Key Features
+
 - `/metrics` endpoint for Prometheus metrics collection
 - Distributed tracing with OpenTelemetry integration
 - Structured JSON logging with Winston
@@ -32,6 +34,7 @@ Create comprehensive monitoring implementation with:
 - Dashboard integration with Grafana
 
 ### Implementation Details
+
 - Location: `backend/src/metrics/`
 - Service: `backend/src/services/metricsService.js`
 - Configuration: `backend/src/config/metrics.config.js`
@@ -53,12 +56,12 @@ Create comprehensive monitoring implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables proactive issue detection and operational insights |
+| Dimension        | Assessment                                                            |
+| ---------------- | --------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground      |
+| Effort estimate  | Medium (4-5 days)                                                     |
+| Breaking change? | No                                                                    |
+| MVP impact       | Critical - enables proactive issue detection and operational insights |
 
 ## 🔗 Related Issues or References
 

@@ -280,7 +280,10 @@ fn test_set_reward_at_cap_succeeds() {
     let (_env, client, admin, _reporter) = setup();
     // exactly 10 000 XLM cap should pass
     client.set_reward(&admin, &Severity::High, &100_000_000_000i128);
-    assert_eq!(client.reward_for_severity(&Severity::High), 100_000_000_000i128);
+    assert_eq!(
+        client.reward_for_severity(&Severity::High),
+        100_000_000_000i128
+    );
 }
 
 #[test]

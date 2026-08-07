@@ -12,11 +12,12 @@ import PriceAggregatorDashboard, {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
-  (process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com");
+  (process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com");
 
 export default function PriceAggregatorPage() {
   const [contractId, setContractId] = useState(
-    process.env.NEXT_PUBLIC_PA_CONTRACT_ID ?? ""
+    process.env.NEXT_PUBLIC_PA_CONTRACT_ID ?? "",
   );
   const [walletAddress] = useState<string | undefined>(undefined);
   const [sources, setSources] = useState<PriceSource[]>([]);
@@ -33,7 +34,7 @@ export default function PriceAggregatorPage() {
     setError("");
     try {
       const countRes = await fetch(
-        `${API_BASE}/api/price-aggregator/sources/count?contractId=${encodeURIComponent(contractId)}`
+        `${API_BASE}/api/price-aggregator/sources/count?contractId=${encodeURIComponent(contractId)}`,
       );
       const countData = await countRes.json();
       if (!countData.success) throw new Error(countData.error);
@@ -42,12 +43,17 @@ export default function PriceAggregatorPage() {
       const fetched: PriceSource[] = [];
       for (let i = 0; i < count; i++) {
         const res = await fetch(
-          `${API_BASE}/api/price-aggregator/sources/${i}?contractId=${encodeURIComponent(contractId)}`
+          `${API_BASE}/api/price-aggregator/sources/${i}?contractId=${encodeURIComponent(contractId)}`,
         );
         const data = await res.json();
         if (data.success) {
           const s = data.data;
-          fetched.push({ id: s.id, name: s.name, weight: s.weight, active: s.active });
+          fetched.push({
+            id: s.id,
+            name: s.name,
+            weight: s.weight,
+            active: s.active,
+          });
         }
       }
       setSources(fetched);
@@ -62,7 +68,7 @@ export default function PriceAggregatorPage() {
     if (!contractId) return;
     try {
       const res = await fetch(
-        `${API_BASE}/api/price-aggregator/status?contractId=${encodeURIComponent(contractId)}`
+        `${API_BASE}/api/price-aggregator/status?contractId=${encodeURIComponent(contractId)}`,
       );
       const data = await res.json();
       if (data.success) setIsPaused(data.data.paused);
@@ -81,13 +87,18 @@ export default function PriceAggregatorPage() {
       const res = await fetch(`${API_BASE}/api/price-aggregator/sources`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId, admin: walletAddress, name, weight }),
+        body: JSON.stringify({
+          contractId,
+          admin: walletAddress,
+          name,
+          weight,
+        }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       await fetchSources();
     },
-    [contractId, walletAddress, fetchSources]
+    [contractId, walletAddress, fetchSources],
   );
 
   const handleRemoveSource = useCallback(
@@ -98,13 +109,13 @@ export default function PriceAggregatorPage() {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contractId, admin: walletAddress }),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       await fetchSources();
     },
-    [contractId, walletAddress, fetchSources]
+    [contractId, walletAddress, fetchSources],
   );
 
   const handleSetWeight = useCallback(
@@ -115,13 +126,13 @@ export default function PriceAggregatorPage() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contractId, admin: walletAddress, weight }),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       await fetchSources();
     },
-    [contractId, walletAddress, fetchSources]
+    [contractId, walletAddress, fetchSources],
   );
 
   const handleUpdatePrice = useCallback(
@@ -140,19 +151,19 @@ export default function PriceAggregatorPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
     },
-    [contractId, walletAddress]
+    [contractId, walletAddress],
   );
 
   const handleGetAggregated = useCallback(
     async (asset: string): Promise<AggregatedPrice> => {
       const res = await fetch(
-        `${API_BASE}/api/price-aggregator/prices/aggregated/${encodeURIComponent(asset)}?contractId=${encodeURIComponent(contractId)}`
+        `${API_BASE}/api/price-aggregator/prices/aggregated/${encodeURIComponent(asset)}?contractId=${encodeURIComponent(contractId)}`,
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       return data.data as AggregatedPrice;
     },
-    [contractId]
+    [contractId],
   );
 
   const handleSetStrategy = useCallback(
@@ -165,7 +176,7 @@ export default function PriceAggregatorPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
     },
-    [contractId, walletAddress]
+    [contractId, walletAddress],
   );
 
   const handlePause = useCallback(async () => {
@@ -203,7 +214,10 @@ export default function PriceAggregatorPage() {
             aria-label="Contract ID"
           />
           <button
-            onClick={() => { fetchSources(); fetchStatus(); }}
+            onClick={() => {
+              fetchSources();
+              fetchStatus();
+            }}
             className="bg-cyan-700 hover:bg-cyan-600 text-white text-sm px-4 py-2 rounded transition-colors"
             aria-label="Refresh"
           >

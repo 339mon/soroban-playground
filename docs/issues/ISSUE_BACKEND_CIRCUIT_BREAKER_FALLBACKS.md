@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement circuit breaker fallback mechanisms and graceful degradation
 title: "[BACKEND] Implement Circuit Breaker Fallback Mechanisms and Graceful Degradation"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,12 +17,14 @@ The current backend lacks circuit breaker fallback mechanisms, making it difficu
 ## 💡 Proposed Solution
 
 Create comprehensive circuit breaker fallback implementation with:
+
 - Configurable fallback mechanisms per endpoint
 - Graceful degradation strategies
 - Fallback status monitoring and alerting
 - Integration with existing error handling
 
 ### Key Features
+
 - Configurable fallback mechanisms (caching, defaults, alternative services)
 - Graceful degradation strategies for different failure scenarios
 - Fallback status monitoring and alerting
@@ -30,6 +32,7 @@ Create comprehensive circuit breaker fallback implementation with:
 - Fallback execution metrics and performance monitoring
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/fallback.js`
 - Service: `backend/src/services/fallbackService.js`
 - Configuration: `backend/src/config/fallback.config.js`
@@ -51,12 +54,12 @@ Create comprehensive circuit breaker fallback implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - ensures system availability during partial failures |
+| Dimension        | Assessment                                                       |
+| ---------------- | ---------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground |
+| Effort estimate  | Medium (2-3 days)                                                |
+| Breaking change? | No                                                               |
+| MVP impact       | Critical - ensures system availability during partial failures   |
 
 ## 🔗 Related Issues or References
 

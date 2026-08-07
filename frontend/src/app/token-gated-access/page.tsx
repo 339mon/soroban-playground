@@ -9,7 +9,10 @@ import { Shield, ChevronRight, Activity } from "lucide-react";
 import TokenGatedAccessPanel from "@/components/TokenGatedAccessPanel";
 
 export default function TokenGatedAccessPage() {
-  const [apiBase, setApiBase] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com");
+  const [apiBase, setApiBase] = useState(
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+      "https://soroban-playground.onrender.com",
+  );
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_API_URL) {
@@ -21,14 +24,19 @@ export default function TokenGatedAccessPage() {
     <main className="min-h-screen bg-slate-950 p-8 text-slate-100 selection:bg-violet-500/30">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-2 text-xs text-slate-500"
+        >
           <Link href="/" className="hover:text-slate-300 transition">
             Dashboard
           </Link>
           <ChevronRight size={10} aria-hidden="true" />
           <span className="text-slate-400">Access Control</span>
           <ChevronRight size={10} aria-hidden="true" />
-          <span className="text-violet-400 font-medium">Token-Gated Access</span>
+          <span className="text-violet-400 font-medium">
+            Token-Gated Access
+          </span>
         </nav>
 
         {/* Header */}
@@ -59,7 +67,11 @@ export default function TokenGatedAccessPage() {
                 Contract Status
               </span>
               <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mt-1">
-                <Activity size={10} className="animate-pulse" aria-hidden="true" />
+                <Activity
+                  size={10}
+                  className="animate-pulse"
+                  aria-hidden="true"
+                />
                 Active on Testnet
               </span>
             </div>

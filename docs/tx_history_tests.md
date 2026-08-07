@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Trans
 ---
 
 ## References
-- Issue reference: Fixes #946
 
+- Issue reference: Fixes #946

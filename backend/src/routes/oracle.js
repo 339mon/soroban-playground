@@ -13,7 +13,9 @@ router.post(
   '/proofs',
   asyncHandler(async (req, res) => {
     if (req.body && req.body.proofType) {
-      const result = await oracleProofQueueService.enqueueProofTask(req.body, { source: 'api' });
+      const result = await oracleProofQueueService.enqueueProofTask(req.body, {
+        source: 'api',
+      });
       return res.status(202).json({ success: true, data: result });
     }
     const { payload, metadata, wait } = req.body || {};
@@ -37,8 +39,12 @@ router.post(
     if (!Array.isArray(tasks)) {
       throw createHttpError(400, 'tasks array is required');
     }
-    const results = await oracleProofQueueService.enqueueBatch(tasks, { source: 'api' });
-    return res.status(202).json({ success: true, data: { count: results.length, tasks: results } });
+    const results = await oracleProofQueueService.enqueueBatch(tasks, {
+      source: 'api',
+    });
+    return res
+      .status(202)
+      .json({ success: true, data: { count: results.length, tasks: results } });
   })
 );
 

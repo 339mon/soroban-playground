@@ -5,7 +5,15 @@ import { Search, X } from "lucide-react";
 import type { DataType } from "./DataTypeFormatter";
 
 export const DATA_TYPES: DataType[] = [
-  "address", "boolean", "base64", "decimal", "hex", "integer", "json", "null", "string",
+  "address",
+  "boolean",
+  "base64",
+  "decimal",
+  "hex",
+  "integer",
+  "json",
+  "null",
+  "string",
 ];
 
 export interface StorageSearchState {
@@ -19,7 +27,11 @@ interface StorageSearchBarProps {
   className?: string;
 }
 
-const StorageSearchBar: React.FC<StorageSearchBarProps> = ({ value, onChange, className = "" }) => {
+const StorageSearchBar: React.FC<StorageSearchBarProps> = ({
+  value,
+  onChange,
+  className = "",
+}) => {
   const [localQuery, setLocalQuery] = useState(value.query);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -30,7 +42,10 @@ const StorageSearchBar: React.FC<StorageSearchBarProps> = ({ value, onChange, cl
   const handleQueryChange = (q: string) => {
     setLocalQuery(q);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => onChange({ ...value, query: q }), 200);
+    debounceRef.current = setTimeout(
+      () => onChange({ ...value, query: q }),
+      200,
+    );
   };
 
   const toggleType = (type: DataType) => {
@@ -72,7 +87,11 @@ const StorageSearchBar: React.FC<StorageSearchBarProps> = ({ value, onChange, cl
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by data type">
+      <div
+        className="flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="Filter by data type"
+      >
         {DATA_TYPES.map((type) => {
           const active = value.types.includes(type);
           return (

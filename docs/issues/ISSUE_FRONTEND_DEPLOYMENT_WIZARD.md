@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract deployment wizard with parameter configuration
 title: "[FRONTEND] Implement Contract Deployment Wizard with Parameter Configuration"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers currently need to manually configure deployment parameters and execut
 ## 💡 Proposed Solution
 
 Create a comprehensive contract deployment wizard with:
+
 - Multi-step guided workflow
 - Intelligent parameter configuration based on contract type
 - Network selection with testnet configuration
@@ -25,6 +26,7 @@ Create a comprehensive contract deployment wizard with:
 - Deployment history and status tracking
 
 ### Key Features
+
 - Step-by-step wizard interface (select contract → configure parameters → select network → review → deploy)
 - Smart parameter forms with validation and examples
 - Network selector with Stellar Testnet, Futurenet, and custom RPC
@@ -33,6 +35,7 @@ Create a comprehensive contract deployment wizard with:
 - Deployment history with success/failure status
 
 ### Implementation Details
+
 - Location: `frontend/src/app/deploy-wizard/page.tsx`
 - Components: `frontend/src/components/DeploymentWizard.tsx`, `ParameterForm.tsx`, `NetworkSelector.tsx`
 - Integration with backend deployment API routes
@@ -53,12 +56,12 @@ Create a comprehensive contract deployment wizard with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers deploying contracts |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves deployment experience and reduces errors |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | All developers deploying contracts                                     |
+| Effort estimate  | Medium (4-5 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - significantly improves deployment experience and reduces errors |
 
 ## 🔗 Related Issues or References
 

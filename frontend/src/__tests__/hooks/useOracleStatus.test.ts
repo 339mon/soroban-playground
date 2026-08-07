@@ -58,7 +58,11 @@ function latestWs() {
   return store[store.length - 1];
 }
 
-function setThreeFetchMocks(data: { nodes?: any[]; proofs?: any[]; health?: any }) {
+function setThreeFetchMocks(data: {
+  nodes?: any[];
+  proofs?: any[];
+  health?: any;
+}) {
   mockFetch
     .mockResolvedValueOnce({
       ok: true,
@@ -156,7 +160,9 @@ describe("useOracleStatus", () => {
         });
 
       const { result } = renderHook(() => useOracleStatus({ pollMs: 999999 }));
-      await act(async () => { await Promise.resolve(); });
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await result.current.refresh();
@@ -172,8 +178,12 @@ describe("useOracleStatus", () => {
         expect.objectContaining({
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ payload: "payload", metadata: { meta: "data" }, wait: false }),
-        })
+          body: JSON.stringify({
+            payload: "payload",
+            metadata: { meta: "data" },
+            wait: false,
+          }),
+        }),
       );
 
       expect(result.current.proofs[0]).toEqual(newProof);
@@ -285,7 +295,9 @@ describe("useOracleStatus", () => {
         });
 
       const { result } = renderHook(() => useOracleStatus({ pollMs: 999999 }));
-      await act(async () => { await Promise.resolve(); });
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await result.current.refresh();
@@ -340,9 +352,7 @@ describe("useOracleStatus", () => {
         });
 
       jest.useFakeTimers();
-      const { result } = renderHook(() =>
-        useOracleStatus({ pollMs: 9999999 })
-      );
+      const { result } = renderHook(() => useOracleStatus({ pollMs: 9999999 }));
 
       await act(async () => {
         await result.current.refresh();
@@ -354,11 +364,21 @@ describe("useOracleStatus", () => {
 
       const ws = latestWs();
       await act(async () => {
-        ws.onmessage?.({ data: JSON.stringify({ type: "oracle-event", event: "proof.submitted", ts: 1 }) });
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "oracle-event",
+            event: "proof.submitted",
+            ts: 1,
+          }),
+        });
       });
 
       expect(result.current.events.length).toBe(1);
-      expect(result.current.events[0]).toEqual({ type: "oracle-event", event: "proof.submitted", ts: 1 });
+      expect(result.current.events[0]).toEqual({
+        type: "oracle-event",
+        event: "proof.submitted",
+        ts: 1,
+      });
     });
 
     it("ignores non-oracle-event messages", async () => {
@@ -388,7 +408,9 @@ describe("useOracleStatus", () => {
       });
 
       const ws = latestWs();
-      ws.onmessage?.({ data: JSON.stringify({ type: "other-event", event: "ping" }) });
+      ws.onmessage?.({
+        data: JSON.stringify({ type: "other-event", event: "ping" }),
+      });
 
       expect(result.current.events.length).toBe(0);
     });
@@ -411,7 +433,9 @@ describe("useOracleStatus", () => {
         });
 
       jest.useFakeTimers();
-      const { unmount, result } = renderHook(() => useOracleStatus({ pollMs: 9999999 }));
+      const { unmount, result } = renderHook(() =>
+        useOracleStatus({ pollMs: 9999999 }),
+      );
 
       await act(async () => {
         await result.current.refresh();

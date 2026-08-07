@@ -11,7 +11,11 @@ import {
   Zap,
   Target,
 } from "lucide-react";
-import { TemplateMetadata, getStatusColor, getDifficultyColor } from "../utils/templateUtils";
+import {
+  TemplateMetadata,
+  getStatusColor,
+  getDifficultyColor,
+} from "../utils/templateUtils";
 
 interface Props {
   template: TemplateMetadata;
@@ -34,7 +38,8 @@ export default function TemplateDocumentation({
   onDeploy,
   isDeploying = false,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<keyof typeof DOCUMENTATION_SECTIONS>("overview");
+  const [activeTab, setActiveTab] =
+    useState<keyof typeof DOCUMENTATION_SECTIONS>("overview");
   const [copiedCode, setCopiedCode] = useState(false);
 
   const handleCopyCode = () => {
@@ -94,7 +99,9 @@ export default function TemplateDocumentation({
           {Object.entries(DOCUMENTATION_SECTIONS).map(([key, label]) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key as keyof typeof DOCUMENTATION_SECTIONS)}
+              onClick={() =>
+                setActiveTab(key as keyof typeof DOCUMENTATION_SECTIONS)
+              }
               className={`px-4 py-2 text-sm font-medium transition border-b-2 whitespace-nowrap ${
                 activeTab === key
                   ? "text-teal-300 border-teal-300"
@@ -113,10 +120,14 @@ export default function TemplateDocumentation({
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-white/8 bg-slate-950/50 p-4">
                   <p className="text-xs text-slate-500 mb-1">Category</p>
-                  <p className="text-sm font-semibold text-white">{template.category}</p>
+                  <p className="text-sm font-semibold text-white">
+                    {template.category}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-white/8 bg-slate-950/50 p-4">
-                  <p className="text-xs text-slate-500 mb-1">Documentation Status</p>
+                  <p className="text-xs text-slate-500 mb-1">
+                    Documentation Status
+                  </p>
                   <p className="text-sm font-semibold capitalize text-white">
                     {template.documentationStatus}
                   </p>
@@ -139,7 +150,9 @@ export default function TemplateDocumentation({
 
               <div className="rounded-xl border border-white/8 bg-slate-950/50 p-4">
                 <p className="text-xs text-slate-500 mb-2">Contract Path</p>
-                <p className="text-xs font-mono text-cyan-300 break-all">{template.path}</p>
+                <p className="text-xs font-mono text-cyan-300 break-all">
+                  {template.path}
+                </p>
               </div>
             </div>
           )}
@@ -148,13 +161,21 @@ export default function TemplateDocumentation({
             <div className="space-y-3">
               {template.features.length > 0 ? (
                 template.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-3 rounded-lg border border-white/8 bg-slate-950/50 p-3">
-                    <Zap size={16} className="text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 rounded-lg border border-white/8 bg-slate-950/50 p-3"
+                  >
+                    <Zap
+                      size={16}
+                      className="text-emerald-400 mt-0.5 flex-shrink-0"
+                    />
                     <span className="text-sm text-slate-300">{feature}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No features documented yet.</p>
+                <p className="text-sm text-slate-500">
+                  No features documented yet.
+                </p>
               )}
             </div>
           )}
@@ -163,13 +184,21 @@ export default function TemplateDocumentation({
             <div className="space-y-3">
               {template.useCases.length > 0 ? (
                 template.useCases.map((useCase, idx) => (
-                  <div key={idx} className="flex items-start gap-3 rounded-lg border border-white/8 bg-slate-950/50 p-3">
-                    <Target size={16} className="text-teal-400 mt-0.5 flex-shrink-0" />
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 rounded-lg border border-white/8 bg-slate-950/50 p-3"
+                  >
+                    <Target
+                      size={16}
+                      className="text-teal-400 mt-0.5 flex-shrink-0"
+                    />
                     <span className="text-sm text-slate-300">{useCase}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No use cases documented yet.</p>
+                <p className="text-sm text-slate-500">
+                  No use cases documented yet.
+                </p>
               )}
             </div>
           )}
@@ -186,7 +215,9 @@ export default function TemplateDocumentation({
                       {copiedCode ? (
                         <>
                           <Check size={14} className="text-emerald-400" />
-                          <span className="text-xs text-emerald-400">Copied!</span>
+                          <span className="text-xs text-emerald-400">
+                            Copied!
+                          </span>
                         </>
                       ) : (
                         <>
@@ -201,7 +232,9 @@ export default function TemplateDocumentation({
                   </pre>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No example code available yet.</p>
+                <p className="text-sm text-slate-500">
+                  No example code available yet.
+                </p>
               )}
             </div>
           )}
@@ -216,7 +249,10 @@ export default function TemplateDocumentation({
                 <ol className="space-y-3 text-sm text-slate-300">
                   <li className="flex gap-3">
                     <span className="font-mono text-teal-400">1.</span>
-                    <span>Click the "Deploy" button to initialize this template in the playground</span>
+                    <span>
+                      Click the "Deploy" button to initialize this template in
+                      the playground
+                    </span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-mono text-teal-400">2.</span>
@@ -224,15 +260,21 @@ export default function TemplateDocumentation({
                   </li>
                   <li className="flex gap-3">
                     <span className="font-mono text-teal-400">3.</span>
-                    <span>Build and compile the contract using the Build button</span>
+                    <span>
+                      Build and compile the contract using the Build button
+                    </span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-mono text-teal-400">4.</span>
-                    <span>Deploy to Stellar Testnet using the Deploy button</span>
+                    <span>
+                      Deploy to Stellar Testnet using the Deploy button
+                    </span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-mono text-teal-400">5.</span>
-                    <span>Interact with your contract using the invoke interface</span>
+                    <span>
+                      Interact with your contract using the invoke interface
+                    </span>
                   </li>
                 </ol>
               </div>
@@ -256,12 +298,22 @@ export default function TemplateDocumentation({
                 </h3>
                 <ul className="space-y-2 text-xs text-slate-300">
                   <li>
-                    <a href="https://soroban.stellar.org/docs" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                    <a
+                      href="https://soroban.stellar.org/docs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
                       Soroban Documentation →
                     </a>
                   </li>
                   <li>
-                    <a href="https://github.com/stellar/soroban-examples" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                    <a
+                      href="https://github.com/stellar/soroban-examples"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
                       Soroban Examples Repository →
                     </a>
                   </li>

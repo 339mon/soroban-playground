@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement proxy contract pattern for upgradeable Soroban contracts
 title: "[SMART CONTRACT] Implement Proxy Contract Pattern for Upgradeable Contracts"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban contracts currently cannot be upgraded after deployment, creating signif
 ## 💡 Proposed Solution
 
 Create a comprehensive proxy implementation with:
+
 - Standard proxy interface compliance
 - Flexible configuration (implementation address, admin control, upgrade permissions)
 - Comprehensive security features (admin validation, upgrade timing controls, rollback capabilities)
@@ -24,12 +25,14 @@ Create a comprehensive proxy implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `upgradeTo()`, `upgradeToAndCall()`, `getImplementation()` functions for upgrade management
 - `changeAdmin()`, `getAdmin()` for admin management
 - Event emissions (`Upgraded`, `AdminChanged`, `UpgradedAndCalled`)
 - Security features: admin validation, upgrade timing controls, rollback capabilities
 
 ### Implementation Details
+
 - Location: `contracts/proxy/`
 - Testing: `contracts/proxy/src/test.rs` with 80+ test cases
 - Documentation: `contracts/proxy/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive proxy implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building long-term applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables continuous improvement and maintenance of production applications |
+| Dimension        | Assessment                                                                       |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Who benefits?    | All developers building long-term applications                                   |
+| Effort estimate  | Medium (3-4 days)                                                                |
+| Breaking change? | No                                                                               |
+| MVP impact       | High - enables continuous improvement and maintenance of production applications |
 
 ## 🔗 Related Issues or References
 

@@ -7,22 +7,30 @@ export default function ThemeSwitcher() {
 
   React.useEffect(() => {
     try {
-      const stored = typeof window !== "undefined" ? window.localStorage.getItem("sp:theme") : null;
+      const stored =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("sp:theme")
+          : null;
       if (stored === "light" || stored === "dark") {
         setTheme(stored);
-        if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", stored);
+        if (typeof document !== "undefined")
+          document.documentElement.setAttribute("data-theme", stored);
         return;
       }
       // respect prefers-color-scheme when available
       if (typeof window !== "undefined" && window.matchMedia) {
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
         const initial = prefersDark ? "dark" : "light";
         setTheme(initial);
-        if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", initial);
+        if (typeof document !== "undefined")
+          document.documentElement.setAttribute("data-theme", initial);
         return;
       }
       setTheme("dark");
-      if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", "dark");
+      if (typeof document !== "undefined")
+        document.documentElement.setAttribute("data-theme", "dark");
     } catch (e) {
       console.error("ThemeSwitcher:init error", e);
       setTheme("dark");
@@ -33,7 +41,8 @@ export default function ThemeSwitcher() {
     try {
       const next = theme === "dark" ? "light" : "dark";
       setTheme(next);
-      if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", next);
+      if (typeof document !== "undefined")
+        document.documentElement.setAttribute("data-theme", next);
       if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.setItem("sp:theme", next);
       }

@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement pause toggle contract for emergency circuit breakers
 title: "[SMART CONTRACT] Implement Pause Toggle Contract for Emergency Circuit Breakers"
 labels: enhancement, smart-contract, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Critical contract functionality currently lacks emergency pause capabilities. Wi
 ## 💡 Proposed Solution
 
 Create a comprehensive pause toggle implementation with:
+
 - Standard pause interface compliance
 - Flexible configuration (pause/unpause permissions, pause reasons, audit logging)
 - Comprehensive security features (admin-only control, pause state validation, event logging)
@@ -24,12 +25,14 @@ Create a comprehensive pause toggle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `pause()`, `unpause()`, `isPaused()` functions for operation management
 - `getPauseReason()`, `getPauseTimestamp()` for audit information
 - Event emissions (`Paused`, `Unpaused`)
 - Security features: admin-only control, pause state validation, audit logging
 
 ### Implementation Details
+
 - Location: `contracts/pause-toggle/`
 - Testing: `contracts/pause-toggle/src/test.rs` with 60+ test cases
 - Documentation: `contracts/pause-toggle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive pause toggle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building critical financial infrastructure |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential security infrastructure for production deployments |
+| Dimension        | Assessment                                                              |
+| ---------------- | ----------------------------------------------------------------------- |
+| Who benefits?    | All developers building critical financial infrastructure               |
+| Effort estimate  | Small (1-2 days)                                                        |
+| Breaking change? | No                                                                      |
+| MVP impact       | Critical - essential security infrastructure for production deployments |
 
 ## 🔗 Related Issues or References
 

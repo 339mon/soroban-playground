@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement insurance oracle contract for reliable risk data
 title: "[SMART CONTRACT] Implement Insurance Oracle Contract for Reliable Risk Data"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like insurance protocols currently lack reliable risk data sources.
 ## 💡 Proposed Solution
 
 Create a comprehensive insurance oracle implementation with:
+
 - Standard risk data interface compliance
 - Multiple data source integration (actuarial databases, weather services, historical claims data)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive insurance oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitRiskData()`, `getRiskData()`, `getHistoricalClaims()` functions for risk management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`RiskDataSubmitted`, `RiskDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/insurance-oracle/`
 - Testing: `contracts/insurance-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/insurance-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive insurance oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building insurance protocols and parametric insurance applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables insurance protocols and risk management applications |
+| Dimension        | Assessment                                                                    |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Who benefits?    | Developers building insurance protocols and parametric insurance applications |
+| Effort estimate  | Medium (3-4 days)                                                             |
+| Breaking change? | No                                                                            |
+| MVP impact       | High - enables insurance protocols and risk management applications           |
 
 ## 🔗 Related Issues or References
 

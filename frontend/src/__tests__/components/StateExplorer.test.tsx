@@ -16,7 +16,7 @@ describe("StorageViewer", () => {
         totalFrames={1}
         currentFrame={0}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getByText(/contract storage/i)).toBeInTheDocument();
   });
@@ -28,7 +28,7 @@ describe("StorageViewer", () => {
         totalFrames={1}
         currentFrame={0}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getByText(/empty or inaccessible/i)).toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe("StorageViewer", () => {
         totalFrames={1}
         currentFrame={0}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getAllByText("counter").length).toBeGreaterThan(0);
     expect(screen.getAllByText("owner").length).toBeGreaterThan(0);
@@ -55,7 +55,7 @@ describe("StorageViewer", () => {
         totalFrames={1}
         currentFrame={0}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getAllByText("invoke #3").length).toBeGreaterThan(0);
   });
@@ -70,7 +70,7 @@ describe("StorageViewer", () => {
         totalFrames={2}
         currentFrame={1}
         onScrubTimeline={noop}
-      />
+      />,
     );
     // +1 added (b), ~1 changed (a)
     expect(screen.getByText(/\+1/)).toBeInTheDocument();
@@ -86,9 +86,11 @@ describe("StorageViewer", () => {
         totalFrames={2}
         currentFrame={1}
         onScrubTimeline={noop}
-      />
+      />,
     );
-    expect(screen.getByText(/no changes from previous frame/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no changes from previous frame/i),
+    ).toBeInTheDocument();
   });
 
   it("calls onScrubTimeline when timeline slider changes", () => {
@@ -99,7 +101,7 @@ describe("StorageViewer", () => {
         totalFrames={5}
         currentFrame={2}
         onScrubTimeline={onScrub}
-      />
+      />,
     );
     fireEvent.change(screen.getByLabelText(/storage timeline slider/i), {
       target: { value: "4" },
@@ -115,7 +117,7 @@ describe("StorageViewer", () => {
         totalFrames={2}
         currentFrame={1}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getAllByText("added").length).toBeGreaterThan(0);
   });
@@ -128,7 +130,7 @@ describe("StorageViewer", () => {
         totalFrames={2}
         currentFrame={1}
         onScrubTimeline={noop}
-      />
+      />,
     );
     // removed key appears in deep diff table
     expect(screen.getByText("gone")).toBeInTheDocument();
@@ -142,7 +144,7 @@ describe("StorageViewer", () => {
         totalFrames={1}
         currentFrame={0}
         onScrubTimeline={noop}
-      />
+      />,
     );
     expect(screen.getAllByText(/…/).length).toBeGreaterThan(0);
   });
@@ -196,7 +198,9 @@ describe("StorageTree", () => {
       { key: "newField", value: 1, diff: "added" },
     ];
     const { container } = render(<StorageTree entries={entries} />);
-    expect(container.querySelector(".border-emerald-500\\/60")).toBeInTheDocument();
+    expect(
+      container.querySelector(".border-emerald-500\\/60"),
+    ).toBeInTheDocument();
   });
 
   it("applies removed diff styling", () => {
@@ -204,7 +208,9 @@ describe("StorageTree", () => {
       { key: "oldField", value: 0, diff: "removed" },
     ];
     const { container } = render(<StorageTree entries={entries} />);
-    expect(container.querySelector(".border-rose-500\\/60")).toBeInTheDocument();
+    expect(
+      container.querySelector(".border-rose-500\\/60"),
+    ).toBeInTheDocument();
   });
 
   it("applies changed diff styling", () => {
@@ -212,7 +218,9 @@ describe("StorageTree", () => {
       { key: "mutated", value: 99, diff: "changed" },
     ];
     const { container } = render(<StorageTree entries={entries} />);
-    expect(container.querySelector(".border-amber-500\\/60")).toBeInTheDocument();
+    expect(
+      container.querySelector(".border-amber-500\\/60"),
+    ).toBeInTheDocument();
   });
 
   it("renders multiple entries", () => {

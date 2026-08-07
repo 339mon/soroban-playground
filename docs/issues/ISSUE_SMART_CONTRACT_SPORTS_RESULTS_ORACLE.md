@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement sports results oracle contract for reliable sports data
 title: "[SMART CONTRACT] Implement Sports Results Oracle Contract for Reliable Sports Data"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like prediction markets and sports betting currently lack reliable 
 ## 💡 Proposed Solution
 
 Create a comprehensive sports results oracle implementation with:
+
 - Standard sports data interface compliance
 - Multiple data source integration (official league APIs, sports data providers, manual verification)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive sports results oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitSportsData()`, `getSportsData()`, `getHistoricalResults()` functions for sports management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`SportsDataSubmitted`, `SportsDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/sports-results-oracle/`
 - Testing: `contracts/sports-results-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/sports-results-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive sports results oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building prediction markets and sports betting applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables prediction market applications and sports betting |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | Developers building prediction markets and sports betting applications |
+| Effort estimate  | Medium (3-4 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - enables prediction market applications and sports betting       |
 
 ## 🔗 Related Issues or References
 

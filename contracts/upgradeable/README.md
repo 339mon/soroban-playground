@@ -6,27 +6,27 @@ Admins can propose a WASM hash upgrade that becomes executable after a configura
 
 ## Functions
 
-| Function | Access | Description |
-|---|---|---|
-| `initialize(admin, timelock_ledgers)` | Anyone (once) | Bootstrap the contract |
-| `propose_upgrade(admin, new_hash)` | Admin | Stage a WASM hash upgrade; executes immediately if timelock is 0 |
-| `execute_upgrade(admin)` | Admin | Execute a staged upgrade after the timelock elapses |
-| `upgrade_to(admin, new_hash)` | Admin | Alias for `propose_upgrade` (immediate, timelock = 0) |
-| `pause(admin)` / `unpause(admin)` | Admin | Emergency halt |
-| `get_admin()` | Anyone | Read current admin |
-| `is_initialized()` | Anyone | Check init state |
-| `is_paused()` | Anyone | Check pause state |
-| `get_timelock()` | Anyone | Read timelock delay |
-| `get_pending_upgrade()` | Anyone | Read staged (hash, proposed_at) |
+| Function                              | Access        | Description                                                      |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------- |
+| `initialize(admin, timelock_ledgers)` | Anyone (once) | Bootstrap the contract                                           |
+| `propose_upgrade(admin, new_hash)`    | Admin         | Stage a WASM hash upgrade; executes immediately if timelock is 0 |
+| `execute_upgrade(admin)`              | Admin         | Execute a staged upgrade after the timelock elapses              |
+| `upgrade_to(admin, new_hash)`         | Admin         | Alias for `propose_upgrade` (immediate, timelock = 0)            |
+| `pause(admin)` / `unpause(admin)`     | Admin         | Emergency halt                                                   |
+| `get_admin()`                         | Anyone        | Read current admin                                               |
+| `is_initialized()`                    | Anyone        | Check init state                                                 |
+| `is_paused()`                         | Anyone        | Check pause state                                                |
+| `get_timelock()`                      | Anyone        | Read timelock delay                                              |
+| `get_pending_upgrade()`               | Anyone        | Read staged (hash, proposed_at)                                  |
 
 ## Events
 
-| Topic | Data |
-|---|---|
-| `init` | admin address |
-| `proposed` | (new_hash, ledger_sequence) |
-| `upgraded` | new_hash |
-| `paused` / `unpaused` | admin address |
+| Topic                 | Data                        |
+| --------------------- | --------------------------- |
+| `init`                | admin address               |
+| `proposed`            | (new_hash, ledger_sequence) |
+| `upgraded`            | new_hash                    |
+| `paused` / `unpaused` | admin address               |
 
 ## Usage
 

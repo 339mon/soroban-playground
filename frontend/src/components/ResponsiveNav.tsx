@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFreighterWallet } from "@/hooks/useFreighterWallet";
@@ -76,7 +82,11 @@ const NAVIGATION: NavGroup[] = [
     groupName: "Governance & Trust",
     items: [
       { name: "Governance Portal", href: "/governance/history", icon: Users },
-      { name: "Quadratic Voting", href: "/quadratic-voting", icon: Fingerprint },
+      {
+        name: "Quadratic Voting",
+        href: "/quadratic-voting",
+        icon: Fingerprint,
+      },
       { name: "Treasury Panel", href: "/treasury", icon: Wallet },
       { name: "Bug Bounty Program", href: "/bug-bounty", icon: AlertTriangle },
     ],
@@ -105,18 +115,24 @@ const formatAddress = (addr: string | null) => {
   return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
 };
 
-export default function ResponsiveNav({ children }: { children: React.ReactNode }) {
+export default function ResponsiveNav({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const wallet = useFreighterWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "Core IDE & Ops": true,
-    "DeFi Suite": true,
-    "Governance & Trust": true,
-    "Real World Assets": false,
-    "Gaming & Sports": false,
-  });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {
+      "Core IDE & Ops": true,
+      "DeFi Suite": true,
+      "Governance & Trust": true,
+      "Real World Assets": false,
+      "Gaming & Sports": false,
+    },
+  );
   const drawerRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const [reducedMotion, setReducedMotion] = useState(() => {
@@ -148,12 +164,15 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
     return "Stellar Playground";
   }, [pathname]);
 
-  const isActive = useCallback((href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  }, [pathname]);
+  const isActive = useCallback(
+    (href: string) => {
+      if (href === "/") {
+        return pathname === "/";
+      }
+      return pathname.startsWith(href);
+    },
+    [pathname],
+  );
 
   const closeDrawer = useCallback(() => {
     setIsOpen(false);
@@ -288,11 +307,15 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                       >
                         <item.icon
                           className={`shrink-0 transition-transform group-hover:scale-105 ${
-                            active ? "text-teal-400" : "text-slate-400 group-hover:text-slate-200"
+                            active
+                              ? "text-teal-400"
+                              : "text-slate-400 group-hover:text-slate-200"
                           }`}
                           size={16}
                         />
-                        {!collapsed && <span className="truncate">{item.name}</span>}
+                        {!collapsed && (
+                          <span className="truncate">{item.name}</span>
+                        )}
                         {!collapsed && item.badge && (
                           <span className="ml-auto px-1.5 py-0.5 text-[9px] rounded bg-teal-500/20 border border-teal-500/30 text-teal-300 font-semibold font-mono">
                             {item.badge}
@@ -317,7 +340,9 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                 </span>
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    wallet.status === "connected" ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
+                    wallet.status === "connected"
+                      ? "bg-emerald-400 animate-pulse"
+                      : "bg-slate-600"
                   }`}
                 />
               </div>
@@ -328,7 +353,10 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                     {formatAddress(wallet.address)}
                   </p>
                   <p className="text-[10px] text-slate-500 font-medium">
-                    Network: <span className="text-slate-300 uppercase">{wallet.network}</span>
+                    Network:{" "}
+                    <span className="text-slate-300 uppercase">
+                      {wallet.network}
+                    </span>
                   </p>
                 </div>
               ) : (
@@ -378,7 +406,10 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
             onClick={closeDrawer}
             className="flex items-center gap-2 min-h-[44px]"
           >
-            <Orbit size={18} className="text-teal-400 animate-spin-[duration:12s]" />
+            <Orbit
+              size={18}
+              className="text-teal-400 animate-spin-[duration:12s]"
+            />
             <span className="font-semibold text-sm tracking-wider uppercase text-white">
               Soroban Playground
             </span>
@@ -412,7 +443,10 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                           : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
                       }`}
                     >
-                      <item.icon size={16} className={active ? "text-teal-400" : "text-slate-400"} />
+                      <item.icon
+                        size={16}
+                        className={active ? "text-teal-400" : "text-slate-400"}
+                      />
                       <span>{item.name}</span>
                     </Link>
                   );
@@ -430,7 +464,9 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
               </span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  wallet.status === "connected" ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
+                  wallet.status === "connected"
+                    ? "bg-emerald-400 animate-pulse"
+                    : "bg-slate-600"
                 }`}
               />
             </div>
@@ -475,7 +511,9 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
               <span className="hidden sm:inline-flex text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-400 transition-colors">
                 Soroban Play
               </span>
-              <span className="hidden sm:inline text-slate-600 font-light">/</span>
+              <span className="hidden sm:inline text-slate-600 font-light">
+                /
+              </span>
               <h1 className="text-xs sm:text-sm font-semibold tracking-wider text-white uppercase bg-slate-800/60 border border-slate-700/40 px-2.5 py-1 rounded-lg">
                 {activeItemName}
               </h1>
@@ -493,7 +531,9 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium transition-all hover:bg-slate-800 hover:border-slate-700 shadow-sm"
               >
                 <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-xs">{formatAddress(wallet.address)}</span>
+                <span className="font-mono text-xs">
+                  {formatAddress(wallet.address)}
+                </span>
               </button>
             ) : (
               <button
@@ -501,8 +541,15 @@ export default function ResponsiveNav({ children }: { children: React.ReactNode 
                 disabled={wallet.status === "connecting"}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-300 hover:to-teal-400 text-slate-950 font-semibold text-xs transition-all shadow-[0_0_15px_rgba(45,212,191,0.2)] hover:shadow-[0_0_20px_rgba(45,212,191,0.3)] disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Zap size={13} className={wallet.status === "connecting" ? "animate-pulse" : ""} />
-                {wallet.status === "connecting" ? "Connecting..." : "Link Wallet"}
+                <Zap
+                  size={13}
+                  className={
+                    wallet.status === "connecting" ? "animate-pulse" : ""
+                  }
+                />
+                {wallet.status === "connecting"
+                  ? "Connecting..."
+                  : "Link Wallet"}
               </button>
             )}
           </div>

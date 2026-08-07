@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement foundational Soroban contract standards and utilities
 title: "[SMART CONTRACT] Implement ERC-20 Token Standard Contract"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The Soroban Playground currently lacks a standardized, audited ERC-20 implementa
 ## 💡 Proposed Solution
 
 Create a comprehensive ERC-20 implementation with:
+
 - Standard ERC-20 interface compliance
 - Soroban-specific optimizations (storage layout, cross-contract calls)
 - Security best practices (reentrancy protection, overflow/underflow prevention)
@@ -24,12 +25,14 @@ Create a comprehensive ERC-20 implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `totalSupply()`, `balanceOf()`, `transfer()`, `transferFrom()` functions
 - `approve()`, `allowance()` for delegated transfers
 - Event emissions (`Transfer`, `Approval`)
 - Optional extensions: minting, burning, pausing
 
 ### Implementation Details
+
 - Location: `contracts/erc-20/`
 - Testing: `contracts/erc-20/src/test.rs` with 100+ test cases
 - Documentation: `contracts/erc-20/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive ERC-20 implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building token-based applications |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - foundational for financial infrastructure |
+| Dimension        | Assessment                                           |
+| ---------------- | ---------------------------------------------------- |
+| Who benefits?    | All developers building token-based applications     |
+| Effort estimate  | Medium (2-3 days)                                    |
+| Breaking change? | No                                                   |
+| MVP impact       | Critical - foundational for financial infrastructure |
 
 ## 🔗 Related Issues or References
 

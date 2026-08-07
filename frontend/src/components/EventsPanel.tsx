@@ -54,17 +54,19 @@ function relativeTime(iso: string): string {
 }
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  transfer:    "bg-blue-500/20 text-blue-300 border-blue-700/40",
-  mint:        "bg-green-500/20 text-green-300 border-green-700/40",
-  burn:        "bg-red-500/20 text-red-300 border-red-700/40",
-  swap:        "bg-purple-500/20 text-purple-300 border-purple-700/40",
-  invoke:      "bg-amber-500/20 text-amber-300 border-amber-700/40",
-  deploy:      "bg-cyan-500/20 text-cyan-300 border-cyan-700/40",
+  transfer: "bg-blue-500/20 text-blue-300 border-blue-700/40",
+  mint: "bg-green-500/20 text-green-300 border-green-700/40",
+  burn: "bg-red-500/20 text-red-300 border-red-700/40",
+  swap: "bg-purple-500/20 text-purple-300 border-purple-700/40",
+  invoke: "bg-amber-500/20 text-amber-300 border-amber-700/40",
+  deploy: "bg-cyan-500/20 text-cyan-300 border-cyan-700/40",
 };
 
 function eventTypeClass(type: string): string {
-  return EVENT_TYPE_COLORS[type.toLowerCase()] ??
-    "bg-slate-700/40 text-slate-300 border-slate-600/40";
+  return (
+    EVENT_TYPE_COLORS[type.toLowerCase()] ??
+    "bg-slate-700/40 text-slate-300 border-slate-600/40"
+  );
 }
 
 // ── Event row ─────────────────────────────────────────────────────────────────
@@ -86,10 +88,17 @@ function EventRow({ event }: { event: WsEvent }) {
 
   if (!event) return null;
 
-  const eventType = event.type === "event" ? (event.event_type || "unknown") : (event.type || "unknown");
-  const contractId = event.type === "event" ? (event.contract_id || "") : (event.id || "");
-  const ledger = event.type === "event" ? (event.ledger || 0) : 0;
-  const timestamp = event.type === "event" ? (event.ledger_closed_at || new Date().toISOString()) : (event.created_at || new Date().toISOString());
+  const eventType =
+    event.type === "event"
+      ? event.event_type || "unknown"
+      : event.type || "unknown";
+  const contractId =
+    event.type === "event" ? event.contract_id || "" : event.id || "";
+  const ledger = event.type === "event" ? event.ledger || 0 : 0;
+  const timestamp =
+    event.type === "event"
+      ? event.ledger_closed_at || new Date().toISOString()
+      : event.created_at || new Date().toISOString();
 
   return (
     <div
@@ -99,7 +108,9 @@ function EventRow({ event }: { event: WsEvent }) {
       {/* Main row */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Event type badge */}
-        <span className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${eventTypeClass(eventType)}`}>
+        <span
+          className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${eventTypeClass(eventType)}`}
+        >
           {eventType}
         </span>
 
@@ -144,13 +155,14 @@ export function EventsPanel({
   maxEvents = 200,
   className = "",
 }: EventsPanelProps) {
-  const { events, status, droppedCount, clearEvents, reconnect } = useEventStream({
-    url: wsUrl,
-    contractId,
-    eventType,
-    fallbackRestUrl: restUrl,
-    pollIntervalMs: 5000,
-  });
+  const { events, status, droppedCount, clearEvents, reconnect } =
+    useEventStream({
+      url: wsUrl,
+      contractId,
+      eventType,
+      fallbackRestUrl: restUrl,
+      pollIntervalMs: 5000,
+    });
 
   // Keep the list capped at maxEvents.
   const capped = useMemo(
@@ -174,7 +186,9 @@ export function EventsPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col rounded-xl border border-white/10 bg-slate-950 overflow-hidden ${className}`}>
+    <div
+      className={`flex flex-col rounded-xl border border-white/10 bg-slate-950 overflow-hidden ${className}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5 bg-slate-900">
         <div className="flex items-center gap-2 text-xs font-medium text-slate-300 uppercase tracking-wider">
@@ -238,7 +252,9 @@ export function EventsPanel({
                 WebSocket disconnected. Falling back to REST polling.
               </div>
             )}
-            {capped.map((event) => <EventRow key={event.id} event={event} />)}
+            {capped.map((event) => (
+              <EventRow key={event.id} event={event} />
+            ))}
           </div>
         )}
       </div>

@@ -9,7 +9,9 @@ describe('setupGracefulShutdown', () => {
     mockDb = { destroy: jest.fn().mockResolvedValue(true) };
 
     processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {});
-    processOnSpy = jest.spyOn(process, 'on').mockImplementation((signal, cb) => cb());
+    processOnSpy = jest
+      .spyOn(process, 'on')
+      .mockImplementation((signal, cb) => cb());
   });
 
   afterEach(() => {

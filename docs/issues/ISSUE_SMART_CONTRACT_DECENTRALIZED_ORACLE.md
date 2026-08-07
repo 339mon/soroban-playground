@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement decentralized oracle network contract for reliable data feeds
 title: "[SMART CONTRACT] Implement Decentralized Oracle Network Contract for Reliable Data Feeds"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban applications currently rely on centralized or single-source oracles, cre
 ## 💡 Proposed Solution
 
 Create a comprehensive decentralized oracle network implementation with:
+
 - Standard oracle interface compliance
 - Decentralized consensus mechanism (weighted voting, median calculation)
 - Comprehensive security features (slashing, reputation system, dispute resolution)
@@ -24,12 +25,14 @@ Create a comprehensive decentralized oracle network implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitData()`, `aggregateData()`, `getData()` functions for data management
 - `stake()`, `unstake()`, `reportMisbehavior()` for oracle participation
 - Event emissions (`DataSubmitted`, `DataAggregated`, `Slashed`)
 - Security features: reputation scoring, slashing penalties, dispute resolution
 
 ### Implementation Details
+
 - Location: `contracts/decentralized-oracle/`
 - Testing: `contracts/decentralized-oracle/src/test.rs` with 100+ test cases
 - Documentation: `contracts/decentralized-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive decentralized oracle network implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building data-dependent applications |
-| Effort estimate | Large (4-5 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential infrastructure for synthetic assets, prediction markets, and other data-dependent applications |
+| Dimension        | Assessment                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers building data-dependent applications                                                                 |
+| Effort estimate  | Large (4-5 days)                                                                                                    |
+| Breaking change? | No                                                                                                                  |
+| MVP impact       | Critical - essential infrastructure for synthetic assets, prediction markets, and other data-dependent applications |
 
 ## 🔗 Related Issues or References
 

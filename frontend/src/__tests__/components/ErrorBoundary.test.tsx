@@ -16,7 +16,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow={false} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("safe content")).toBeInTheDocument();
   });
@@ -25,7 +25,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary fallback={<div>custom fallback</div>}>
         <Bomb shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("custom fallback")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -47,11 +47,11 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary onError={onError}>
         <Bomb shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ message: "test explosion" }),
-      expect.objectContaining({ componentStack: expect.any(String) })
+      expect.objectContaining({ componentStack: expect.any(String) }),
     );
   });
 
@@ -65,7 +65,7 @@ describe("ErrorBoundary", () => {
     const { rerender } = render(
       <ErrorBoundary>
         <Controlled />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
 
@@ -75,7 +75,7 @@ describe("ErrorBoundary", () => {
     rerender(
       <ErrorBoundary>
         <Controlled />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByText("recovered")).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary onError={onError}>
         <Bomb shouldThrow={false} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(onError).not.toHaveBeenCalled();
   });

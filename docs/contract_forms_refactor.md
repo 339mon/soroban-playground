@@ -5,5 +5,5 @@ Architecture and implementation specification for Optimize and Clean Up Contract
 ---
 
 ## References
-- Issue reference: Fixes #950
 
+- Issue reference: Fixes #950

@@ -22,7 +22,19 @@ export default function TxIcon({ status, size = 14 }: TxIconProps) {
     );
   }
   if (status === "success") {
-    return <CheckCircle2 size={size} className="text-emerald-400 shrink-0 mt-0.5" aria-label="Transaction succeeded" />;
+    return (
+      <CheckCircle2
+        size={size}
+        className="text-emerald-400 shrink-0 mt-0.5"
+        aria-label="Transaction succeeded"
+      />
+    );
   }
-  return <XCircle size={size} className="text-rose-400 shrink-0 mt-0.5" aria-label="Transaction failed" />;
+  return (
+    <XCircle
+      size={size}
+      className="text-rose-400 shrink-0 mt-0.5"
+      aria-label="Transaction failed"
+    />
+  );
 }

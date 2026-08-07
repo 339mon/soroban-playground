@@ -22,21 +22,21 @@ Source C ──┘         ▲                   ▲                  ▲
 
 ## Aggregation Strategies
 
-| Strategy | Description |
-|---|---|
-| `Median` (default) | Middle value of sorted prices. Robust against outliers. |
-| `WeightedAverage` | Weighted mean using per-source weights (1–100). Rewards trusted oracles. |
-| `TrimmedMean` | Drops the lowest and highest price, then averages the rest. Best with 5+ sources. |
+| Strategy           | Description                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `Median` (default) | Middle value of sorted prices. Robust against outliers.                           |
+| `WeightedAverage`  | Weighted mean using per-source weights (1–100). Rewards trusted oracles.          |
+| `TrimmedMean`      | Drops the lowest and highest price, then averages the rest. Best with 5+ sources. |
 
 ## Security Features
 
-| Feature | Default | Description |
-|---|---|---|
-| Outlier detection | 20% (`2000 bps`) | Prices deviating > threshold from median are excluded before aggregation |
-| Circuit breaker | 50% (`5000 bps`) | Rejects aggregate if it moves > threshold vs last accepted price |
-| Staleness check | 3600 s | Prices older than `max_price_age` seconds are ignored |
-| Source authorization | Admin-controlled | Only admin-whitelisted source IDs may submit prices |
-| Emergency pause | Admin-controlled | Halts all price submissions in emergency |
+| Feature              | Default          | Description                                                              |
+| -------------------- | ---------------- | ------------------------------------------------------------------------ |
+| Outlier detection    | 20% (`2000 bps`) | Prices deviating > threshold from median are excluded before aggregation |
+| Circuit breaker      | 50% (`5000 bps`) | Rejects aggregate if it moves > threshold vs last accepted price         |
+| Staleness check      | 3600 s           | Prices older than `max_price_age` seconds are ignored                    |
+| Source authorization | Admin-controlled | Only admin-whitelisted source IDs may submit prices                      |
+| Emergency pause      | Admin-controlled | Halts all price submissions in emergency                                 |
 
 ## Architecture
 
@@ -54,20 +54,20 @@ frontend/src/app/price-aggregator/page.tsx    ← Next.js page
 
 ### Functions
 
-| Function | Access | Description |
-|---|---|---|
-| `initialize(admin, strategy?, max_price_age?, outlier_bps?, circuit_breaker_bps?, min_sources?)` | Public (once) | Initialize contract |
-| `add_source(admin, name, weight)` | Admin | Register a new price source, returns source ID |
-| `remove_source(admin, source_id)` | Admin | Deactivate a source |
-| `set_weight(admin, source_id, weight)` | Admin | Update source weight (1–100) |
-| `set_strategy(admin, strategy)` | Admin | Change aggregation strategy |
-| `update_price(source_addr, source_id, asset, price)` | Authorized source | Submit a price (scaled to 10^18) |
-| `get_price(source_id, asset)` | Read | Get latest price from a single source |
-| `get_aggregated_price(asset)` | Read | Compute and return aggregated price |
-| `get_source(source_id)` | Read | Get source metadata |
-| `get_source_count()` | Read | Total number of sources |
-| `pause(admin)` / `unpause(admin)` | Admin | Emergency pause |
-| `is_paused()` / `get_admin()` / `get_strategy()` | Read | State queries |
+| Function                                                                                         | Access            | Description                                    |
+| ------------------------------------------------------------------------------------------------ | ----------------- | ---------------------------------------------- |
+| `initialize(admin, strategy?, max_price_age?, outlier_bps?, circuit_breaker_bps?, min_sources?)` | Public (once)     | Initialize contract                            |
+| `add_source(admin, name, weight)`                                                                | Admin             | Register a new price source, returns source ID |
+| `remove_source(admin, source_id)`                                                                | Admin             | Deactivate a source                            |
+| `set_weight(admin, source_id, weight)`                                                           | Admin             | Update source weight (1–100)                   |
+| `set_strategy(admin, strategy)`                                                                  | Admin             | Change aggregation strategy                    |
+| `update_price(source_addr, source_id, asset, price)`                                             | Authorized source | Submit a price (scaled to 10^18)               |
+| `get_price(source_id, asset)`                                                                    | Read              | Get latest price from a single source          |
+| `get_aggregated_price(asset)`                                                                    | Read              | Compute and return aggregated price            |
+| `get_source(source_id)`                                                                          | Read              | Get source metadata                            |
+| `get_source_count()`                                                                             | Read              | Total number of sources                        |
+| `pause(admin)` / `unpause(admin)`                                                                | Admin             | Emergency pause                                |
+| `is_paused()` / `get_admin()` / `get_strategy()`                                                 | Read              | State queries                                  |
 
 **Events emitted:** `init`, `paused`, `unpaused`, `srcAdd`, `srcRm`, `priceUp`, `aggPrice`
 
@@ -121,21 +121,21 @@ stellar contract invoke \
 
 Base URL: `http://localhost:5000/api/price-aggregator`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/initialize` | Initialize contract |
-| POST | `/sources` | Add a price source |
-| DELETE | `/sources/:sourceId` | Remove a source |
-| PATCH | `/sources/:sourceId/weight` | Update source weight |
-| GET | `/sources/:sourceId?contractId=` | Get source info |
-| GET | `/sources/count?contractId=` | Get source count |
-| POST | `/prices` | Submit a price update |
-| GET | `/prices/:sourceId/:asset?contractId=` | Get single-source price |
-| GET | `/prices/aggregated/:asset?contractId=` | Get aggregated price |
-| POST | `/strategy` | Set aggregation strategy |
-| POST | `/pause` | Pause contract |
-| POST | `/unpause` | Unpause contract |
-| GET | `/status?contractId=` | Get pause status |
+| Method | Endpoint                                | Description              |
+| ------ | --------------------------------------- | ------------------------ |
+| POST   | `/initialize`                           | Initialize contract      |
+| POST   | `/sources`                              | Add a price source       |
+| DELETE | `/sources/:sourceId`                    | Remove a source          |
+| PATCH  | `/sources/:sourceId/weight`             | Update source weight     |
+| GET    | `/sources/:sourceId?contractId=`        | Get source info          |
+| GET    | `/sources/count?contractId=`            | Get source count         |
+| POST   | `/prices`                               | Submit a price update    |
+| GET    | `/prices/:sourceId/:asset?contractId=`  | Get single-source price  |
+| GET    | `/prices/aggregated/:asset?contractId=` | Get aggregated price     |
+| POST   | `/strategy`                             | Set aggregation strategy |
+| POST   | `/pause`                                | Pause contract           |
+| POST   | `/unpause`                              | Unpause contract         |
+| GET    | `/status?contractId=`                   | Get pause status         |
 
 **Example: Get aggregated BTC/USD price**
 
@@ -163,6 +163,7 @@ curl -X POST http://localhost:5000/api/price-aggregator/prices \
 Navigate to `http://localhost:3000/price-aggregator`.
 
 Features:
+
 - Prices tab: query aggregated prices, submit price updates as a source
 - Sources tab: view registered sources, add/remove sources (admin)
 - Admin tab: change aggregation strategy, emergency pause/unpause
@@ -171,12 +172,14 @@ Features:
 ## Environment Variables
 
 Add to `backend/.env`:
+
 ```
 # Optional: default contract ID for price aggregator
 PA_CONTRACT_ID=C...
 ```
 
 Add to `frontend/.env.local`:
+
 ```
 NEXT_PUBLIC_PA_CONTRACT_ID=C...
 ```
@@ -189,6 +192,7 @@ cargo test
 ```
 
 Test coverage includes:
+
 - Initialization (success, double-init guard)
 - Source management (add, remove, weight update, auth checks)
 - Price submission (valid, unauthorized, inactive source, zero price)

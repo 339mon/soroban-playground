@@ -11,7 +11,12 @@ interface TransactionSignerProps {
   isOpen: boolean;
 }
 
-export default function TransactionSigner({ xdr, onSign, onCancel, isOpen }: TransactionSignerProps) {
+export default function TransactionSigner({
+  xdr,
+  onSign,
+  onCancel,
+  isOpen,
+}: TransactionSignerProps) {
   const { signTransaction, status, error, network } = useWallet();
   const [isSigning, setIsSigning] = React.useState(false);
 
@@ -39,9 +44,11 @@ export default function TransactionSigner({ xdr, onSign, onCancel, isOpen }: Tra
             <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400">
               <Shield size={20} />
             </div>
-            <h2 className="text-xl font-semibold text-white">Sign Transaction</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Sign Transaction
+            </h2>
           </div>
-          <button 
+          <button
             onClick={onCancel}
             className="p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
           >
@@ -52,12 +59,14 @@ export default function TransactionSigner({ xdr, onSign, onCancel, isOpen }: Tra
         <div className="p-6 space-y-6">
           <div className="rounded-2xl bg-white/5 border border-white/8 p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Transaction Details</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Transaction Details
+              </span>
               <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-bold uppercase">
                 {network ?? "TESTNET"}
               </span>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Operations</span>
@@ -65,17 +74,23 @@ export default function TransactionSigner({ xdr, onSign, onCancel, isOpen }: Tra
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Base Fee</span>
-                <span className="text-white font-medium">100 stroops (0.00001 XLM)</span>
+                <span className="text-white font-medium">
+                  100 stroops (0.00001 XLM)
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Estimated Gas</span>
-                <span className="text-emerald-400 font-medium">Low (1.2k units)</span>
+                <span className="text-emerald-400 font-medium">
+                  Low (1.2k units)
+                </span>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Raw XDR</label>
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Raw XDR
+            </label>
             <div className="p-3 rounded-xl bg-slate-950/50 border border-white/5 font-mono text-[10px] text-slate-400 break-all max-h-24 overflow-y-auto">
               {xdr}
             </div>
@@ -83,7 +98,10 @@ export default function TransactionSigner({ xdr, onSign, onCancel, isOpen }: Tra
 
           <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200/80 text-xs">
             <Info className="shrink-0 mt-0.5 text-amber-400" size={16} />
-            <p>Always review transaction details in your wallet extension before confirming the signature.</p>
+            <p>
+              Always review transaction details in your wallet extension before
+              confirming the signature.
+            </p>
           </div>
         </div>
 

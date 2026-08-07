@@ -28,7 +28,7 @@ function filterReducer(state: typeof initialState, action: any) {
         criteria: {
           ...state.criteria,
           categories: state.criteria.categories.includes(action.payload)
-            ? state.criteria.categories.filter(c => c !== action.payload)
+            ? state.criteria.categories.filter((c) => c !== action.payload)
             : [...state.criteria.categories, action.payload],
         },
       };
@@ -43,23 +43,26 @@ export function useTemplateFilter(templates: TemplateMetadata[]) {
   const [filterState, dispatch] = useReducer(filterReducer, initialState);
 
   const filteredTemplates = useMemo(
-    () => filterTemplates(
-      templates,
-      filterState.criteria.searchQuery,
-      filterState.criteria.categories,
-      filterState.criteria.functionalities,
-      filterState.criteria.complexityLevels,
-      filterState.criteria.deploymentStatuses,
-      filterState.criteria.dependencies
-    ),
-    [templates, filterState.criteria]
+    () =>
+      filterTemplates(
+        templates,
+        filterState.criteria.searchQuery,
+        filterState.criteria.categories,
+        filterState.criteria.functionalities,
+        filterState.criteria.complexityLevels,
+        filterState.criteria.deploymentStatuses,
+        filterState.criteria.dependencies,
+      ),
+    [templates, filterState.criteria],
   );
 
   return {
     filterState,
     filteredTemplates,
-    setSearch: (query: string) => dispatch({ type: "SET_SEARCH", payload: query }),
-    toggleCategory: (cat: string) => dispatch({ type: "TOGGLE_CATEGORY", payload: cat }),
+    setSearch: (query: string) =>
+      dispatch({ type: "SET_SEARCH", payload: query }),
+    toggleCategory: (cat: string) =>
+      dispatch({ type: "TOGGLE_CATEGORY", payload: cat }),
     resetFilters: () => dispatch({ type: "RESET_FILTERS" }),
   };
 }

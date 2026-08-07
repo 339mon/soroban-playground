@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban contract debugging utilities
 title: "[SMART CONTRACT] Implement Soroban Contract Debugging Utilities"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement custom debuggi
 ## 💡 Proposed Solution
 
 Create a comprehensive set of debugging utility contracts including:
+
 - `DebugLogger`: Utility for logging debug information during contract execution
 - `StateInspector`: Utility for inspecting contract state during debugging
 - `ExecutionTracer`: Utility for tracing contract execution paths
@@ -24,6 +25,7 @@ Create a comprehensive set of debugging utility contracts including:
 - `ErrorDebugger`: Utility for enhanced error reporting and debugging
 
 ### Key Features
+
 - Soroban-optimized debugging patterns
 - Comprehensive security validation (log sanitization, state validation)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of debugging utility contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/debugging-utils/`
 - Testing: `contracts/debugging-utils/src/test.rs` with 100+ test cases
 - Documentation: `contracts/debugging-utils/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of debugging utility contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers debugging Soroban contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract debugging |
+| Dimension        | Assessment                                                                 |
+| ---------------- | -------------------------------------------------------------------------- |
+| Who benefits?    | All developers debugging Soroban contracts                                 |
+| Effort estimate  | Medium (3-4 days)                                                          |
+| Breaking change? | No                                                                         |
+| MVP impact       | High - improves security and developer productivity for contract debugging |
 
 ## 🔗 Related Issues or References
 

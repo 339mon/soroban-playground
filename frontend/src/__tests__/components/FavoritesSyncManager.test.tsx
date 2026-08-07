@@ -1,6 +1,6 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from "@testing-library/react";
 
-const STORAGE_KEY = 'template-library-favorites';
+const STORAGE_KEY = "template-library-favorites";
 
 let mockIsAuthenticated = false;
 let mockWalletAddress: string | null = null;
@@ -8,11 +8,11 @@ let remoteFavorites: string[] = [];
 let remoteOk = true;
 let postBody: { favorites: string[] } | null = null;
 
-jest.mock('../../hooks/useAuth', () => ({
+jest.mock("../../hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: mockIsAuthenticated }),
 }));
 
-jest.mock('../../hooks/useFreighterWallet', () => ({
+jest.mock("../../hooks/useFreighterWallet", () => ({
   useFreighterWallet: () => ({ address: mockWalletAddress }),
 }));
 
@@ -38,16 +38,19 @@ beforeEach(() => {
   mockFetch.mockReset();
 
   mockFetch.mockImplementation(async (url, opts) => {
-    const urlStr = typeof url === 'string' ? url : url.toString();
+    const urlStr = typeof url === "string" ? url : url.toString();
 
-    if (urlStr === '/api/favorites' && (!opts || !opts.method || opts.method === 'GET')) {
+    if (
+      urlStr === "/api/favorites" &&
+      (!opts || !opts.method || opts.method === "GET")
+    ) {
       return mockResponse(
         { favorites: remoteFavorites, updatedAt: new Date().toISOString() },
-        remoteOk ? 200 : 500
+        remoteOk ? 200 : 500,
       );
     }
 
-    if (urlStr === '/api/favorites' && opts?.method === 'POST') {
+    if (urlStr === "/api/favorites" && opts?.method === "POST") {
       postBody = opts.body ? JSON.parse(opts.body as string) : null;
       return mockResponse(null, remoteOk ? 200 : 500);
     }
@@ -64,111 +67,111 @@ afterEach(() => {
 });
 
 function useFavoritesHook() {
-  const { useFavorites } = require('../../components/FavoritesSyncManager');
+  const { useFavorites } = require("../../components/FavoritesSyncManager");
   return useFavorites();
 }
 
-describe('useFavorites', () => {
-  it('loads from localStorage immediately on mount', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(['a', 'b']));
+describe("useFavorites", () => {
+  it("loads from localStorage immediately on mount", () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(["a", "b"]));
     const { result } = renderHook(() => useFavoritesHook());
-    expect(result.current.favorites).toEqual(['a', 'b']);
-    expect(result.current.syncStatus).toBe('offline');
+    expect(result.current.favorites).toEqual(["a", "b"]);
+    expect(result.current.syncStatus).toBe("offline");
   });
 
-  it('fetches from API when authenticated and merges using union logic', async () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(['A', 'B']));
-    remoteFavorites = ['B', 'C'];
+  it("fetches from API when authenticated and merges using union logic", async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(["A", "B"]));
+    remoteFavorites = ["B", "C"];
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.favorites).toContain('C');
+      expect(result.current.favorites).toContain("C");
     });
 
-    expect(result.current.favorites).toEqual(['A', 'B', 'C']);
+    expect(result.current.favorites).toEqual(["A", "B", "C"]);
   });
 
-  it('conflict resolution: local [A,B], remote [B,C] → merged [A,B,C]', async () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(['A', 'B']));
-    remoteFavorites = ['B', 'C'];
+  it("conflict resolution: local [A,B], remote [B,C] → merged [A,B,C]", async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(["A", "B"]));
+    remoteFavorites = ["B", "C"];
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.favorites).toEqual(['A', 'B', 'C']);
+      expect(result.current.favorites).toEqual(["A", "B", "C"]);
     });
   });
 
-  it('toggleFavorite adds a new id and triggers a debounced sync', async () => {
+  it("toggleFavorite adds a new id and triggers a debounced sync", async () => {
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.syncStatus).not.toBe('idle');
+      expect(result.current.syncStatus).not.toBe("idle");
     });
 
     act(() => {
-      result.current.toggleFavorite('new-id');
+      result.current.toggleFavorite("new-id");
     });
 
-    expect(result.current.favorites).toContain('new-id');
+    expect(result.current.favorites).toContain("new-id");
 
     await waitFor(
       () => {
-        expect(postBody).toEqual({ favorites: ['new-id'] });
+        expect(postBody).toEqual({ favorites: ["new-id"] });
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
   });
 
-  it('toggleFavorite removes an existing id and triggers a debounced sync', async () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(['keep', 'remove']));
+  it("toggleFavorite removes an existing id and triggers a debounced sync", async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(["keep", "remove"]));
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.syncStatus).not.toBe('idle');
+      expect(result.current.syncStatus).not.toBe("idle");
     });
 
     act(() => {
-      result.current.toggleFavorite('remove');
+      result.current.toggleFavorite("remove");
     });
 
-    expect(result.current.favorites).toEqual(['keep']);
+    expect(result.current.favorites).toEqual(["keep"]);
 
     await waitFor(
       () => {
-        expect(postBody).toEqual({ favorites: ['keep'] });
+        expect(postBody).toEqual({ favorites: ["keep"] });
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
   });
 
-  it('API failure keeps local state intact and sets syncStatus to error', async () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(['local-only']));
+  it("API failure keeps local state intact and sets syncStatus to error", async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(["local-only"]));
     remoteOk = false;
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.syncStatus).toBe('error');
+      expect(result.current.syncStatus).toBe("error");
     });
 
-    expect(result.current.favorites).toEqual(['local-only']);
+    expect(result.current.favorites).toEqual(["local-only"]);
   });
 
-  it('unauthenticated user gets localStorage-only behavior with no API calls', () => {
+  it("unauthenticated user gets localStorage-only behavior with no API calls", () => {
     mockIsAuthenticated = false;
 
     renderHook(() => useFavoritesHook());
@@ -176,25 +179,25 @@ describe('useFavorites', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('toggleFavorite triggers sync with synced status', async () => {
+  it("toggleFavorite triggers sync with synced status", async () => {
     mockIsAuthenticated = true;
-    mockWalletAddress = 'GABCDEF';
+    mockWalletAddress = "GABCDEF";
 
     const { result } = renderHook(() => useFavoritesHook());
 
     await waitFor(() => {
-      expect(result.current.syncStatus).not.toBe('idle');
+      expect(result.current.syncStatus).not.toBe("idle");
     });
 
     act(() => {
-      result.current.toggleFavorite('x');
+      result.current.toggleFavorite("x");
     });
 
     await waitFor(
       () => {
-        expect(result.current.syncStatus).toBe('synced');
+        expect(result.current.syncStatus).toBe("synced");
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
   });
 });

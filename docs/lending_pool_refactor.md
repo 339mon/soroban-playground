@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Lending Pool on S
 ---
 
 ## References
-- Issue reference: Fixes #992
 
+- Issue reference: Fixes #992

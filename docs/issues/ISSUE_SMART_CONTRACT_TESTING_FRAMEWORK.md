@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban contract testing framework and utilities
 title: "[SMART CONTRACT] Implement Soroban Contract Testing Framework and Utilities"
 labels: enhancement, smart-contract, testing, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement custom test ha
 ## 💡 Proposed Solution
 
 Create a comprehensive set of testing utility contracts including:
+
 - `TestHarness`: Secure wrapper for contract testing with mock environments
 - `MockOracle`: Utility for mocking oracle data during testing
 - `MockToken`: Utility for mocking token interactions during testing
@@ -24,6 +25,7 @@ Create a comprehensive set of testing utility contracts including:
 - `FuzzTester`: Utility for property-based fuzz testing of contract functions
 
 ### Key Features
+
 - Soroban-optimized testing patterns
 - Comprehensive security validation (mock validation, assertion checking)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of testing utility contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/testing-framework/`
 - Testing: `contracts/testing-framework/src/test.rs` with 120+ test cases
 - Documentation: `contracts/testing-framework/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of testing utility contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers testing Soroban contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract testing |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | All developers testing Soroban contracts                                 |
+| Effort estimate  | Medium (3-4 days)                                                        |
+| Breaking change? | No                                                                       |
+| MVP impact       | High - improves security and developer productivity for contract testing |
 
 ## 🔗 Related Issues or References
 

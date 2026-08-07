@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Metri
 ---
 
 ## References
-- Issue reference: Fixes #967
 
+- Issue reference: Fixes #967

@@ -52,8 +52,7 @@ impl IdentityRegistryContract {
         env.storage()
             .instance()
             .set(&InstanceKey::Admin, &new_admin);
-        env.events()
-            .publish((symbol_short!("adm_tx"),), new_admin);
+        env.events().publish((symbol_short!("adm_tx"),), new_admin);
         Ok(())
     }
 
@@ -102,8 +101,7 @@ impl IdentityRegistryContract {
         env.storage()
             .persistent()
             .set(&DataKey::Identity(owner.clone()), &identity);
-        env.events()
-            .publish((symbol_short!("register"),), owner);
+        env.events().publish((symbol_short!("register"),), owner);
         Ok(())
     }
 
@@ -143,8 +141,7 @@ impl IdentityRegistryContract {
         env.storage()
             .persistent()
             .set(&DataKey::Identity(owner.clone()), &identity);
-        env.events()
-            .publish((symbol_short!("updated"),), owner);
+        env.events().publish((symbol_short!("updated"),), owner);
         Ok(())
     }
 
@@ -164,8 +161,7 @@ impl IdentityRegistryContract {
         env.storage()
             .persistent()
             .set(&DataKey::Identity(owner.clone()), &identity);
-        env.events()
-            .publish((symbol_short!("verified"),), owner);
+        env.events().publish((symbol_short!("verified"),), owner);
         Ok(())
     }
 
@@ -190,8 +186,7 @@ impl IdentityRegistryContract {
         env.storage()
             .persistent()
             .set(&DataKey::Identity(owner.clone()), &identity);
-        env.events()
-            .publish((symbol_short!("revoked"),), owner);
+        env.events().publish((symbol_short!("revoked"),), owner);
         Ok(())
     }
 

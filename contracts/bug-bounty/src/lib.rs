@@ -74,7 +74,12 @@ impl BugBountyContract {
     }
 
     /// Override the default reward for a severity tier (admin only).
-    pub fn set_reward(env: Env, admin: Address, severity: Severity, amount: i128) -> Result<(), Error> {
+    pub fn set_reward(
+        env: Env,
+        admin: Address,
+        severity: Severity,
+        amount: i128,
+    ) -> Result<(), Error> {
         Self::assert_admin(&env, &admin)?;
         if amount == 0 {
             return Err(Error::ZeroReward);

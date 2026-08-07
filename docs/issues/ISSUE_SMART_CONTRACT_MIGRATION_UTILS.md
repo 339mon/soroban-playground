@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract migration utility contracts for Soroban applications
 title: "[SMART CONTRACT] Implement Contract Migration Utility Contracts"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers performing contract migrations currently need to implement custom mig
 ## 💡 Proposed Solution
 
 Create a comprehensive set of migration utility contracts including:
+
 - `MigrationExecutor`: Secure wrapper for executing migration operations with validation
 - `StateMigrator`: Utility for transferring state between contracts
 - `DataValidator`: Utility for validating migrated data integrity
@@ -24,6 +25,7 @@ Create a comprehensive set of migration utility contracts including:
 - `RollbackHandler`: Utility for handling failed migrations gracefully
 
 ### Key Features
+
 - Soroban-optimized migration patterns
 - Comprehensive security validation (state validation, integrity checking)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of migration utility contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/migration-utils/`
 - Testing: `contracts/migration-utils/src/test.rs` with 100+ test cases
 - Documentation: `contracts/migration-utils/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of migration utility contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers performing contract migrations |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract migrations |
+| Dimension        | Assessment                                                                  |
+| ---------------- | --------------------------------------------------------------------------- |
+| Who benefits?    | All developers performing contract migrations                               |
+| Effort estimate  | Medium (3-4 days)                                                           |
+| Breaking change? | No                                                                          |
+| MVP impact       | High - improves security and developer productivity for contract migrations |
 
 ## 🔗 Related Issues or References
 

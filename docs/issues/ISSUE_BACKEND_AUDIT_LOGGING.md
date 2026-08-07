@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive audit logging and compliance reporting
 title: "[BACKEND] Implement Comprehensive Audit Logging and Compliance Reporting"
 labels: enhancement, backend, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks comprehensive audit logging capabilities, making it di
 ## 💡 Proposed Solution
 
 Create comprehensive audit logging implementation with:
+
 - Security-sensitive operation logging
 - Immutable audit log storage
 - Compliance reporting capabilities
@@ -24,6 +25,7 @@ Create comprehensive audit logging implementation with:
 - Integration with security monitoring
 
 ### Key Features
+
 - Audit logging for all security-sensitive operations (deploy, invoke, admin actions)
 - Immutable audit log storage with tamper-evident properties
 - Compliance reporting for security standards (SOC2, ISO27001)
@@ -32,6 +34,7 @@ Create comprehensive audit logging implementation with:
 - Real-time audit log monitoring and alerting
 
 ### Implementation Details
+
 - Location: `backend/src/audit/`
 - Service: `backend/src/services/auditService.js`
 - Configuration: `backend/src/config/audit.config.js`
@@ -53,12 +56,12 @@ Create comprehensive audit logging implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and security teams managing the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - enables security monitoring, compliance verification, and forensic analysis |
+| Dimension        | Assessment                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and security teams managing the Soroban Playground              |
+| Effort estimate  | Medium (3-4 days)                                                                      |
+| Breaking change? | No                                                                                     |
+| MVP impact       | Critical - enables security monitoring, compliance verification, and forensic analysis |
 
 ## 🔗 Related Issues or References
 

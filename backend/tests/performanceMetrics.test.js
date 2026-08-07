@@ -42,7 +42,10 @@ jest.mock('@opentelemetry/exporter-prometheus', () => ({
   PrometheusExporter: mockPrometheusExporter,
 }));
 
-import { initializeMetrics, createOperationMetrics } from '../src/metrics/performance.js';
+import {
+  initializeMetrics,
+  createOperationMetrics,
+} from '../src/metrics/performance.js';
 
 describe('Performance Metrics (OpenTelemetry)', () => {
   beforeEach(() => {

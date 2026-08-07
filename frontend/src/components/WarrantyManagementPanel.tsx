@@ -48,7 +48,8 @@ export interface Claim {
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  (process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com")
+  (process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com")
 ).replace(/\/$/, "");
 
 async function apiPost(path: string, body: unknown) {
@@ -106,7 +107,9 @@ const STATUS_STYLES: Record<string, string> = {
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[status] ?? "bg-gray-700 text-gray-300"}`}>
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[status] ?? "bg-gray-700 text-gray-300"}`}
+    >
       {status}
     </span>
   );
@@ -134,7 +137,10 @@ function StatCard({
 
 function ErrorMsg({ msg }: { msg: string }) {
   return (
-    <p className="text-xs text-red-400 mt-1 flex items-center gap-1" role="alert">
+    <p
+      className="text-xs text-red-400 mt-1 flex items-center gap-1"
+      role="alert"
+    >
       <AlertTriangle size={12} /> {msg}
     </p>
   );
@@ -247,13 +253,31 @@ export default function WarrantyManagementPanel({
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Products" value={productCount} icon={<Package size={18} />} />
-        <StatCard label="Warranties" value={warrantyCount} icon={<Shield size={18} />} />
-        <StatCard label="Claims" value={claimCount} icon={<Clock size={18} />} />
+        <StatCard
+          label="Products"
+          value={productCount}
+          icon={<Package size={18} />}
+        />
+        <StatCard
+          label="Warranties"
+          value={warrantyCount}
+          icon={<Shield size={18} />}
+        />
+        <StatCard
+          label="Claims"
+          value={claimCount}
+          icon={<Clock size={18} />}
+        />
         <StatCard
           label="Status"
           value={paused ? "Paused" : "Active"}
-          icon={paused ? <PauseCircle size={18} className="text-yellow-400" /> : <PlayCircle size={18} className="text-green-400" />}
+          icon={
+            paused ? (
+              <PauseCircle size={18} className="text-yellow-400" />
+            ) : (
+              <PlayCircle size={18} className="text-green-400" />
+            )
+          }
         />
       </div>
 
@@ -339,11 +363,21 @@ interface TabProps {
   onRefresh?: () => void;
 }
 
-function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh }: TabProps) {
+function ProductsTab({
+  contractId,
+  walletAddress,
+  network,
+  showToast,
+  onRefresh,
+}: TabProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [lookupId, setLookupId] = useState("");
-  const [form, setForm] = useState({ manufacturer: walletAddress, name: "", durationDays: "365" });
+  const [form, setForm] = useState({
+    manufacturer: walletAddress,
+    name: "",
+    durationDays: "365",
+  });
   const [formErr, setFormErr] = useState<Partial<typeof form>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -352,7 +386,10 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
     if (!id) return showToast("Enter a valid product ID", false);
     setLoading(true);
     try {
-      const data = await apiGet(`/api/warranty/products/${id}`, { contractId, network });
+      const data = await apiGet(`/api/warranty/products/${id}`, {
+        contractId,
+        network,
+      });
       setProducts([{ id, ...data.product }]);
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -402,7 +439,9 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
         network,
       });
       showToast("Product deactivated");
-      setProducts((ps) => ps.map((p) => (p.id === productId ? { ...p, isActive: false } : p)));
+      setProducts((ps) =>
+        ps.map((p) => (p.id === productId ? { ...p, isActive: false } : p)),
+      );
     } catch (e: unknown) {
       showToast((e as Error).message, false);
     }
@@ -415,20 +454,28 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
         <SectionHeader title="Register Product" />
         <form onSubmit={registerProduct} className="space-y-3" noValidate>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="prod-manufacturer">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="prod-manufacturer"
+            >
               Manufacturer Address
             </label>
             <input
               id="prod-manufacturer"
               value={form.manufacturer}
-              onChange={(e) => setForm((f) => ({ ...f, manufacturer: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, manufacturer: e.target.value }))
+              }
               placeholder="G…"
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
             />
             {formErr.manufacturer && <ErrorMsg msg={formErr.manufacturer} />}
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="prod-name">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="prod-name"
+            >
               Product Name
             </label>
             <input
@@ -441,7 +488,10 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
             {formErr.name && <ErrorMsg msg={formErr.name} />}
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="prod-duration">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="prod-duration"
+            >
               Warranty Duration (days)
             </label>
             <input
@@ -449,7 +499,9 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
               type="number"
               min={1}
               value={form.durationDays}
-              onChange={(e) => setForm((f) => ({ ...f, durationDays: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, durationDays: e.target.value }))
+              }
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
             />
             {formErr.durationDays && <ErrorMsg msg={formErr.durationDays} />}
@@ -459,7 +511,8 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
             disabled={submitting}
             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors"
           >
-            <Plus size={14} /> {submitting ? "Registering…" : "Register Product"}
+            <Plus size={14} />{" "}
+            {submitting ? "Registering…" : "Register Product"}
           </button>
         </form>
       </div>
@@ -481,7 +534,11 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
             disabled={loading}
             className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors disabled:opacity-50"
           >
-            {loading ? <RefreshCw size={14} className="animate-spin" /> : "Fetch"}
+            {loading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              "Fetch"
+            )}
           </button>
         </div>
       </div>
@@ -490,12 +547,17 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
       {products.length > 0 && (
         <div className="space-y-2">
           {products.map((p) => (
-            <div key={p.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex items-start justify-between gap-3">
+            <div
+              key={p.id}
+              className="bg-gray-800 border border-gray-700 rounded-lg p-3 flex items-start justify-between gap-3"
+            >
               <div className="space-y-0.5">
                 <p className="text-sm font-medium text-white">
                   #{p.id} — {p.name}
                 </p>
-                <p className="text-xs text-gray-400 truncate max-w-xs">{p.manufacturer}</p>
+                <p className="text-xs text-gray-400 truncate max-w-xs">
+                  {p.manufacturer}
+                </p>
                 <p className="text-xs text-gray-400">
                   Duration: {durationLabel(p.warrantyDurationSecs)}
                 </p>
@@ -521,7 +583,12 @@ function ProductsTab({ contractId, walletAddress, network, showToast, onRefresh 
 
 // ── WarrantiesTab ─────────────────────────────────────────────────────────────
 
-function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabProps) {
+function WarrantiesTab({
+  contractId,
+  walletAddress,
+  network,
+  showToast,
+}: TabProps) {
   const [warranties, setWarranties] = useState<Warranty[]>([]);
   const [loading, setLoading] = useState(false);
   const [lookupId, setLookupId] = useState("");
@@ -539,7 +606,10 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
     if (!id) return showToast("Enter a valid warranty ID", false);
     setLoading(true);
     try {
-      const data = await apiGet(`/api/warranty/warranties/${id}`, { contractId, network });
+      const data = await apiGet(`/api/warranty/warranties/${id}`, {
+        contractId,
+        network,
+      });
       setWarranties([{ id, ...data.warranty }]);
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -551,7 +621,8 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
   function validate() {
     const errs: Partial<typeof form> = {};
     if (!form.issuer) errs.issuer = "Required";
-    if (!form.productId || Number(form.productId) < 1) errs.productId = "Must be ≥ 1";
+    if (!form.productId || Number(form.productId) < 1)
+      errs.productId = "Must be ≥ 1";
     if (!form.owner) errs.owner = "Required";
     if (!form.serialNumber.trim()) errs.serialNumber = "Required";
     setFormErr(errs);
@@ -587,13 +658,18 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
         <SectionHeader title="Issue Warranty" />
         <form onSubmit={issueWarranty} className="space-y-3" noValidate>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="war-issuer">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="war-issuer"
+            >
               Issuer Address (manufacturer or admin)
             </label>
             <input
               id="war-issuer"
               value={form.issuer}
-              onChange={(e) => setForm((f) => ({ ...f, issuer: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, issuer: e.target.value }))
+              }
               placeholder="G…"
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
             />
@@ -601,7 +677,10 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1" htmlFor="war-product">
+              <label
+                className="block text-xs text-gray-400 mb-1"
+                htmlFor="war-product"
+              >
                 Product ID
               </label>
               <input
@@ -609,19 +688,26 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
                 type="number"
                 min={1}
                 value={form.productId}
-                onChange={(e) => setForm((f) => ({ ...f, productId: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, productId: e.target.value }))
+                }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
               />
               {formErr.productId && <ErrorMsg msg={formErr.productId} />}
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1" htmlFor="war-serial">
+              <label
+                className="block text-xs text-gray-400 mb-1"
+                htmlFor="war-serial"
+              >
                 Serial Number
               </label>
               <input
                 id="war-serial"
                 value={form.serialNumber}
-                onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, serialNumber: e.target.value }))
+                }
                 placeholder="SN-001"
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
               />
@@ -629,13 +715,18 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="war-owner">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="war-owner"
+            >
               Buyer / Owner Address
             </label>
             <input
               id="war-owner"
               value={form.owner}
-              onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, owner: e.target.value }))
+              }
               placeholder="G…"
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
             />
@@ -668,7 +759,11 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
             disabled={loading}
             className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors disabled:opacity-50"
           >
-            {loading ? <RefreshCw size={14} className="animate-spin" /> : "Fetch"}
+            {loading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              "Fetch"
+            )}
           </button>
         </div>
       </div>
@@ -677,7 +772,10 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
       {warranties.length > 0 && (
         <div className="space-y-2">
           {warranties.map((w) => (
-            <div key={w.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1">
+            <div
+              key={w.id}
+              className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1"
+            >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-white">
                   Warranty #{w.id} — Product #{w.productId}
@@ -687,7 +785,8 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
               <p className="text-xs text-gray-400">Serial: {w.serialNumber}</p>
               <p className="text-xs text-gray-400 truncate">Owner: {w.owner}</p>
               <p className="text-xs text-gray-400">
-                Purchased: {formatTs(w.purchaseTs)} · Expires: {formatTs(w.expiryTs)}
+                Purchased: {formatTs(w.purchaseTs)} · Expires:{" "}
+                {formatTs(w.expiryTs)}
               </p>
             </div>
           ))}
@@ -699,11 +798,20 @@ function WarrantiesTab({ contractId, walletAddress, network, showToast }: TabPro
 
 // ── ClaimsTab ─────────────────────────────────────────────────────────────────
 
-function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) {
+function ClaimsTab({
+  contractId,
+  walletAddress,
+  network,
+  showToast,
+}: TabProps) {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(false);
   const [lookupId, setLookupId] = useState("");
-  const [form, setForm] = useState({ claimant: walletAddress, warrantyId: "", description: "" });
+  const [form, setForm] = useState({
+    claimant: walletAddress,
+    warrantyId: "",
+    description: "",
+  });
   const [formErr, setFormErr] = useState<Partial<typeof form>>({});
   const [submitting, setSubmitting] = useState(false);
   const [resolving, setResolving] = useState<number | null>(null);
@@ -713,7 +821,10 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
     if (!id) return showToast("Enter a valid claim ID", false);
     setLoading(true);
     try {
-      const data = await apiGet(`/api/warranty/claims/${id}`, { contractId, network });
+      const data = await apiGet(`/api/warranty/claims/${id}`, {
+        contractId,
+        network,
+      });
       setClaims([{ id, ...data.claim }]);
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -725,7 +836,8 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
   function validate() {
     const errs: Partial<typeof form> = {};
     if (!form.claimant) errs.claimant = "Required";
-    if (!form.warrantyId || Number(form.warrantyId) < 1) errs.warrantyId = "Must be ≥ 1";
+    if (!form.warrantyId || Number(form.warrantyId) < 1)
+      errs.warrantyId = "Must be ≥ 1";
     if (!form.description.trim()) errs.description = "Required";
     setFormErr(errs);
     return Object.keys(errs).length === 0;
@@ -765,8 +877,10 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
       showToast(approve ? "Claim approved" : "Claim rejected");
       setClaims((cs) =>
         cs.map((c) =>
-          c.id === claimId ? { ...c, status: approve ? "Approved" : "Rejected" } : c
-        )
+          c.id === claimId
+            ? { ...c, status: approve ? "Approved" : "Rejected" }
+            : c,
+        ),
       );
     } catch (e: unknown) {
       showToast((e as Error).message, false);
@@ -782,20 +896,28 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
         <SectionHeader title="File a Claim" />
         <form onSubmit={fileClaim} className="space-y-3" noValidate>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="clm-claimant">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="clm-claimant"
+            >
               Claimant Address (warranty owner)
             </label>
             <input
               id="clm-claimant"
               value={form.claimant}
-              onChange={(e) => setForm((f) => ({ ...f, claimant: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, claimant: e.target.value }))
+              }
               placeholder="G…"
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
             />
             {formErr.claimant && <ErrorMsg msg={formErr.claimant} />}
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="clm-warranty">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="clm-warranty"
+            >
               Warranty ID
             </label>
             <input
@@ -803,20 +925,27 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
               type="number"
               min={1}
               value={form.warrantyId}
-              onChange={(e) => setForm((f) => ({ ...f, warrantyId: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, warrantyId: e.target.value }))
+              }
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
             />
             {formErr.warrantyId && <ErrorMsg msg={formErr.warrantyId} />}
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1" htmlFor="clm-desc">
+            <label
+              className="block text-xs text-gray-400 mb-1"
+              htmlFor="clm-desc"
+            >
               Description
             </label>
             <textarea
               id="clm-desc"
               rows={3}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
               placeholder="Describe the defect or issue…"
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 resize-none"
             />
@@ -849,7 +978,11 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
             disabled={loading}
             className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors disabled:opacity-50"
           >
-            {loading ? <RefreshCw size={14} className="animate-spin" /> : "Fetch"}
+            {loading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              "Fetch"
+            )}
           </button>
         </div>
       </div>
@@ -858,17 +991,24 @@ function ClaimsTab({ contractId, walletAddress, network, showToast }: TabProps) 
       {claims.length > 0 && (
         <div className="space-y-2">
           {claims.map((c) => (
-            <div key={c.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2">
+            <div
+              key={c.id}
+              className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-medium text-white">
                     Claim #{c.id} — Warranty #{c.warrantyId}
                   </p>
-                  <p className="text-xs text-gray-400 truncate max-w-xs">{c.claimant}</p>
+                  <p className="text-xs text-gray-400 truncate max-w-xs">
+                    {c.claimant}
+                  </p>
                 </div>
                 <StatusBadge status={c.status} />
               </div>
-              <p className="text-xs text-gray-300 bg-gray-700/50 rounded p-2">{c.description}</p>
+              <p className="text-xs text-gray-300 bg-gray-700/50 rounded p-2">
+                {c.description}
+              </p>
               <p className="text-xs text-gray-400">
                 Filed: {formatTs(c.filedTs)}
                 {c.resolvedTs ? ` · Resolved: ${formatTs(c.resolvedTs)}` : ""}

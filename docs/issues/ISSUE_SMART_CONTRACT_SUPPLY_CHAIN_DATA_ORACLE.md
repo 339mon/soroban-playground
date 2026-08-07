@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement supply chain data oracle contract for reliable logistics data
 title: "[SMART CONTRACT] Implement Supply Chain Data Oracle Contract for Reliable Logistics Data"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Applications like supply chain tracking currently lack reliable logistics data s
 ## 💡 Proposed Solution
 
 Create a comprehensive supply chain data oracle implementation with:
+
 - Standard logistics data interface compliance
 - Multiple data source integration (IoT sensors, shipping APIs, customs databases)
 - Comprehensive security features (data validation, outlier detection, circuit breakers)
@@ -24,12 +25,14 @@ Create a comprehensive supply chain data oracle implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `submitLogisticsData()`, `getLogisticsData()`, `getProvenanceData()` functions for logistics management
 - `addDataSource()`, `removeDataSource()`, `setVerificationThreshold()` for source management
 - Event emissions (`LogisticsDataSubmitted`, `LogisticsDataVerified`, `CircuitBreakerActivated`)
 - Security features: data validation, outlier detection, circuit breakers
 
 ### Implementation Details
+
 - Location: `contracts/supply-chain-data-oracle/`
 - Testing: `contracts/supply-chain-data-oracle/src/test.rs` with 70+ test cases
 - Documentation: `contracts/supply-chain-data-oracle/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive supply chain data oracle implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers building supply chain tracking and provenance applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables supply chain tracking and provenance verification |
+| Dimension        | Assessment                                                            |
+| ---------------- | --------------------------------------------------------------------- |
+| Who benefits?    | Developers building supply chain tracking and provenance applications |
+| Effort estimate  | Medium (3-4 days)                                                     |
+| Breaking change? | No                                                                    |
+| MVP impact       | High - enables supply chain tracking and provenance verification      |
 
 ## 🔗 Related Issues or References
 

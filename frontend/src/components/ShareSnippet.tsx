@@ -16,7 +16,9 @@ interface ShareSnippetProps {
  * and copies the resulting share URL to the clipboard.
  */
 export default function ShareSnippet({ code, apiBaseUrl }: ShareSnippetProps) {
-  const [status, setStatus] = useState<"idle" | "loading" | "copied" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "copied" | "error">(
+    "idle",
+  );
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   const handleShare = async () => {
@@ -27,12 +29,18 @@ export default function ShareSnippet({ code, apiBaseUrl }: ShareSnippetProps) {
       const res = await fetch(`${apiBaseUrl}/api/snippets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: "rust", title: "Soroban Snippet" }),
+        body: JSON.stringify({
+          code,
+          language: "rust",
+          title: "Soroban Snippet",
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to save snippet");
 
-      const { snippet } = await res.json() as { snippet: { shareUrl: string } };
+      const { snippet } = (await res.json()) as {
+        snippet: { shareUrl: string };
+      };
       setShareUrl(snippet.shareUrl);
 
       await navigator.clipboard.writeText(snippet.shareUrl);
@@ -45,10 +53,13 @@ export default function ShareSnippet({ code, apiBaseUrl }: ShareSnippetProps) {
   };
 
   const label =
-    status === "loading" ? "Sharing…"
-    : status === "copied"  ? "Link copied!"
-    : status === "error"   ? "Error – retry"
-    : "Share";
+    status === "loading"
+      ? "Sharing…"
+      : status === "copied"
+        ? "Link copied!"
+        : status === "error"
+          ? "Error – retry"
+          : "Share";
 
   return (
     <button

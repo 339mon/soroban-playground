@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Rate 
 ---
 
 ## References
-- Issue reference: Fixes #958
 
+- Issue reference: Fixes #958

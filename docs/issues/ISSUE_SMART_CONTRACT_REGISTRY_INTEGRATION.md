@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract registry integration for Soroban applications
 title: "[SMART CONTRACT] Implement Contract Registry Integration for Soroban Applications"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban contracts currently cannot be discovered or integrated with other contra
 ## 💡 Proposed Solution
 
 Create comprehensive contract registry integration with:
+
 - Standard registry interface compliance
 - Flexible configuration (registry address, registration permissions, metadata)
 - Comprehensive security features (registry validation, metadata verification, revocation)
@@ -24,12 +25,14 @@ Create comprehensive contract registry integration with:
 - Documentation and examples
 
 ### Key Features
+
 - `registerWithRegistry()`, `unregisterFromRegistry()`, `getRegistryInfo()` functions for registry management
 - `setRegistryMetadata()`, `getRegistryMetadata()` for metadata management
 - Event emissions (`Registered`, `Unregistered`, `MetadataUpdated`)
 - Security features: registry validation, metadata verification, revocation
 
 ### Implementation Details
+
 - Location: `contracts/registry-integration/`
 - Testing: `contracts/registry-integration/src/test.rs` with 60+ test cases
 - Documentation: `contracts/registry-integration/README.md`
@@ -50,12 +53,12 @@ Create comprehensive contract registry integration with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building interconnected applications |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - enables contract discoverability and ecosystem interoperability |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | All developers building interconnected applications                    |
+| Effort estimate  | Medium (2-3 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - enables contract discoverability and ecosystem interoperability |
 
 ## 🔗 Related Issues or References
 

@@ -60,9 +60,7 @@
         "monaco-languageclient"
       ],
       "range": "17.1.2 - 33.0.9 || 34.1.2",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-api"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-api"],
       "fixAvailable": {
         "name": "monaco-languageclient",
         "version": "9.6.0",
@@ -73,23 +71,17 @@
       "name": "@codingame/monaco-vscode-base-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-base-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-base-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-bulk-edit-service-override": {
       "name": "@codingame/monaco-vscode-bulk-edit-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -116,23 +108,17 @@
       "name": "@codingame/monaco-vscode-editor-api",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-editor-api"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-editor-api"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-editor-service-override": {
       "name": "@codingame/monaco-vscode-editor-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -144,9 +130,7 @@
       "name": "@codingame/monaco-vscode-environment-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -189,28 +173,20 @@
       "name": "@codingame/monaco-vscode-files-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-files-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-files-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-host-service-override": {
       "name": "@codingame/monaco-vscode-host-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-host-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-host-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-keybindings-service-override": {
@@ -232,30 +208,20 @@
       "name": "@codingame/monaco-vscode-language-pack-cs",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-cs"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-cs"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-de": {
       "name": "@codingame/monaco-vscode-language-pack-de",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
-      "effects": [
-        "monaco-languageclient"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
+      "effects": ["monaco-languageclient"],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-de"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-de"],
       "fixAvailable": {
         "name": "monaco-languageclient",
         "version": "9.6.0",
@@ -266,168 +232,120 @@
       "name": "@codingame/monaco-vscode-language-pack-es",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-es"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-es"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-fr": {
       "name": "@codingame/monaco-vscode-language-pack-fr",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-fr"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-fr"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-it": {
       "name": "@codingame/monaco-vscode-language-pack-it",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-it"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-it"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-ja": {
       "name": "@codingame/monaco-vscode-language-pack-ja",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-ja"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-ja"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-ko": {
       "name": "@codingame/monaco-vscode-language-pack-ko",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-ko"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-ko"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-pl": {
       "name": "@codingame/monaco-vscode-language-pack-pl",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-pl"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-pl"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-pt-br": {
       "name": "@codingame/monaco-vscode-language-pack-pt-br",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-pt-br"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-pt-br"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-qps-ploc": {
       "name": "@codingame/monaco-vscode-language-pack-qps-ploc",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-qps-ploc"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-qps-ploc"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-ru": {
       "name": "@codingame/monaco-vscode-language-pack-ru",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-ru"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-ru"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-tr": {
       "name": "@codingame/monaco-vscode-language-pack-tr",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-tr"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-tr"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-zh-hans": {
       "name": "@codingame/monaco-vscode-language-pack-zh-hans",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-zh-hans"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-zh-hans"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-language-pack-zh-hant": {
       "name": "@codingame/monaco-vscode-language-pack-zh-hant",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-language-pack-zh-hant"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-language-pack-zh-hant"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-languages-service-override": {
@@ -449,12 +367,8 @@
       "name": "@codingame/monaco-vscode-layout-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
-      "effects": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
+      "effects": ["@codingame/monaco-vscode-api"],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
         "node_modules/@codingame/monaco-vscode-layout-service-override"
@@ -469,9 +383,7 @@
       "name": "@codingame/monaco-vscode-localization-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -489,32 +401,24 @@
       ],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-log-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-log-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-model-service-override": {
       "name": "@codingame/monaco-vscode-model-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-model-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-model-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-monarch-service-override": {
       "name": "@codingame/monaco-vscode-monarch-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -526,9 +430,7 @@
       "name": "@codingame/monaco-vscode-quickaccess-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -555,9 +457,7 @@
       "name": "@codingame/monaco-vscode-theme-defaults-default-extension",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -575,18 +475,14 @@
       ],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-theme-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-theme-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-view-banner-service-override": {
       "name": "@codingame/monaco-vscode-view-banner-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -613,9 +509,7 @@
       "name": "@codingame/monaco-vscode-view-status-bar-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -627,9 +521,7 @@
       "name": "@codingame/monaco-vscode-view-title-bar-service-override",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@codingame/monaco-vscode-api"
-      ],
+      "via": ["@codingame/monaco-vscode-api"],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
       "nodes": [
@@ -650,9 +542,7 @@
       ],
       "effects": [],
       "range": "17.1.2 - 33.0.9",
-      "nodes": [
-        "node_modules/@codingame/monaco-vscode-views-service-override"
-      ],
+      "nodes": ["node_modules/@codingame/monaco-vscode-views-service-override"],
       "fixAvailable": true
     },
     "@codingame/monaco-vscode-workbench-service-override": {
@@ -687,9 +577,7 @@
           "title": "OpenTelemetry Core: Unbounded memory allocation in W3C Baggage propagation",
           "url": "https://github.com/advisories/GHSA-8988-4f7v-96qf",
           "severity": "moderate",
-          "cwe": [
-            "CWE-770"
-          ],
+          "cwe": ["CWE-770"],
           "cvss": {
             "score": 5.3,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
@@ -728,9 +616,7 @@
       ],
       "effects": [],
       "range": "*",
-      "nodes": [
-        "node_modules/@opentelemetry/exporter-jaeger"
-      ],
+      "nodes": ["node_modules/@opentelemetry/exporter-jaeger"],
       "fixAvailable": {
         "name": "@opentelemetry/exporter-jaeger",
         "version": "2.8.0",
@@ -752,9 +638,7 @@
           "title": "Prometheus exporter process crash via malformed HTTP request",
           "url": "https://github.com/advisories/GHSA-q7rr-3cgh-j5r3",
           "severity": "high",
-          "cwe": [
-            "CWE-755"
-          ],
+          "cwe": ["CWE-755"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -764,9 +648,7 @@
       ],
       "effects": [],
       "range": "<=0.218.0",
-      "nodes": [
-        "node_modules/@opentelemetry/exporter-prometheus"
-      ],
+      "nodes": ["node_modules/@opentelemetry/exporter-prometheus"],
       "fixAvailable": {
         "name": "@opentelemetry/exporter-prometheus",
         "version": "0.219.0",
@@ -777,14 +659,10 @@
       "name": "@opentelemetry/instrumentation-express",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "@opentelemetry/core"
-      ],
+      "via": ["@opentelemetry/core"],
       "effects": [],
       "range": "<=0.47.1",
-      "nodes": [
-        "node_modules/@opentelemetry/instrumentation-express"
-      ],
+      "nodes": ["node_modules/@opentelemetry/instrumentation-express"],
       "fixAvailable": {
         "name": "@opentelemetry/instrumentation-express",
         "version": "0.67.0",
@@ -795,12 +673,8 @@
       "name": "@opentelemetry/resources",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "@opentelemetry/core"
-      ],
-      "effects": [
-        "@opentelemetry/exporter-prometheus"
-      ],
+      "via": ["@opentelemetry/core"],
+      "effects": ["@opentelemetry/exporter-prometheus"],
       "range": "0.8.0 - 2.7.1",
       "nodes": [
         "node_modules/@opentelemetry/exporter-prometheus/node_modules/@opentelemetry/resources",
@@ -817,17 +691,10 @@
       "name": "@opentelemetry/sdk-metrics",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "@opentelemetry/core",
-        "@opentelemetry/resources"
-      ],
-      "effects": [
-        "@opentelemetry/exporter-prometheus"
-      ],
+      "via": ["@opentelemetry/core", "@opentelemetry/resources"],
+      "effects": ["@opentelemetry/exporter-prometheus"],
       "range": "<=2.7.1",
-      "nodes": [
-        "node_modules/@opentelemetry/sdk-metrics"
-      ],
+      "nodes": ["node_modules/@opentelemetry/sdk-metrics"],
       "fixAvailable": {
         "name": "@opentelemetry/exporter-prometheus",
         "version": "0.219.0",
@@ -838,17 +705,10 @@
       "name": "@opentelemetry/sdk-trace-base",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "@opentelemetry/core",
-        "@opentelemetry/resources"
-      ],
-      "effects": [
-        "@opentelemetry/exporter-jaeger"
-      ],
+      "via": ["@opentelemetry/core", "@opentelemetry/resources"],
+      "effects": ["@opentelemetry/exporter-jaeger"],
       "range": "<=2.7.1",
-      "nodes": [
-        "node_modules/@opentelemetry/sdk-trace-base"
-      ],
+      "nodes": ["node_modules/@opentelemetry/sdk-trace-base"],
       "fixAvailable": {
         "name": "@opentelemetry/exporter-jaeger",
         "version": "2.8.0",
@@ -867,9 +727,7 @@
           "title": "@tootallnate/once vulnerable to Incorrect Control Flow Scoping",
           "url": "https://github.com/advisories/GHSA-vpq2-c234-7xj6",
           "severity": "low",
-          "cwe": [
-            "CWE-705"
-          ],
+          "cwe": ["CWE-705"],
           "cvss": {
             "score": 3.3,
             "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
@@ -877,13 +735,9 @@
           "range": "<2.0.1"
         }
       ],
-      "effects": [
-        "http-proxy-agent"
-      ],
+      "effects": ["http-proxy-agent"],
       "range": "<2.0.1",
-      "nodes": [
-        "node_modules/@tootallnate/once"
-      ],
+      "nodes": ["node_modules/@tootallnate/once"],
       "fixAvailable": {
         "name": "sqlite3",
         "version": "6.0.1",
@@ -902,9 +756,7 @@
           "title": "DOMPurify contains a Cross-site Scripting vulnerability",
           "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 6.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
@@ -918,9 +770,7 @@
           "title": "DOMPurify ADD_ATTR predicate skips URI validation",
           "url": "https://github.com/advisories/GHSA-cjmm-f4jc-qw8r",
           "severity": "moderate",
-          "cwe": [
-            "CWE-183"
-          ],
+          "cwe": ["CWE-183"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -934,9 +784,7 @@
           "title": "DOMPurify USE_PROFILES prototype pollution allows event handlers",
           "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv",
           "severity": "moderate",
-          "cwe": [
-            "CWE-1321"
-          ],
+          "cwe": ["CWE-1321"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -950,9 +798,7 @@
           "title": "DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS due to short-circuit evaluation",
           "url": "https://github.com/advisories/GHSA-39q2-94rc-95cp",
           "severity": "moderate",
-          "cwe": [
-            "CWE-783"
-          ],
+          "cwe": ["CWE-783"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -966,10 +812,7 @@
           "title": "DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAGS predicate (asymmetry with FORBID_ATTR fix)",
           "url": "https://github.com/advisories/GHSA-h7mw-gpvr-xq4m",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-183"
-          ],
+          "cwe": ["CWE-79", "CWE-183"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -983,10 +826,7 @@
           "title": "DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode",
           "url": "https://github.com/advisories/GHSA-crv5-9vww-q3g8",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-1289"
-          ],
+          "cwe": ["CWE-79", "CWE-1289"],
           "cvss": {
             "score": 6.8,
             "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:N"
@@ -1000,10 +840,7 @@
           "title": "DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_ELEMENT_HANDLING Fallback",
           "url": "https://github.com/advisories/GHSA-v9jr-rg53-9pgp",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-1321"
-          ],
+          "cwe": ["CWE-79", "CWE-1321"],
           "cvss": {
             "score": 6.9,
             "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:N"
@@ -1017,9 +854,7 @@
           "title": "DOMPurify is vulnerable to mutation-XSS via Re-Contextualization ",
           "url": "https://github.com/advisories/GHSA-h8r8-wccr-v5f2",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1033,9 +868,7 @@
           "title": "DOMPurify: `IN_PLACE` mode trusts attacker-controlled `nodeName` on live non-form nodes, allowing script retention and XSS via attacker-supplied DOM objects",
           "url": "https://github.com/advisories/GHSA-x4vx-rjvf-j5p4",
           "severity": "low",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1049,10 +882,7 @@
           "title": "DOMPurify: Hook mutation of `data.allowedTags` / `data.allowedAttributes` permanently pollutes `DEFAULT_ALLOWED_TAGS` / `DEFAULT_ALLOWED_ATTR`",
           "url": "https://github.com/advisories/GHSA-76mc-f452-cxcm",
           "severity": "moderate",
-          "cwe": [
-            "CWE-501",
-            "CWE-693"
-          ],
+          "cwe": ["CWE-501", "CWE-693"],
           "cvss": {
             "score": 6.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
@@ -1066,11 +896,7 @@
           "title": "DOMPurify: Cross-realm IN_PLACE sanitization leaves executable markup intact via realm-bound `instanceof` checks",
           "url": "https://github.com/advisories/GHSA-hpcv-96wg-7vj8",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-501",
-            "CWE-693"
-          ],
+          "cwe": ["CWE-79", "CWE-501", "CWE-693"],
           "cvss": {
             "score": 6.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
@@ -1084,11 +910,7 @@
           "title": "DOMPurify: IN_PLACE mode preserves attributes of a clobbered root element, allowing XSS via attacker-controlled root DOM",
           "url": "https://github.com/advisories/GHSA-r47g-fvhr-h676",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-693",
-            "CWE-1321"
-          ],
+          "cwe": ["CWE-79", "CWE-693", "CWE-1321"],
           "cvss": {
             "score": 6.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
@@ -1102,9 +924,7 @@
           "title": "DOMPurify: Trusted Types policy survives `clearConfig()` and can poison later `RETURN_TRUSTED_TYPE` output",
           "url": "https://github.com/advisories/GHSA-vxr8-fq34-vvx9",
           "severity": "low",
-          "cwe": [
-            "CWE-693"
-          ],
+          "cwe": ["CWE-693"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1118,9 +938,7 @@
           "title": "DOMPurify: SAFE_FOR_TEMPLATES bypass - template expressions survive sanitization inside <template> content when using DOM output modes",
           "url": "https://github.com/advisories/GHSA-gvmj-g25r-r7wr",
           "severity": "low",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1134,9 +952,7 @@
           "title": "DOMPurify IN_PLACE Sanitization Bypass via Attached Shadow Root Inside <template>.content",
           "url": "https://github.com/advisories/GHSA-rp9w-3fw7-7cwq",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1150,11 +966,7 @@
           "title": "DOMPurify: Permanent `ALLOWED_ATTR` pollution via `setConfig()` bypassing the hook clone-guard (incomplete fix of the 3.4.7 hook-pollution patch)",
           "url": "https://github.com/advisories/GHSA-cmwh-pvxp-8882",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79",
-            "CWE-471",
-            "CWE-665"
-          ],
+          "cwe": ["CWE-79", "CWE-471", "CWE-665"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -1162,10 +974,7 @@
           "range": "<=3.4.10"
         }
       ],
-      "effects": [
-        "@codingame/monaco-vscode-api",
-        "monaco-editor"
-      ],
+      "effects": ["@codingame/monaco-vscode-api", "monaco-editor"],
       "range": "<=3.4.10",
       "nodes": [
         "node_modules/@codingame/monaco-vscode-api/node_modules/dompurify",
@@ -1181,16 +990,10 @@
       "name": "http-proxy-agent",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "@tootallnate/once"
-      ],
-      "effects": [
-        "make-fetch-happen"
-      ],
+      "via": ["@tootallnate/once"],
+      "effects": ["make-fetch-happen"],
       "range": "4.0.1",
-      "nodes": [
-        "node_modules/make-fetch-happen/node_modules/http-proxy-agent"
-      ],
+      "nodes": ["node_modules/make-fetch-happen/node_modules/http-proxy-agent"],
       "fixAvailable": {
         "name": "sqlite3",
         "version": "6.0.1",
@@ -1201,16 +1004,10 @@
       "name": "jaeger-client",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "uuid"
-      ],
-      "effects": [
-        "@opentelemetry/exporter-jaeger"
-      ],
+      "via": ["uuid"],
+      "effects": ["@opentelemetry/exporter-jaeger"],
       "range": ">=3.11.0",
-      "nodes": [
-        "node_modules/jaeger-client"
-      ],
+      "nodes": ["node_modules/jaeger-client"],
       "fixAvailable": {
         "name": "@opentelemetry/exporter-jaeger",
         "version": "2.8.0",
@@ -1221,16 +1018,10 @@
       "name": "make-fetch-happen",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "http-proxy-agent"
-      ],
-      "effects": [
-        "node-gyp"
-      ],
+      "via": ["http-proxy-agent"],
+      "effects": ["node-gyp"],
       "range": "8.0.2 - 9.1.0",
-      "nodes": [
-        "node_modules/make-fetch-happen"
-      ],
+      "nodes": ["node_modules/make-fetch-happen"],
       "fixAvailable": {
         "name": "sqlite3",
         "version": "6.0.1",
@@ -1241,14 +1032,10 @@
       "name": "monaco-editor",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "dompurify"
-      ],
+      "via": ["dompurify"],
       "effects": [],
       "range": "0.54.0-dev-20250909 - 0.56.0-dev-20260211",
-      "nodes": [
-        "node_modules/monaco-editor"
-      ],
+      "nodes": ["node_modules/monaco-editor"],
       "fixAvailable": true
     },
     "monaco-languageclient": {
@@ -1289,9 +1076,7 @@
       ],
       "effects": [],
       "range": ">=9.7.0",
-      "nodes": [
-        "node_modules/monaco-languageclient"
-      ],
+      "nodes": ["node_modules/monaco-languageclient"],
       "fixAvailable": {
         "name": "monaco-languageclient",
         "version": "9.6.0",
@@ -1302,14 +1087,10 @@
       "name": "next",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "postcss"
-      ],
+      "via": ["postcss"],
       "effects": [],
       "range": "9.3.4-canary.0 - 16.3.0-canary.5",
-      "nodes": [
-        "node_modules/next"
-      ],
+      "nodes": ["node_modules/next"],
       "fixAvailable": {
         "name": "next",
         "version": "9.3.3",
@@ -1320,14 +1101,10 @@
       "name": "node-cron",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "uuid"
-      ],
+      "via": ["uuid"],
       "effects": [],
       "range": "3.0.2 - 3.0.3",
-      "nodes": [
-        "node_modules/node-cron"
-      ],
+      "nodes": ["node_modules/node-cron"],
       "fixAvailable": {
         "name": "node-cron",
         "version": "4.5.0",
@@ -1338,16 +1115,10 @@
       "name": "node-gyp",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "make-fetch-happen"
-      ],
-      "effects": [
-        "sqlite3"
-      ],
+      "via": ["make-fetch-happen"],
+      "effects": ["sqlite3"],
       "range": "8.0.0 - 8.4.1",
-      "nodes": [
-        "node_modules/node-gyp"
-      ],
+      "nodes": ["node_modules/node-gyp"],
       "fixAvailable": {
         "name": "sqlite3",
         "version": "6.0.1",
@@ -1366,9 +1137,7 @@
           "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
           "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
           "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
+          "cwe": ["CWE-79"],
           "cvss": {
             "score": 6.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
@@ -1376,13 +1145,9 @@
           "range": "<8.5.10"
         }
       ],
-      "effects": [
-        "next"
-      ],
+      "effects": ["next"],
       "range": "<8.5.10",
-      "nodes": [
-        "node_modules/next/node_modules/postcss"
-      ],
+      "nodes": ["node_modules/next/node_modules/postcss"],
       "fixAvailable": {
         "name": "next",
         "version": "9.3.3",
@@ -1393,14 +1158,10 @@
       "name": "sqlite3",
       "severity": "low",
       "isDirect": true,
-      "via": [
-        "node-gyp"
-      ],
+      "via": ["node-gyp"],
       "effects": [],
       "range": "5.0.3 - 5.1.7",
-      "nodes": [
-        "node_modules/sqlite3"
-      ],
+      "nodes": ["node_modules/sqlite3"],
       "fixAvailable": {
         "name": "sqlite3",
         "version": "6.0.1",
@@ -1419,10 +1180,7 @@
           "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
           "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
           "severity": "moderate",
-          "cwe": [
-            "CWE-787",
-            "CWE-1285"
-          ],
+          "cwe": ["CWE-787", "CWE-1285"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
@@ -1430,10 +1188,7 @@
           "range": "<11.1.1"
         }
       ],
-      "effects": [
-        "jaeger-client",
-        "node-cron"
-      ],
+      "effects": ["jaeger-client", "node-cron"],
       "range": "<11.1.1",
       "nodes": [
         "node_modules/jaeger-client/node_modules/uuid",

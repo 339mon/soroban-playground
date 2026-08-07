@@ -2,7 +2,9 @@ import config from '../config/index.js';
 import { createSpan, getTraceId } from '../utils/tracing.js';
 
 const DEFAULT_FALLBACK_ENDPOINTS = [
-  process.env.SOROBAN_RPC_URL || config?.soroban?.rpcUrl || 'https://soroban-testnet.stellar.org',
+  process.env.SOROBAN_RPC_URL ||
+    config?.soroban?.rpcUrl ||
+    'https://soroban-testnet.stellar.org',
   'https://rpc-futurenet.stellar.org',
   'https://stellar-community.org/rpc',
 ];
@@ -13,7 +15,10 @@ export const CIRCUIT_STATES = {
   HALF_OPEN: 'HALF_OPEN',
 };
 
-const RPC_TIMEOUT_MS = Number.parseInt(process.env.RPC_TIMEOUT_MS || '15000', 10);
+const RPC_TIMEOUT_MS = Number.parseInt(
+  process.env.RPC_TIMEOUT_MS || '15000',
+  10
+);
 
 class SorobanRpcManager {
   constructor() {
@@ -29,8 +34,14 @@ class SorobanRpcManager {
       isHealthy: true,
     }));
 
-    this.failureThreshold = Number.parseInt(process.env.RPC_FAILURE_THRESHOLD || '3', 10);
-    this.resetTimeoutMs = Number.parseInt(process.env.RPC_RESET_TIMEOUT_MS || '30000', 10);
+    this.failureThreshold = Number.parseInt(
+      process.env.RPC_FAILURE_THRESHOLD || '3',
+      10
+    );
+    this.resetTimeoutMs = Number.parseInt(
+      process.env.RPC_RESET_TIMEOUT_MS || '30000',
+      10
+    );
     this.activeEndpointIndex = 0;
   }
 
@@ -113,7 +124,10 @@ class SorobanRpcManager {
         ep.failCount += 1;
         ep.lastFailureTime = Date.now();
 
-        if (ep.failCount >= this.failureThreshold || ep.state === CIRCUIT_STATES.HALF_OPEN) {
+        if (
+          ep.failCount >= this.failureThreshold ||
+          ep.state === CIRCUIT_STATES.HALF_OPEN
+        ) {
           this.tripCircuitBreaker(ep);
         }
       }

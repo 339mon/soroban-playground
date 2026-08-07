@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract ABI parsing and metadata service
 title: "[BACKEND] Implement Contract ABI Parsing and Metadata Service"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban contracts currently require manual ABI definition and management. Withou
 ## 💡 Proposed Solution
 
 Create a comprehensive ABI parsing service with:
+
 - WASM binary analysis and interface extraction
 - JSON ABI format generation and storage
 - Metadata management and versioning
@@ -24,6 +25,7 @@ Create a comprehensive ABI parsing service with:
 - Documentation generation capabilities
 
 ### Key Features
+
 - `POST /abi/parse`: Parse WASM binary and extract ABI
 - `GET /abi/{id}`: Get contract ABI
 - `GET /abi/{id}/functions`: List contract functions
@@ -31,6 +33,7 @@ Create a comprehensive ABI parsing service with:
 - `GET /abi/{id}/metadata`: Get contract metadata
 
 ### Implementation Details
+
 - Location: `backend/src/routes/abi.js`
 - Service: `backend/src/services/abiService.js`
 - Database: PostgreSQL table `contract_abi`
@@ -52,12 +55,12 @@ Create a comprehensive ABI parsing service with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building Soroban applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables auto-generated UIs, documentation, and tooling integration |
+| Dimension        | Assessment                                                                |
+| ---------------- | ------------------------------------------------------------------------- |
+| Who benefits?    | All developers building Soroban applications                              |
+| Effort estimate  | Medium (3-4 days)                                                         |
+| Breaking change? | No                                                                        |
+| MVP impact       | High - enables auto-generated UIs, documentation, and tooling integration |
 
 ## 🔗 Related Issues or References
 

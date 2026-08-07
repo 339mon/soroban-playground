@@ -447,10 +447,7 @@ fn test_deposit_zero_amount_fails() {
     let (env, admin, client) = setup();
     let sid = add_strategy(&env, &client, &admin, 500);
     let user = Address::generate(&env);
-    assert_eq!(
-        client.deposit(&user, &sid, &0),
-        Err(Ok(Error::ZeroAmount))
-    );
+    assert_eq!(client.deposit(&user, &sid, &0), Err(Ok(Error::ZeroAmount)));
 }
 
 #[test]
@@ -459,10 +456,7 @@ fn test_withdraw_zero_amount_fails() {
     let sid = add_strategy(&env, &client, &admin, 500);
     let user = Address::generate(&env);
     client.deposit(&user, &sid, &1_000).unwrap();
-    assert_eq!(
-        client.withdraw(&user, &sid, &0),
-        Err(Ok(Error::ZeroAmount))
-    );
+    assert_eq!(client.withdraw(&user, &sid, &0), Err(Ok(Error::ZeroAmount)));
 }
 
 #[test]
@@ -483,10 +477,7 @@ fn test_withdraw_full_clears_position() {
 fn test_non_existent_strategy_fails() {
     let (env, _admin, client) = setup();
     let user = Address::generate(&env);
-    assert_eq!(
-        client.get_strategy(&999),
-        Err(Ok(Error::StrategyNotFound))
-    );
+    assert_eq!(client.get_strategy(&999), Err(Ok(Error::StrategyNotFound)));
     assert_eq!(
         client.deposit(&user, &999, &1_000),
         Err(Ok(Error::StrategyNotFound))
@@ -502,13 +493,10 @@ fn test_best_strategy_no_strategies() {
     );
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::{YieldOptimizerVault, YieldOptimizerVaultClient};
-    use soroban_sdk::{
-        testutils::Address as _, token, Address, Env,
-    };
+    use soroban_sdk::{testutils::Address as _, token, Address, Env};
 
     #[test]
     fn test_vault_deposit_withdraw_harvest() {

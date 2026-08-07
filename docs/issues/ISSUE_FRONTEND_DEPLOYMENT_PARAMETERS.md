@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement intelligent contract deployment parameter configuration
 title: "[FRONTEND] Implement Intelligent Contract Deployment Parameter Configuration"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current deployment process requires developers to manually configure paramet
 ## 💡 Proposed Solution
 
 Create comprehensive intelligent parameter configuration implementation with:
+
 - Smart parameter forms with context-aware defaults
 - Real-time validation and error prevention
 - Parameter examples and documentation
@@ -24,6 +25,7 @@ Create comprehensive intelligent parameter configuration implementation with:
 - Parameter dependency handling and conditional fields
 
 ### Key Features
+
 - Context-aware parameter forms with smart defaults
 - Real-time validation with helpful error messages
 - Parameter examples and usage documentation
@@ -32,6 +34,7 @@ Create comprehensive intelligent parameter configuration implementation with:
 - Parameter dependency handling (e.g., if admin is selected, show admin-only fields)
 
 ### Implementation Details
+
 - Location: `frontend/src/app/deploy-wizard/page.tsx`
 - Components: `frontend/src/components/ParameterForm.tsx`, `ParameterInput.tsx`
 - Integration with backend deployment API routes
@@ -52,12 +55,12 @@ Create comprehensive intelligent parameter configuration implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers deploying contracts |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves deployment experience and reduces errors |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | All developers deploying contracts                                     |
+| Effort estimate  | Medium (3-4 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - significantly improves deployment experience and reduces errors |
 
 ## 🔗 Related Issues or References
 

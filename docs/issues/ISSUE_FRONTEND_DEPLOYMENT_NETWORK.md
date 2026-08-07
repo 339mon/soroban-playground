@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract deployment network selection and configuration
 title: "[FRONTEND] Implement Contract Deployment Network Selection and Configuration"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current deployment process requires developers to manually configure network
 ## 💡 Proposed Solution
 
 Create comprehensive network selection implementation with:
+
 - Pre-configured network options (Stellar Testnet, Futurenet, custom)
 - Network-specific configuration and validation
 - Real-time network status checking
@@ -24,6 +25,7 @@ Create comprehensive network selection implementation with:
 - Network documentation and guidance
 
 ### Key Features
+
 - Pre-configured network options with automatic configuration
 - Network status indicators (online, offline, slow)
 - Custom network configuration with validation
@@ -32,6 +34,7 @@ Create comprehensive network selection implementation with:
 - Network health checks before deployment
 
 ### Implementation Details
+
 - Location: `frontend/src/app/deploy-wizard/page.tsx`
 - Components: `frontend/src/components/NetworkSelector.tsx`, `NetworkStatusIndicator.tsx`
 - Integration with backend deployment API routes
@@ -52,12 +55,12 @@ Create comprehensive network selection implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers deploying contracts |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves deployment experience and reduces errors |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | All developers deploying contracts                                     |
+| Effort estimate  | Medium (2-3 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - significantly improves deployment experience and reduces errors |
 
 ## 🔗 Related Issues or References
 

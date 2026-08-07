@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement distributed tracing and request tracking
 title: "[BACKEND] Implement Distributed Tracing and Request Tracking"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks distributed tracing capabilities, making it difficult 
 ## 💡 Proposed Solution
 
 Create comprehensive distributed tracing implementation with:
+
 - OpenTelemetry integration
 - Automatic instrumentation of all API routes
 - Trace propagation across service boundaries
@@ -24,6 +25,7 @@ Create comprehensive distributed tracing implementation with:
 - Visualization and analysis capabilities
 
 ### Key Features
+
 - Automatic tracing of all HTTP requests
 - Trace propagation between frontend → backend → Soroban CLI
 - Integration with Prometheus metrics
@@ -32,6 +34,7 @@ Create comprehensive distributed tracing implementation with:
 - Performance bottleneck identification
 
 ### Implementation Details
+
 - Location: `backend/src/tracing/`
 - Service: `backend/src/services/tracingService.js`
 - Configuration: `backend/src/config/tracing.config.js`
@@ -53,12 +56,12 @@ Create comprehensive distributed tracing implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables detailed performance analysis and debugging of complex request flows |
+| Dimension        | Assessment                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground                    |
+| Effort estimate  | Medium (3-4 days)                                                                   |
+| Breaking change? | No                                                                                  |
+| MVP impact       | High - enables detailed performance analysis and debugging of complex request flows |
 
 ## 🔗 Related Issues or References
 

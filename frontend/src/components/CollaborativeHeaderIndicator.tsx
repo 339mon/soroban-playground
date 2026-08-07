@@ -38,7 +38,7 @@ export function CollaborativeHeaderIndicator({
         {peers.map((peer) => (
           <div
             key={peer.id}
-            title={`${peer.name} (${peer.cursor ? `L${peer.cursor.line}:C${peer.cursor.column}` : 'Active'})`}
+            title={`${peer.name} (${peer.cursor ? `L${peer.cursor.line}:C${peer.cursor.column}` : "Active"})`}
             style={{ backgroundColor: peer.color || "#6366f1" }}
             className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-slate-950 uppercase"
           >

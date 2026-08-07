@@ -55,9 +55,7 @@ export default function TemplateCard({
             e.preventDefault();
             onToggleFavorite(template.id);
           }}
-          aria-label={
-            isFavorite ? "Remove from favorites" : "Add to favorites"
-          }
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           className={`shrink-0 p-1.5 rounded-lg transition-colors ${
             isFavorite
               ? "text-amber-400 hover:text-amber-300"

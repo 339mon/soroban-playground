@@ -8,7 +8,7 @@ Technical design document for a Dutch Auction contract on Stellar Soroban with d
 
 For an auction running from start timestamp $T_{\text{start}}$ to end timestamp $T_{\text{end}}$:
 
-$$P(t) = \begin{cases}
+$$ P(t) = \begin{cases}
 P_{\text{start}} & \text{if } t \le T_{\text{start}} \\
 P_{\text{floor}} & \text{if } t \ge T_{\text{end}} \\
 P_{\text{start}} - \lfloor \frac{(P_{\text{start}} - P_{\text{floor}}) \times (t - T_{\text{start}})}{T_{\text{end}} - T_{\text{start}}} \rfloor & \text{if } T_{\text{start}} < t < T_{\text{end}}
@@ -28,3 +28,4 @@ P_{\text{start}} - \lfloor \frac{(P_{\text{start}} - P_{\text{floor}}) \times (t
 
 - Implementation: [`contracts/dutch_auction/src/lib.rs`](../contracts/dutch_auction/src/lib.rs)
 - Issue reference: Fixes #1041
+$$

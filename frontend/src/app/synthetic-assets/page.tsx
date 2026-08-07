@@ -1,5 +1,5 @@
 "use client";
-import WarrantyPanel from '@/components/WarrantyPanel';
+import WarrantyPanel from "@/components/WarrantyPanel";
 import * as freighterApiModule from "@stellar/freighter-api";
 
 import {
@@ -29,7 +29,8 @@ import {
 
 const DEFAULT_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-  process.env.NEXT_PUBLIC_BACKEND_URL || "https://soroban-playground.onrender.com";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://soroban-playground.onrender.com";
 const DEFAULT_CONTRACT_ID =
   process.env.NEXT_PUBLIC_SYNTHETIC_CONTRACT_ID?.trim() || "";
 const DEMO_ACCOUNT = "GDEMO4MV6L6QY6P4UQBW5SC4R6X4P7WALLET";
@@ -41,7 +42,8 @@ const MIN_TRADE_MARGIN = 25;
 type HealthState = "checking" | "online" | "offline";
 type ActionMode = "register" | "mint" | "collateral" | "trade" | "oracle";
 type Direction = "Long" | "Short";
-type TxStatus = "queued" | "awaiting_wallet" | "submitted" | "confirmed" | "failed";
+type TxStatus =
+  "queued" | "awaiting_wallet" | "submitted" | "confirmed" | "failed";
 
 type SyntheticAsset = {
   symbol: string;
@@ -145,7 +147,10 @@ const INITIAL_ASSETS: SyntheticAsset[] = [
     confidence: 93,
     totalSupply: 84,
     volume24h: 4680000,
-    sparkline: [65210, 65800, 66410, 66980, 67410, 67640, 67910, 68100, 68320, 68550, 68480, 68420],
+    sparkline: [
+      65210, 65800, 66410, 66980, 67410, 67640, 67910, 68100, 68320, 68550,
+      68480, 68420,
+    ],
   },
   {
     symbol: "sXAU",
@@ -155,7 +160,9 @@ const INITIAL_ASSETS: SyntheticAsset[] = [
     confidence: 91,
     totalSupply: 420,
     volume24h: 864000,
-    sparkline: [2410, 2408, 2402, 2397, 2394, 2390, 2388, 2384, 2386, 2389, 2387, 2388],
+    sparkline: [
+      2410, 2408, 2402, 2397, 2394, 2390, 2388, 2384, 2386, 2389, 2387, 2388,
+    ],
   },
 ];
 
@@ -340,9 +347,13 @@ function buildTxHash() {
 
 export default function Home() {
   const [healthState, setHealthState] = useState<HealthState>("checking");
-  const [healthMessage, setHealthMessage] = useState("Checking backend health...");
+  const [healthMessage, setHealthMessage] = useState(
+    "Checking backend health...",
+  );
   const [contractId, setContractId] = useState(DEFAULT_CONTRACT_ID);
-  const [freighterApi, setFreighterApi] = useState<FreighterModule | null>(null);
+  const [freighterApi, setFreighterApi] = useState<FreighterModule | null>(
+    null,
+  );
   const [wallet, setWallet] = useState<WalletState>({
     isLoading: false,
     installed: false,
@@ -395,7 +406,9 @@ export default function Home() {
   });
 
   const activeAccount = wallet.address || DEMO_ACCOUNT;
-  const filteredPositions = positions.filter((position) => position.user === activeAccount);
+  const filteredPositions = positions.filter(
+    (position) => position.user === activeAccount,
+  );
   const filteredTrades = trades.filter((trade) => trade.user === activeAccount);
   const totalCollateral = filteredPositions.reduce(
     (sum, position) => sum + position.collateral,
@@ -427,7 +440,8 @@ export default function Home() {
       body: JSON.stringify(body),
     });
 
-    const payload = (await response.json().catch(() => ({}))) as T & ApiErrorPayload;
+    const payload = (await response.json().catch(() => ({}))) as T &
+      ApiErrorPayload;
     if (!response.ok) {
       const details =
         Array.isArray(payload.details) && payload.details.length > 0
@@ -679,7 +693,10 @@ export default function Home() {
     const price = Number(registerForm.price);
 
     if (!symbol || !name || !Number.isFinite(price) || price <= 0) {
-      failFast("Register Asset", "Provide a valid symbol, name, and positive price.");
+      failFast(
+        "Register Asset",
+        "Provide a valid symbol, name, and positive price.",
+      );
       return;
     }
 
@@ -732,7 +749,12 @@ export default function Home() {
       return;
     }
 
-    if (!Number.isFinite(collateral) || !Number.isFinite(mintAmount) || collateral <= 0 || mintAmount <= 0) {
+    if (
+      !Number.isFinite(collateral) ||
+      !Number.isFinite(mintAmount) ||
+      collateral <= 0 ||
+      mintAmount <= 0
+    ) {
       failFast("Mint Synthetic", "Enter positive collateral and mint amounts.");
       return;
     }
@@ -781,7 +803,9 @@ export default function Home() {
   async function handleAddCollateral() {
     const positionId = Number(collateralForm.positionId);
     const additionalCollateral = Number(collateralForm.additionalCollateral);
-    const targetPosition = filteredPositions.find((position) => position.id === positionId);
+    const targetPosition = filteredPositions.find(
+      (position) => position.id === positionId,
+    );
 
     if (!targetPosition) {
       failFast("Add Collateral", "Select a valid position to top up.");
@@ -827,8 +851,17 @@ export default function Home() {
       return;
     }
 
-    if (!Number.isFinite(margin) || !Number.isFinite(leverage) || margin <= 0 || leverage < 1 || leverage > 10) {
-      failFast("Open Trade", "Margin must be positive and leverage must stay between 1x and 10x.");
+    if (
+      !Number.isFinite(margin) ||
+      !Number.isFinite(leverage) ||
+      margin <= 0 ||
+      leverage < 1 ||
+      leverage > 10
+    ) {
+      failFast(
+        "Open Trade",
+        "Margin must be positive and leverage must stay between 1x and 10x.",
+      );
       return;
     }
 
@@ -874,11 +907,20 @@ export default function Home() {
     const asset = assetFor(assets, oracleForm.assetSymbol);
 
     if (!asset) {
-      failFast("Update Price", "Select a registered asset before updating the oracle price.");
+      failFast(
+        "Update Price",
+        "Select a registered asset before updating the oracle price.",
+      );
       return;
     }
 
-    if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(confidence) || confidence < 50 || confidence > 100) {
+    if (
+      !Number.isFinite(price) ||
+      price <= 0 ||
+      !Number.isFinite(confidence) ||
+      confidence < 50 ||
+      confidence > 100
+    ) {
       failFast(
         "Update Price",
         "Price must be positive and confidence must stay between 50 and 100.",
@@ -886,7 +928,11 @@ export default function Home() {
       return;
     }
 
-    const change24h = clamp(((price - asset.price) / asset.price) * 100, -20, 20);
+    const change24h = clamp(
+      ((price - asset.price) / asset.price) * 100,
+      -20,
+      20,
+    );
 
     await runAction({
       title: `Oracle Update ${oracleForm.assetSymbol}`,
@@ -925,13 +971,15 @@ export default function Home() {
               Synthetic Assets Command Deck
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Track prices, manage collateral, and stage synthetic trades from one desk.
+              Track prices, manage collateral, and stage synthetic trades from
+              one desk.
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-              This screen is wired for the synthetic-assets contract flow: oracle marks,
-              collateralized minting, leveraged positions, Freighter connection, and a
-              transaction timeline that can relay through the existing backend routes or
-              keep running locally in simulation mode.
+              This screen is wired for the synthetic-assets contract flow:
+              oracle marks, collateralized minting, leveraged positions,
+              Freighter connection, and a transaction timeline that can relay
+              through the existing backend routes or keep running locally in
+              simulation mode.
             </p>
           </div>
 
@@ -1178,7 +1226,8 @@ export default function Home() {
                               {trade.direction} {trade.assetSymbol} #{trade.id}
                             </p>
                             <p className="text-xs text-slate-400">
-                              {trade.leverage.toFixed(1)}x leverage with {formatUsd(trade.margin)} margin
+                              {trade.leverage.toFixed(1)}x leverage with{" "}
+                              {formatUsd(trade.margin)} margin
                             </p>
                           </div>
                           <span
@@ -1194,8 +1243,14 @@ export default function Home() {
                         </div>
 
                         <div className="mt-4 grid gap-3 text-xs text-slate-300 sm:grid-cols-3">
-                          <StatCell label="Entry" value={formatUsd(trade.entryPrice)} />
-                          <StatCell label="Mark" value={formatUsd(asset?.price || 0)} />
+                          <StatCell
+                            label="Entry"
+                            value={formatUsd(trade.entryPrice)}
+                          />
+                          <StatCell
+                            label="Mark"
+                            value={formatUsd(asset?.price || 0)}
+                          />
                           <StatCell
                             label="Liq. Price"
                             value={formatUsd(liquidationPrice)}
@@ -1209,7 +1264,8 @@ export default function Home() {
                           </p>
                         ) : (
                           <p className="mt-3 text-xs text-slate-400">
-                            Gross notional {formatUsd(tradeNotional(trade))} across the current mark.
+                            Gross notional {formatUsd(tradeNotional(trade))}{" "}
+                            across the current mark.
                           </p>
                         )}
                       </div>
@@ -1248,7 +1304,9 @@ export default function Home() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">
-                      {wallet.address ? shortAddress(wallet.address) : "Demo operator"}
+                      {wallet.address
+                        ? shortAddress(wallet.address)
+                        : "Demo operator"}
                     </p>
                     <p className="mt-1 text-xs text-slate-400">
                       {wallet.installed
@@ -1276,7 +1334,10 @@ export default function Home() {
                 </div>
 
                 <div className="mt-4 grid gap-3 text-xs text-slate-300">
-                  <StatCell label="Network" value={wallet.network || "TESTNET"} />
+                  <StatCell
+                    label="Network"
+                    value={wallet.network || "TESTNET"}
+                  />
                   <StatCell
                     label="Soroban RPC"
                     value={wallet.rpcUrl || "Use Freighter network defaults"}
@@ -1304,12 +1365,15 @@ export default function Home() {
                 <input
                   id="contractId"
                   value={contractId}
-                  onChange={(event) => setContractId(event.target.value.trim().toUpperCase())}
+                  onChange={(event) =>
+                    setContractId(event.target.value.trim().toUpperCase())
+                  }
                   placeholder="C..."
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
                 />
                 <p className="text-xs text-slate-400">
-                  A valid contract ID plus an online backend switches the action composer into relay mode.
+                  A valid contract ID plus an online backend switches the action
+                  composer into relay mode.
                 </p>
               </div>
             </div>
@@ -1318,22 +1382,28 @@ export default function Home() {
           <Panel title="Contract Composer" eyebrow="Actions">
             <div className="space-y-4">
               <div className="grid grid-cols-5 gap-2">
-                {(["register", "mint", "collateral", "trade", "oracle"] as ActionMode[]).map(
-                  (mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setActiveComposer(mode)}
-                      className={`rounded-2xl px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
-                        activeComposer === mode
-                          ? "bg-gradient-to-r from-amber-400 to-cyan-400 text-slate-950"
-                          : "border border-white/8 bg-white/[0.03] text-slate-300 hover:border-cyan-400/30 hover:text-cyan-100"
-                      }`}
-                    >
-                      {mode === "collateral" ? "Top Up" : mode}
-                    </button>
-                  ),
-                )}
+                {(
+                  [
+                    "register",
+                    "mint",
+                    "collateral",
+                    "trade",
+                    "oracle",
+                  ] as ActionMode[]
+                ).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setActiveComposer(mode)}
+                    className={`rounded-2xl px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
+                      activeComposer === mode
+                        ? "bg-gradient-to-r from-amber-400 to-cyan-400 text-slate-950"
+                        : "border border-white/8 bg-white/[0.03] text-slate-300 hover:border-cyan-400/30 hover:text-cyan-100"
+                    }`}
+                  >
+                    {mode === "collateral" ? "Top Up" : mode}
+                  </button>
+                ))}
               </div>
 
               {activeComposer === "register" ? (
@@ -1349,7 +1419,10 @@ export default function Home() {
                       label="Symbol"
                       value={registerForm.symbol}
                       onChange={(value) =>
-                        setRegisterForm((prev) => ({ ...prev, symbol: value.toUpperCase() }))
+                        setRegisterForm((prev) => ({
+                          ...prev,
+                          symbol: value.toUpperCase(),
+                        }))
                       }
                     />
                     <InputField
@@ -1425,7 +1498,10 @@ export default function Home() {
                         value: String(position.id),
                       }))}
                       onChange={(value) =>
-                        setCollateralForm((prev) => ({ ...prev, positionId: value }))
+                        setCollateralForm((prev) => ({
+                          ...prev,
+                          positionId: value,
+                        }))
                       }
                     />
                     <InputField
@@ -1459,7 +1535,10 @@ export default function Home() {
                         value: asset.symbol,
                       }))}
                       onChange={(value) =>
-                        setTradeForm((prev) => ({ ...prev, assetSymbol: value }))
+                        setTradeForm((prev) => ({
+                          ...prev,
+                          assetSymbol: value,
+                        }))
                       }
                     />
                     <SelectField
@@ -1513,14 +1592,20 @@ export default function Home() {
                         value: asset.symbol,
                       }))}
                       onChange={(value) =>
-                        setOracleForm((prev) => ({ ...prev, assetSymbol: value }))
+                        setOracleForm((prev) => ({
+                          ...prev,
+                          assetSymbol: value,
+                        }))
                       }
                     />
                     <InputField
                       label="Confidence"
                       value={oracleForm.confidence}
                       onChange={(value) =>
-                        setOracleForm((prev) => ({ ...prev, confidence: value }))
+                        setOracleForm((prev) => ({
+                          ...prev,
+                          confidence: value,
+                        }))
                       }
                     />
                   </InputGrid>
@@ -1545,8 +1630,12 @@ export default function Home() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-white">{item.title}</p>
-                      <p className="mt-1 text-xs text-slate-400">{item.detail}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {item.detail}
+                      </p>
                     </div>
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${txTone(item.status)}`}
@@ -1567,7 +1656,9 @@ export default function Home() {
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                    <span suppressHydrationWarning>{new Date(item.createdAt).toLocaleTimeString()}</span>
+                    <span suppressHydrationWarning>
+                      {new Date(item.createdAt).toLocaleTimeString()}
+                    </span>
                     {item.hash ? <span>{item.hash}</span> : null}
                     {item.output ? <span>Output {item.output}</span> : null}
                   </div>
@@ -1707,7 +1798,11 @@ function ComposerShell({
         disabled={isSubmitting}
         className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : <Activity size={16} />}
+        {isSubmitting ? (
+          <LoaderCircle size={16} className="animate-spin" />
+        ) : (
+          <Activity size={16} />
+        )}
         {submitLabel}
       </button>
     </div>

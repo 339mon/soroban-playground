@@ -10,10 +10,7 @@ import {
 } from "lucide-react";
 
 export type FavoriteTemplateStatus =
-  | "up-to-date"
-  | "update-available"
-  | "deprecated"
-  | "beta";
+  "up-to-date" | "update-available" | "deprecated" | "beta";
 
 export type StatusHistoryEvent = {
   date: string;
@@ -62,7 +59,9 @@ const formatAuditDate = (date: string) =>
     year: "numeric",
   }).format(new Date(date));
 
-export function getFavoriteTemplateStatusConfig(status: FavoriteTemplateStatus) {
+export function getFavoriteTemplateStatusConfig(
+  status: FavoriteTemplateStatus,
+) {
   return STATUS_CONFIG[status];
 }
 
@@ -108,13 +107,18 @@ export default function FavoritesStatusIndicator({
             {latestHistory.map((event) => {
               const eventConfig = STATUS_CONFIG[event.status];
               return (
-                <li key={`${event.date}-${event.note}`} className="flex gap-2 text-xs">
+                <li
+                  key={`${event.date}-${event.note}`}
+                  className="flex gap-2 text-xs"
+                >
                   <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-300 shadow-[0_0_10px_rgba(45,212,191,0.55)]" />
                   <span>
                     <span className="font-semibold text-slate-200">
                       {eventConfig.label}
                     </span>{" "}
-                    <span className="text-slate-500">· {formatAuditDate(event.date)}</span>
+                    <span className="text-slate-500">
+                      · {formatAuditDate(event.date)}
+                    </span>
                     <span className="block text-slate-400">{event.note}</span>
                   </span>
                 </li>
@@ -127,7 +131,10 @@ export default function FavoritesStatusIndicator({
       {status === "deprecated" && !compact && (
         <div className="flex items-start gap-2 rounded-xl border border-rose-400/25 bg-rose-400/10 p-3 text-xs text-rose-100">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>Review migration guidance before using this favorite in new projects.</span>
+          <span>
+            Review migration guidance before using this favorite in new
+            projects.
+          </span>
         </div>
       )}
     </div>

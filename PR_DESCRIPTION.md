@@ -1,6 +1,7 @@
 # Pull Request: Implement Issues #750, #747, #760 and Watchdog Performance Profiling
 
 ## Summary
+
 This PR introduces four major backend enhancements for the **Soroban Playground** repository:
 
 1. **Issue #750 – Redis‑based API response serialization caching**
@@ -21,17 +22,20 @@ This PR introduces four major backend enhancements for the **Soroban Playground*
    - The watchdog is started from `src/server.js` (hooked into server startup) and can be stopped gracefully.
 
 ## Why These Changes
+
 - **Caching** drastically reduces response times for frequently‑queried endpoints and reduces load on the database.
 - **WebSocket improvements** provide richer real‑time feedback while keeping the existing architecture intact.
 - **Static analysis integration** ensures code quality and consistency across the codebase.
 - **Watchdog** helps identify performance regressions early in development and production.
 
 ## Testing
+
 - Run `npm test` (or `npm run test`) to execute all Jest tests, including the new cache middleware tests.
 - Verify WebSocket functionality with a simple client connection and observe broadcast messages.
 - The watchdog logs warnings to the console when event‑loop lag exceeds the default 200 ms threshold.
 
 ## Checklist
+
 - [x] Added new middleware and integrated it into routes.
 - [x] Added Jest tests for the middleware.
 - [x] Updated WebSocket server for safe event broadcasting.
@@ -41,6 +45,7 @@ This PR introduces four major backend enhancements for the **Soroban Playground*
 - [x] All changes are on a dedicated branch and pushed to the remote.
 
 ## Additional Notes
+
 - No existing files were refactored beyond the required modifications.
 - All new code follows the project's existing style and linting configuration.
 - The branch name follows the repository convention: `issue-750-750-747-760-watchdog`.

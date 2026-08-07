@@ -835,8 +835,6 @@ fn test_get_threshold_before_init_fails() {
     assert_eq!(err, Error::NotFound);
 }
 
-#![cfg(test)]
-
 use super::*;
 use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, Address, Env};
 

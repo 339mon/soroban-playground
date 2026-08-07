@@ -100,7 +100,7 @@ class YieldOptimizerService {
 
   getHealth() {
     return request<{ status: string; strategies: number; totalTvl: number }>(
-      "/optimizer/health"
+      "/optimizer/health",
     );
   }
 
@@ -129,7 +129,7 @@ class YieldOptimizerService {
       feeBps: number;
       compoundInterval: number;
       isActive: boolean;
-    }
+    },
   ) {
     return request<OptimizerStrategy>(`/optimizer/strategies/${strategyId}`, {
       method: "PATCH",

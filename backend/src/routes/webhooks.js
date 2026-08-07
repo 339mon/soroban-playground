@@ -37,7 +37,10 @@ router.post(
     if (!url || !URL_RE.test(url)) {
       throw createHttpError(400, 'url must be a valid http(s) URL');
     }
-    if (secret !== undefined && (typeof secret !== 'string' || secret.length < 16)) {
+    if (
+      secret !== undefined &&
+      (typeof secret !== 'string' || secret.length < 16)
+    ) {
       throw createHttpError(
         400,
         'secret must be a string of at least 16 characters'
@@ -68,7 +71,8 @@ router.post(
     if (!payload || !secret || !signature) {
       throw createHttpError(400, 'payload, secret, and signature are required');
     }
-    const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const payloadStr =
+      typeof payload === 'string' ? payload : JSON.stringify(payload);
     const valid = verifySignature(payloadStr, secret, signature);
     res.json({ success: true, valid });
   })

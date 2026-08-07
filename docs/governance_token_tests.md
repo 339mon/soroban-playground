@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Governance Tok
 ---
 
 ## References
-- Issue reference: Fixes #997
 
+- Issue reference: Fixes #997

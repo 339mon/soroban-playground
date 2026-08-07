@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement versioned contract pattern for Soroban applications
 title: "[SMART CONTRACT] Implement Versioned Contract Pattern for Soroban Applications"
 labels: enhancement, smart-contract, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Soroban applications currently cannot support multiple versions of contract logi
 ## 💡 Proposed Solution
 
 Create a comprehensive versioned contract implementation with:
+
 - Standard versioned interface compliance
 - Flexible configuration (version mapping, compatibility rules, migration paths)
 - Comprehensive security features (version validation, compatibility checking, migration protection)
@@ -24,12 +25,14 @@ Create a comprehensive versioned contract implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `getVersion()`, `setVersion()`, `getCompatibleVersions()` functions for version management
 - `migrateToVersion()`, `rollbackToVersion()` for version transitions
 - Event emissions (`VersionSet`, `VersionMigrated`, `VersionRolledBack`)
 - Security features: version validation, compatibility checking, migration protection
 
 ### Implementation Details
+
 - Location: `contracts/versioned/`
 - Testing: `contracts/versioned/src/test.rs` with 70+ test cases
 - Documentation: `contracts/versioned/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive versioned contract implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building long-term applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables gradual feature adoption and backward compatibility |
+| Dimension        | Assessment                                                         |
+| ---------------- | ------------------------------------------------------------------ |
+| Who benefits?    | All developers building long-term applications                     |
+| Effort estimate  | Medium (3-4 days)                                                  |
+| Breaking change? | No                                                                 |
+| MVP impact       | High - enables gradual feature adoption and backward compatibility |
 
 ## 🔗 Related Issues or References
 

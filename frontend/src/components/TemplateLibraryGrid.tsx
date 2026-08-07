@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Heart } from 'lucide-react';
+import { Heart } from "lucide-react";
 
 interface Template {
   id: string;
@@ -49,14 +49,18 @@ export default function TemplateLibraryGrid({
                 onClick={() => onToggleFavorite(template.id)}
                 className={`shrink-0 p-1.5 rounded-lg transition-colors ${
                   isFavorited
-                    ? 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
+                    ? "text-rose-400 bg-rose-500/10 hover:bg-rose-500/20"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-slate-800"
                 }`}
-                aria-label={isFavorited ? `Remove ${template.name} from favorites` : `Add ${template.name} to favorites`}
+                aria-label={
+                  isFavorited
+                    ? `Remove ${template.name} from favorites`
+                    : `Add ${template.name} to favorites`
+                }
               >
                 <Heart
                   size={16}
-                  className={isFavorited ? 'fill-rose-400' : ''}
+                  className={isFavorited ? "fill-rose-400" : ""}
                 />
               </button>
             </div>

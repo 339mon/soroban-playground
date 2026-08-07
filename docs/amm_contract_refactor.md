@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up AMM Contract on S
 ---
 
 ## References
-- Issue reference: Fixes #983
 
+- Issue reference: Fixes #983

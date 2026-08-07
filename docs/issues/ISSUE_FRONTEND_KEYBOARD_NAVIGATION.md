@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement comprehensive keyboard navigation and shortcut support
 title: "[FRONTEND] Implement Comprehensive Keyboard Navigation and Shortcut Support"
 labels: enhancement, frontend, accessibility, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current UI lacks comprehensive keyboard navigation support, making it diffic
 ## 💡 Proposed Solution
 
 Create comprehensive keyboard navigation implementation with:
+
 - Full keyboard navigation support (tab, arrow keys, enter, escape)
 - Customizable keyboard shortcuts
 - Focus management and visual indicators
@@ -24,6 +25,7 @@ Create comprehensive keyboard navigation implementation with:
 - Context-aware shortcuts
 
 ### Key Features
+
 - Tab-based navigation through all interactive elements
 - Arrow key navigation in lists and grids
 - Enter/Space activation of buttons and controls
@@ -32,6 +34,7 @@ Create comprehensive keyboard navigation implementation with:
 - Visual focus indicators for all interactive elements
 
 ### Implementation Details
+
 - Location: `frontend/src/app/layout.tsx` (keyboard provider)
 - Components: `frontend/src/components/KeyboardManager.tsx`, `ShortcutManager.tsx`
 - Integration with existing Next.js app router and Monaco editor
@@ -52,12 +55,12 @@ Create comprehensive keyboard navigation implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers, especially those with motor impairments or keyboard-first preferences |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves inclusivity and developer productivity for all users |
+| Dimension        | Assessment                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers, especially those with motor impairments or keyboard-first preferences |
+| Effort estimate  | Medium (3-4 days)                                                                     |
+| Breaking change? | No                                                                                    |
+| MVP impact       | High - improves inclusivity and developer productivity for all users                  |
 
 ## 🔗 Related Issues or References
 

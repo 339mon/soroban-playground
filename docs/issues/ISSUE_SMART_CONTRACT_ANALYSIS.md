@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement Soroban contract analysis and verification utilities
 title: "[SMART CONTRACT] Implement Soroban Contract Analysis and Verification Utilities"
 labels: enhancement, smart-contract, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building Soroban contracts currently need to implement custom analysi
 ## 💡 Proposed Solution
 
 Create a comprehensive set of analysis utility contracts including:
+
 - `ContractAnalyzer`: Secure wrapper for contract analysis with static analysis
 - `SecurityScanner`: Utility for scanning contracts for security vulnerabilities
 - `GasAnalyzer`: Utility for analyzing gas usage and optimization opportunities
@@ -24,6 +25,7 @@ Create a comprehensive set of analysis utility contracts including:
 - `VerificationEngine`: Utility for formal verification of contract properties
 
 ### Key Features
+
 - Soroban-optimized analysis patterns
 - Comprehensive security validation (vulnerability scanning, gas analysis)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of analysis utility contracts including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/analysis-utils/`
 - Testing: `contracts/analysis-utils/src/test.rs` with 100+ test cases
 - Documentation: `contracts/analysis-utils/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of analysis utility contracts including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers analyzing Soroban contracts |
-| Effort estimate | Medium (4-5 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for contract analysis |
+| Dimension        | Assessment                                                                |
+| ---------------- | ------------------------------------------------------------------------- |
+| Who benefits?    | All developers analyzing Soroban contracts                                |
+| Effort estimate  | Medium (4-5 days)                                                         |
+| Breaking change? | No                                                                        |
+| MVP impact       | High - improves security and developer productivity for contract analysis |
 
 ## 🔗 Related Issues or References
 

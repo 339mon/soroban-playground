@@ -267,7 +267,10 @@ fn test_non_admin_cannot_cancel_upgrade() {
         client.try_cancel_upgrade(&other).unwrap_err().unwrap(),
         Error::Unauthorized
     );
-    assert!(client.get_pending_upgrade().is_some(), "proposal was cleared by a non-admin");
+    assert!(
+        client.get_pending_upgrade().is_some(),
+        "proposal was cleared by a non-admin"
+    );
 }
 
 #[test]

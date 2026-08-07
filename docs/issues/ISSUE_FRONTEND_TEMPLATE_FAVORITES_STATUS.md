@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites status indicators
 title: "[FRONTEND] Implement Contract Template Library Favorites Status Indicators"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,12 +17,14 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites status indicators implementation with:
+
 - Template status indicators (up-to-date, deprecated, beta, etc.)
 - Version comparison and update notifications
 - Status filtering and sorting
 - Status history and audit trail
 
 ### Key Features
+
 - Visual status indicators for each favorite template
 - Version comparison showing current vs latest version
 - Update notifications for new template versions
@@ -31,6 +33,7 @@ Create comprehensive favorites status indicators implementation with:
 - Status history and audit trail for changes
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesStatusIndicator.tsx`, `VersionComparison.tsx`
 - Integration with existing contract metadata and README files
@@ -51,12 +54,12 @@ Create comprehensive favorites status indicators implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground with frequently updated templates |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | High - enables developers to keep their favorite templates current and identify deprecated templates |
+| Dimension        | Assessment                                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground with frequently updated templates                        |
+| Effort estimate  | Small (1-2 days)                                                                                     |
+| Breaking change? | No                                                                                                   |
+| MVP impact       | High - enables developers to keep their favorite templates current and identify deprecated templates |
 
 ## 🔗 Related Issues or References
 

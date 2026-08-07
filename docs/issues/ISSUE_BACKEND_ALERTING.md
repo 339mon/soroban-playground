@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement alerting and notification system
 title: "[BACKEND] Implement Alerting and Notification System"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks alerting capabilities, making it difficult to detect a
 ## 💡 Proposed Solution
 
 Create comprehensive alerting implementation with:
+
 - Configurable alert thresholds and conditions
 - Multiple notification channels (email, Slack, webhooks)
 - Alert silencing and escalation policies
@@ -24,6 +25,7 @@ Create comprehensive alerting implementation with:
 - Alert history and management interface
 
 ### Key Features
+
 - Configurable alert rules based on metrics and logs
 - Email, Slack, and webhook notification support
 - Alert silencing for maintenance windows
@@ -32,6 +34,7 @@ Create comprehensive alerting implementation with:
 - Integration with Prometheus and Grafana
 
 ### Implementation Details
+
 - Location: `backend/src/alerting/`
 - Service: `backend/src/services/alertingService.js`
 - Configuration: `backend/src/config/alerting.config.js`
@@ -53,12 +56,12 @@ Create comprehensive alerting implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - enables proactive issue detection and operational notifications |
+| Dimension        | Assessment                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground       |
+| Effort estimate  | Medium (3-4 days)                                                      |
+| Breaking change? | No                                                                     |
+| MVP impact       | High - enables proactive issue detection and operational notifications |
 
 ## 🔗 Related Issues or References
 

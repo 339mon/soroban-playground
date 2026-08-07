@@ -31,9 +31,18 @@ const options = {
     ],
     tags: [
       { name: 'Versioning', description: 'API version discovery and routing' },
-      { name: 'Contract Compiler', description: 'Synchronous and Asynchronous WASM Compilation' },
-      { name: 'Deploy & Invoke', description: 'Contract deployment and invocation operations' },
-      { name: 'RPC Network Manager', description: 'Circuit breaker & RPC health status' },
+      {
+        name: 'Contract Compiler',
+        description: 'Synchronous and Asynchronous WASM Compilation',
+      },
+      {
+        name: 'Deploy & Invoke',
+        description: 'Contract deployment and invocation operations',
+      },
+      {
+        name: 'RPC Network Manager',
+        description: 'Circuit breaker & RPC health status',
+      },
       ...Object.keys(versions).map((version) => ({
         name: `API ${version}`,
         description: `${version.toUpperCase()} endpoints`,
@@ -59,14 +68,23 @@ const options = {
           type: 'object',
           required: ['source'],
           properties: {
-            source: { type: 'string', description: 'Rust source code for Soroban smart contract' },
-            contractName: { type: 'string', description: 'Optional name of the contract' },
+            source: {
+              type: 'string',
+              description: 'Rust source code for Soroban smart contract',
+            },
+            contractName: {
+              type: 'string',
+              description: 'Optional name of the contract',
+            },
           },
         },
         AsyncCompileResponse: {
           type: 'object',
           properties: {
-            jobId: { type: 'string', description: 'Unique background compilation job ID' },
+            jobId: {
+              type: 'string',
+              description: 'Unique background compilation job ID',
+            },
             status: { type: 'string', example: 'queued' },
             createdAt: { type: 'string', format: 'date-time' },
           },
@@ -75,7 +93,10 @@ const options = {
           type: 'object',
           properties: {
             jobId: { type: 'string' },
-            status: { type: 'string', enum: ['queued', 'processing', 'completed', 'failed'] },
+            status: {
+              type: 'string',
+              enum: ['queued', 'processing', 'completed', 'failed'],
+            },
             result: { type: 'object' },
             error: { type: 'string' },
           },
@@ -84,7 +105,10 @@ const options = {
           type: 'object',
           properties: {
             activeEndpoint: { type: 'string' },
-            circuitBreakerState: { type: 'string', enum: ['CLOSED', 'OPEN', 'HALF_OPEN'] },
+            circuitBreakerState: {
+              type: 'string',
+              enum: ['CLOSED', 'OPEN', 'HALF_OPEN'],
+            },
             endpoints: {
               type: 'array',
               items: {

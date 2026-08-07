@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement timelock contract for delayed execution of critical operations
 title: "[SMART CONTRACT] Implement Timelock Contract for Delayed Execution"
 labels: enhancement, smart-contract, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Critical administrative operations (contract upgrades, parameter changes, emerge
 ## 💡 Proposed Solution
 
 Create a comprehensive timelock implementation with:
+
 - Standard timelock interface compliance
 - Flexible configuration (minimum delay, maximum delay, grace period)
 - Comprehensive security features (cancellation, queueing, execution validation)
@@ -24,12 +25,14 @@ Create a comprehensive timelock implementation with:
 - Documentation and examples
 
 ### Key Features
+
 - `schedule()`, `execute()`, `cancel()` functions for operation management
 - `getMinDelay()`, `getMaxDelay()`, `getGracePeriod()` for configuration
 - Event emissions (`Scheduled`, `Executed`, `Cancelled`)
 - Security features: operation cancellation, queue validation, execution timing checks
 
 ### Implementation Details
+
 - Location: `contracts/timelock/`
 - Testing: `contracts/timelock/src/test.rs` with 80+ test cases
 - Documentation: `contracts/timelock/README.md`
@@ -50,12 +53,12 @@ Create a comprehensive timelock implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building governance and administrative systems |
-| Effort estimate | Medium (2-3 days) |
-| Breaking change? | No |
-| MVP impact | Critical - essential security infrastructure for production deployments |
+| Dimension        | Assessment                                                              |
+| ---------------- | ----------------------------------------------------------------------- |
+| Who benefits?    | All developers building governance and administrative systems           |
+| Effort estimate  | Medium (2-3 days)                                                       |
+| Breaking change? | No                                                                      |
+| MVP impact       | Critical - essential security infrastructure for production deployments |
 
 ## 🔗 Related Issues or References
 

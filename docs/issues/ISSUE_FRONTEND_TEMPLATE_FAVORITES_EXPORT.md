@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites export and import
 title: "[FRONTEND] Implement Contract Template Library Favorites Export and Import"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites export/import implementation with:
+
 - JSON-based favorites export
 - Favorites import from JSON files
 - Favorites sharing and collaboration
@@ -24,6 +25,7 @@ Create comprehensive favorites export/import implementation with:
 - Import validation and conflict resolution
 
 ### Key Features
+
 - Export favorites to JSON file with metadata
 - Import favorites from JSON file
 - Share favorites via link or file
@@ -32,6 +34,7 @@ Create comprehensive favorites export/import implementation with:
 - Favorites import history and audit trail
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesExportManager.tsx`, `FavoritesImportManager.tsx`
 - Integration with existing contract metadata and README files
@@ -52,12 +55,12 @@ Create comprehensive favorites export/import implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground for backup and collaboration |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | High - enables favorites backup, sharing, and collaboration |
+| Dimension        | Assessment                                                               |
+| ---------------- | ------------------------------------------------------------------------ |
+| Who benefits?    | All developers using the Soroban Playground for backup and collaboration |
+| Effort estimate  | Small (1-2 days)                                                         |
+| Breaking change? | No                                                                       |
+| MVP impact       | High - enables favorites backup, sharing, and collaboration              |
 
 ## 🔗 Related Issues or References
 

@@ -6,11 +6,11 @@ Architectural specification for decoupling instance, persistent, and temporary s
 
 ## Storage Tier Assignment Matrix
 
-| Entry Type | Storage Tier | Expiration Policy | Use Case |
-| :--- | :--- | :--- | :--- |
-| **Contract Config / Admin** | Instance Storage | Auto-bumped on admin calls | Immutable setup parameters |
-| **User Balances / Schedules** | Persistent Storage | Bounded TTL (~60 days) with auto-extend | Long-lived assets & state |
-| **Nonces & Signature Hashes** | Temporary Storage | Short-lived (~7 days) | Replay protection |
+| Entry Type                    | Storage Tier       | Expiration Policy                       | Use Case                   |
+| :---------------------------- | :----------------- | :-------------------------------------- | :------------------------- |
+| **Contract Config / Admin**   | Instance Storage   | Auto-bumped on admin calls              | Immutable setup parameters |
+| **User Balances / Schedules** | Persistent Storage | Bounded TTL (~60 days) with auto-extend | Long-lived assets & state  |
+| **Nonces & Signature Hashes** | Temporary Storage  | Short-lived (~7 days)                   | Replay protection          |
 
 ---
 

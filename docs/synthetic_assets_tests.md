@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for Synthetic Asse
 ---
 
 ## References
-- Issue reference: Fixes #985
 
+- Issue reference: Fixes #985

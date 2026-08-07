@@ -264,8 +264,6 @@ impl InsuranceOracle {
     }
 }
 
-#![no_std]
-
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Vec,
 };
@@ -306,7 +304,11 @@ pub struct InsuranceOracleAggregator;
 #[contractimpl]
 impl InsuranceOracleAggregator {
     /// Initializes oracle aggregator with admin and max price staleness window (seconds).
-    pub fn initialize(env: Env, admin: Address, staleness_threshold_secs: u64) -> Result<(), OracleError> {
+    pub fn initialize(
+        env: Env,
+        admin: Address,
+        staleness_threshold_secs: u64,
+    ) -> Result<(), OracleError> {
         if env.storage().instance().has(&DataKey::Admin) {
             return Err(OracleError::AlreadyInitialized);
         }
@@ -343,7 +345,11 @@ impl InsuranceOracleAggregator {
             .unwrap_or_else(|| Vec::new(&env));
 
         if authorized {
-            if !env.storage().persistent().has(&DataKey::Reporter(reporter.clone())) {
+            if !env
+                .storage()
+                .persistent()
+                .has(&DataKey::Reporter(reporter.clone()))
+            {
                 env.storage()
                     .persistent()
                     .set(&DataKey::Reporter(reporter.clone()), &true);
@@ -353,7 +359,7 @@ impl InsuranceOracleAggregator {
             env.storage()
                 .persistent()
                 .remove(&DataKey::Reporter(reporter.clone()));
-            
+
             let mut updated_reporters = Vec::new(&env);
             for r in reporters.iter() {
                 if r != reporter {
@@ -363,7 +369,9 @@ impl InsuranceOracleAggregator {
             reporters = updated_reporters;
         }
 
-        env.storage().instance().set(&DataKey::ReportersList, &reporters);
+        env.storage()
+            .instance()
+            .set(&DataKey::ReportersList, &reporters);
         Ok(())
     }
 

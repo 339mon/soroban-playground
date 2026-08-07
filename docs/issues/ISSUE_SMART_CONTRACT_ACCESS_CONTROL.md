@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement flexible access control contract patterns
 title: "[SMART CONTRACT] Implement Flexible Access Control Contract Patterns"
 labels: enhancement, smart-contract, security, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ Developers building permissioned Soroban applications need to implement custom a
 ## 💡 Proposed Solution
 
 Create a comprehensive set of access control patterns including:
+
 - `Ownable`: Simple ownership pattern with transfer functionality
 - `RoleBasedAccessControl`: Hierarchical role-based permissions system
 - `MultiSigAccessControl`: Multi-signature based access control
@@ -24,6 +25,7 @@ Create a comprehensive set of access control patterns including:
 - `ConditionalAccessControl`: Context-aware permission checking
 
 ### Key Features
+
 - Soroban-optimized access control patterns
 - Comprehensive security validation (role inheritance, permission checking)
 - Gas-efficient operations
@@ -31,6 +33,7 @@ Create a comprehensive set of access control patterns including:
 - Documentation and usage examples
 
 ### Implementation Details
+
 - Location: `contracts/access-control/`
 - Testing: `contracts/access-control/src/test.rs` with 100+ test cases
 - Documentation: `contracts/access-control/README.md`
@@ -51,12 +54,12 @@ Create a comprehensive set of access control patterns including:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers building permissioned applications |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | High - improves security and developer productivity for permissioned systems |
+| Dimension        | Assessment                                                                   |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Who benefits?    | All developers building permissioned applications                            |
+| Effort estimate  | Medium (3-4 days)                                                            |
+| Breaking change? | No                                                                           |
+| MVP impact       | High - improves security and developer productivity for permissioned systems |
 
 ## 🔗 Related Issues or References
 

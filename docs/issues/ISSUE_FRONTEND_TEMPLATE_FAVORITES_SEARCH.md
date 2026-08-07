@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement contract template library favorites search functionality
 title: "[FRONTEND] Implement Contract Template Library Favorites Search Functionality"
 labels: enhancement, frontend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,12 +17,14 @@ The current template browsing requires manual navigation through the directory s
 ## 💡 Proposed Solution
 
 Create comprehensive favorites search implementation with:
+
 - Full-text search across favorites
 - Filter by category and tags
 - Search history and suggestions
 - Performance optimization for large favorites sets
 
 ### Key Features
+
 - Full-text search across all favorite templates
 - Filter favorites by category, tags, and metadata
 - Search history and recent searches
@@ -31,6 +33,7 @@ Create comprehensive favorites search implementation with:
 - Search within favorites only option
 
 ### Implementation Details
+
 - Location: `frontend/src/app/template-library/page.tsx`
 - Components: `frontend/src/components/FavoritesSearchBar.tsx`, `FavoritesFilter.tsx`
 - Integration with existing contract metadata and README files
@@ -51,12 +54,12 @@ Create comprehensive favorites search implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | All developers using the Soroban Playground with large favorites collections |
-| Effort estimate | Small (1-2 days) |
-| Breaking change? | No |
-| MVP impact | High - significantly improves developer efficiency with large favorites collections |
+| Dimension        | Assessment                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| Who benefits?    | All developers using the Soroban Playground with large favorites collections        |
+| Effort estimate  | Small (1-2 days)                                                                    |
+| Breaking change? | No                                                                                  |
+| MVP impact       | High - significantly improves developer efficiency with large favorites collections |
 
 ## 🔗 Related Issues or References
 

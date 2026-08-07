@@ -5,5 +5,5 @@ Specification and architecture guide for Optimize and Clean Up Docker Configurat
 ---
 
 ## References
-- Issue reference: Fixes #980
 
+- Issue reference: Fixes #980

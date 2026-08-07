@@ -162,4 +162,3 @@ This document defines requirements for refactoring the Analytics Engine, which i
 3. THE Analytics_Engine SHALL include inline comments explaining the normalization logic
 4. THE Analytics_Engine SHALL include inline comments explaining the dual-mode storage strategy
 5. THE Analytics_Engine SHALL follow the JSDoc style used in the existing redisService.js file
-

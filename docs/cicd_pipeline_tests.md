@@ -5,5 +5,5 @@ Specification and architecture guide for Implement Test Suite for CI/CD Pipeline
 ---
 
 ## References
-- Issue reference: Fixes #979
 
+- Issue reference: Fixes #979

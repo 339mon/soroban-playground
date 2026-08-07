@@ -5,17 +5,20 @@ No setup required. Write Rust smart contracts directly in your browser.
 
 > [!NOTE]
 > **🚧 Project Status:** The Soroban Playground Frontend, Backend, and Core Smart Contracts are successfully deployed to the Stellar Testnet and are fully operational! However, the project is still under active development. We have established this strong foundation with the goal of polishing and completing the entire ecosystem for the next wave.
-> 
+>
 > **Roadmap for the Next Wave:**
+>
 > - **Complete Test Coverage:** Finalize our comprehensive end-to-end test suites, specifically targeting Synthetic Assets and complex DeFi contract scenarios.
 > - **Wallet & UX Refinement:** Perfect the Freighter wallet integration and completely polish the UI/UX to ensure a premium, mainnet-ready user experience.
 > - **Advanced IDE Features:** Finish implementing our in-browser advanced debugging tools, real-time multi-contract simulators, and visual transaction trace graphs.
 
 ### 🌐 Live Deployments
+
 - **Frontend (Vercel)**: [https://soroban-playground-frontend-f1rz-fyzeokbr5.vercel.app](https://soroban-playground-frontend-f1rz-fyzeokbr5.vercel.app)
 - **Backend API (Render)**: [https://soroban-playground.onrender.com](https://soroban-playground.onrender.com)
 
 ## Features
+
 - **Code Editor**: Monaco-based editor with Rust syntax highlighting, auto-formatting, and contract templates.
 - **In-browser Compilation**: Compile Soroban contracts online and view logs/WASM outputs.
 - **Deploy to Testnet**: Deploy your contracts instantly to the Stellar Testnet.
@@ -61,30 +64,36 @@ flowchart LR
 ```
 
 ### How To Read This Diagram
+
 1. Start from the left: a contributor writes or updates contract code in the browser UI.
 2. Follow the center: the frontend calls backend API routes for compile, deploy, and invoke actions.
 3. End on the right: backend tools compile Rust contracts to WASM and interact with Soroban on Stellar Testnet, then return results to the UI.
 
 ### Stack At A Glance
+
 - **Frontend** (`frontend/`): Next.js app router UI, Monaco editor integration, and interactive panels for compile/deploy/invoke flows.
 - **Backend** (`backend/`): Express API routes (`/compile`, `/deploy`, `/invoke`) that orchestrate Soroban toolchain commands.
 - **Smart Contracts** (`contracts/`): Example Soroban contracts written in Rust, compiled to WASM, and deployed/invoked via backend routes.
 - **Toolchain**: Rust + Cargo + Soroban CLI for compilation and network interactions.
 
 ## Project Structure
+
 This repository uses a monorepo setup:
+
 - `frontend/`: The Next.js React application containing the UI.
 - `backend/`: The Node.js Express application responsible for Soroban CLI interactions.
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - NPM or Yarn
 - Rust (for the backend compilation engine)
 - Soroban CLI
 
 ### Local Setup
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/soroban-playground.git
@@ -99,6 +108,7 @@ This repository uses a monorepo setup:
    ```
 
 ## Contributing
+
 We welcome contributions! Please see our [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to get started.
 
 ## Yield Optimizer (Issue #316)
@@ -122,6 +132,7 @@ Decentralized patent registry with invention verification and licensing marketpl
 - **Live Testnet Contract ID**: `CAUNUHUXFT2PVWAJEFELNIKLVHHPQX3NPWWFUHMBIEFOR4ZPTN24CK7Q`
 
 Features:
+
 - Register patents with metadata URIs and hashes
 - Verify patents through designated verifiers
 - Create and manage license offers
@@ -200,6 +211,7 @@ Frontend API override:
 - `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:5000/api`)
 
 ## License
+
 MIT License.
 
 ---
@@ -215,7 +227,7 @@ A full-stack quadratic voting implementation built on Soroban.
 Voters spend **credits** to cast votes. The number of votes received equals `floor(sqrt(credits))`:
 
 | Credits | Votes | Cost per extra vote |
-|---------|-------|---------------------|
+| ------- | ----- | ------------------- |
 | 1       | 1     | 1                   |
 | 4       | 2     | 3                   |
 | 9       | 3     | 5                   |
@@ -241,21 +253,22 @@ frontend/src/app/quadratic-voting/page.tsx  ← Next.js page
 
 **Functions:**
 
-| Function | Access | Description |
-|----------|--------|-------------|
-| `initialize(admin, voting_period?, max_credits?)` | Public (once) | Initialize contract |
-| `create_proposal(admin, title, description, duration?)` | Admin | Create a proposal |
-| `cancel_proposal(admin, proposal_id)` | Admin | Cancel active proposal |
-| `whitelist(admin, voter, allow)` | Admin | Add/remove voter |
-| `vote(voter, proposal_id, credits, is_for)` | Whitelisted | Cast quadratic vote |
-| `finalize(proposal_id)` | Anyone | Finalize after voting ends |
-| `pause(admin)` / `unpause(admin)` | Admin | Emergency pause |
-| `get_proposal(id)` | Read | Fetch proposal data |
-| `credits_to_votes(credits)` | Read | Calculate votes from credits |
+| Function                                                | Access        | Description                  |
+| ------------------------------------------------------- | ------------- | ---------------------------- |
+| `initialize(admin, voting_period?, max_credits?)`       | Public (once) | Initialize contract          |
+| `create_proposal(admin, title, description, duration?)` | Admin         | Create a proposal            |
+| `cancel_proposal(admin, proposal_id)`                   | Admin         | Cancel active proposal       |
+| `whitelist(admin, voter, allow)`                        | Admin         | Add/remove voter             |
+| `vote(voter, proposal_id, credits, is_for)`             | Whitelisted   | Cast quadratic vote          |
+| `finalize(proposal_id)`                                 | Anyone        | Finalize after voting ends   |
+| `pause(admin)` / `unpause(admin)`                       | Admin         | Emergency pause              |
+| `get_proposal(id)`                                      | Read          | Fetch proposal data          |
+| `credits_to_votes(credits)`                             | Read          | Calculate votes from credits |
 
 **Events emitted:** `init`, `proposed`, `voted`, `finalized`, `cancelled`, `paused`, `unpaused`, `wl`
 
 **Security patterns:**
+
 - Checks-effects-interactions ordering
 - Admin-only access control via `require_auth()`
 - Emergency pause mechanism
@@ -299,25 +312,26 @@ stellar contract invoke \
 
 Base URL: `http://localhost:5000/api/quadratic-voting`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/initialize` | Initialize contract |
-| POST | `/proposals` | Create proposal |
-| GET | `/proposals/:id?contractId=` | Get proposal |
-| GET | `/proposals/count?contractId=` | Get proposal count |
-| POST | `/proposals/:id/finalize` | Finalize proposal |
-| POST | `/proposals/:id/cancel` | Cancel proposal |
-| POST | `/vote` | Cast vote |
-| POST | `/whitelist` | Add/remove voter |
-| GET | `/whitelist/:voter?contractId=` | Check whitelist |
-| POST | `/pause` | Pause contract |
-| POST | `/unpause` | Unpause contract |
-| GET | `/status?contractId=` | Get pause status |
-| GET | `/credits-to-votes?credits=` | Calculate votes |
+| Method | Endpoint                        | Description         |
+| ------ | ------------------------------- | ------------------- |
+| POST   | `/initialize`                   | Initialize contract |
+| POST   | `/proposals`                    | Create proposal     |
+| GET    | `/proposals/:id?contractId=`    | Get proposal        |
+| GET    | `/proposals/count?contractId=`  | Get proposal count  |
+| POST   | `/proposals/:id/finalize`       | Finalize proposal   |
+| POST   | `/proposals/:id/cancel`         | Cancel proposal     |
+| POST   | `/vote`                         | Cast vote           |
+| POST   | `/whitelist`                    | Add/remove voter    |
+| GET    | `/whitelist/:voter?contractId=` | Check whitelist     |
+| POST   | `/pause`                        | Pause contract      |
+| POST   | `/unpause`                      | Unpause contract    |
+| GET    | `/status?contractId=`           | Get pause status    |
+| GET    | `/credits-to-votes?credits=`    | Calculate votes     |
 
 Full OpenAPI docs available at `http://localhost:5000/api-docs` when the backend is running.
 
 **Example: Cast a vote**
+
 ```bash
 curl -X POST http://localhost:5000/api/quadratic-voting/vote \
   -H "Content-Type: application/json" \
@@ -336,6 +350,7 @@ curl -X POST http://localhost:5000/api/quadratic-voting/vote \
 Navigate to `http://localhost:3000/quadratic-voting` to access the dashboard.
 
 Features:
+
 - Create proposals (admin)
 - Interactive credit slider with real-time vote preview
 - Vote for/against with quadratic cost display
@@ -347,12 +362,14 @@ Features:
 ### Running Tests
 
 **Contract tests:**
+
 ```bash
 cd contracts/quadratic-voting
 cargo test
 ```
 
 **Backend tests:**
+
 ```bash
 cd backend
 npx jest tests/quadraticVoting.test.js
@@ -361,12 +378,14 @@ npx jest tests/quadraticVoting.test.js
 ### Environment Variables
 
 Add to `backend/.env`:
+
 ```
 # Optional: default contract ID for quadratic voting
 QV_CONTRACT_ID=C...
 ```
 
 Add to `frontend/.env.local`:
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000
 NEXT_PUBLIC_QV_CONTRACT_ID=C...
@@ -394,20 +413,21 @@ contracts/price-feed-aggregator/   ← Soroban/Rust smart contract
 
 **Functions:**
 
-| Function | Access | Description |
-|----------|--------|-------------|
-| `initialize(admin, asset, decimals?, max_price_age?, outlier_bps?, circuit_breaker_bps?, strategy?)` | Public (once) | Initialize contract |
-| `add_source(admin, reporter, description, weight?)` | Admin | Register a price source |
-| `remove_source(admin, source_id)` | Admin | Deactivate a source |
-| `set_weight(admin, source_id, weight)` | Admin | Update source weight (1–100) |
-| `update_price(reporter, source_id, price)` | Reporter | Submit a price update |
-| `get_price(source_id)` | Read | Raw price for one source |
-| `get_aggregated_price()` | Read | Aggregated price across all valid sources |
-| `pause(admin)` / `unpause(admin)` | Admin | Emergency pause |
+| Function                                                                                             | Access        | Description                               |
+| ---------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------- |
+| `initialize(admin, asset, decimals?, max_price_age?, outlier_bps?, circuit_breaker_bps?, strategy?)` | Public (once) | Initialize contract                       |
+| `add_source(admin, reporter, description, weight?)`                                                  | Admin         | Register a price source                   |
+| `remove_source(admin, source_id)`                                                                    | Admin         | Deactivate a source                       |
+| `set_weight(admin, source_id, weight)`                                                               | Admin         | Update source weight (1–100)              |
+| `update_price(reporter, source_id, price)`                                                           | Reporter      | Submit a price update                     |
+| `get_price(source_id)`                                                                               | Read          | Raw price for one source                  |
+| `get_aggregated_price()`                                                                             | Read          | Aggregated price across all valid sources |
+| `pause(admin)` / `unpause(admin)`                                                                    | Admin         | Emergency pause                           |
 
 **Aggregation strategies:** `Median` (default), `WeightedAverage`, `TrimmedMean`
 
 **Security features:**
+
 - Circuit breaker — rejects single-update swings above `circuit_breaker_bps` (default 30%)
 - Outlier detection — excludes sources deviating > `outlier_bps` from the median (default 20%)
 - Stale price exclusion — ignores prices older than `max_price_age` (default 1 hour)
@@ -426,14 +446,13 @@ cargo build --target wasm32-unknown-unknown --release
 cargo test
 ```
 
-
 ---
 
 ## Prediction Market (Issue #843)
 
 Decentralized prediction market allowing users to buy YES/NO shares on binary or scalar events, resolved on-chain by a designated Oracle.
 
-**Live Testnet Contract ID**: *(deploy with `stellar contract deploy` and set `NEXT_PUBLIC_PM_CONTRACT_ID`)*
+**Live Testnet Contract ID**: _(deploy with `stellar contract deploy` and set `NEXT_PUBLIC_PM_CONTRACT_ID`)_
 
 ### How It Works
 
@@ -460,17 +479,17 @@ frontend/src/components/PredictionMarketPanel.tsx  ← React UI
 
 **Functions:**
 
-| Function | Access | Description |
-|----------|--------|-------------|
-| `initialize(admin)` | Public (once) | Initialize contract with admin |
-| `create_market(creator, question, market_type, deadline, oracle)` | Any (auth) | Create a Binary or Scalar market |
-| `place_bet(trader, market_id, outcome, stake)` | Any (auth) | Buy YES (1) or NO (0) shares |
-| `resolve_market(market_id, winning_outcome)` | Oracle only | Resolve market via oracle auth |
-| `cancel_market(market_id)` | Admin/Creator | Cancel and enable refunds |
-| `calculate_payout(market_id, trader)` | Read | Compute payout for a trader |
-| `get_market(market_id)` | Read | Fetch market data |
-| `get_position(market_id, trader)` | Read | Fetch a trader's position |
-| `market_count()` | Read | Total markets created |
+| Function                                                          | Access        | Description                      |
+| ----------------------------------------------------------------- | ------------- | -------------------------------- |
+| `initialize(admin)`                                               | Public (once) | Initialize contract with admin   |
+| `create_market(creator, question, market_type, deadline, oracle)` | Any (auth)    | Create a Binary or Scalar market |
+| `place_bet(trader, market_id, outcome, stake)`                    | Any (auth)    | Buy YES (1) or NO (0) shares     |
+| `resolve_market(market_id, winning_outcome)`                      | Oracle only   | Resolve market via oracle auth   |
+| `cancel_market(market_id)`                                        | Admin/Creator | Cancel and enable refunds        |
+| `calculate_payout(market_id, trader)`                             | Read          | Compute payout for a trader      |
+| `get_market(market_id)`                                           | Read          | Fetch market data                |
+| `get_position(market_id, trader)`                                 | Read          | Fetch a trader's position        |
+| `market_count()`                                                  | Read          | Total markets created            |
 
 **Market Types:** `Binary` (YES/NO), `Scalar` (numeric range)
 
@@ -479,6 +498,7 @@ frontend/src/components/PredictionMarketPanel.tsx  ← React UI
 **Events emitted:** `init`, `mkt_crt`, `bet`, `resolved`, `mkt_can`
 
 **Security patterns:**
+
 - Oracle-only resolution via `require_auth()` on the market's oracle address
 - Admin/creator cancellation with `require_auth()`
 - Checks-effects-interactions ordering
@@ -519,20 +539,21 @@ stellar contract invoke \
 
 Base URL: `http://localhost:5000/api/prediction-market`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/initialize` | Initialize contract |
-| POST | `/markets` | Create a new market |
-| GET | `/markets?contractId=` | List all markets |
-| GET | `/markets/:id?contractId=` | Get single market |
-| POST | `/markets/:id/bet` | Place YES/NO bet |
-| POST | `/markets/:id/resolve` | Resolve via oracle |
-| POST | `/markets/:id/cancel` | Cancel market |
-| GET | `/markets/:id/payout/:trader?contractId=` | Calculate payout |
-| GET | `/markets/:id/position/:trader?contractId=` | Get trader position |
-| GET | `/count?contractId=` | Get market count |
+| Method | Endpoint                                    | Description         |
+| ------ | ------------------------------------------- | ------------------- |
+| POST   | `/initialize`                               | Initialize contract |
+| POST   | `/markets`                                  | Create a new market |
+| GET    | `/markets?contractId=`                      | List all markets    |
+| GET    | `/markets/:id?contractId=`                  | Get single market   |
+| POST   | `/markets/:id/bet`                          | Place YES/NO bet    |
+| POST   | `/markets/:id/resolve`                      | Resolve via oracle  |
+| POST   | `/markets/:id/cancel`                       | Cancel market       |
+| GET    | `/markets/:id/payout/:trader?contractId=`   | Calculate payout    |
+| GET    | `/markets/:id/position/:trader?contractId=` | Get trader position |
+| GET    | `/count?contractId=`                        | Get market count    |
 
 **Example: Create a market**
+
 ```bash
 curl -X POST http://localhost:5000/api/prediction-market/markets \
   -H "Content-Type: application/json" \
@@ -547,6 +568,7 @@ curl -X POST http://localhost:5000/api/prediction-market/markets \
 ```
 
 **Example: Place a bet**
+
 ```bash
 curl -X POST http://localhost:5000/api/prediction-market/markets/1/bet \
   -H "Content-Type: application/json" \
@@ -560,6 +582,7 @@ curl -X POST http://localhost:5000/api/prediction-market/markets/1/bet \
 ```
 
 **Example: Resolve via oracle**
+
 ```bash
 curl -X POST http://localhost:5000/api/prediction-market/markets/1/resolve \
   -H "Content-Type: application/json" \
@@ -574,6 +597,7 @@ curl -X POST http://localhost:5000/api/prediction-market/markets/1/resolve \
 Navigate to `http://localhost:3000/prediction-market` to access the dashboard.
 
 Features:
+
 - Browse all open, resolved, and cancelled markets
 - Create Binary (YES/NO) or Scalar markets with custom oracle and deadline
 - Place YES/NO bets with real-time probability bars
@@ -585,6 +609,7 @@ Features:
 ### Environment Variables
 
 Add to `frontend/.env.local`:
+
 ```
 NEXT_PUBLIC_PM_CONTRACT_ID=C...
 ```

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export interface Category {
   id: string;
@@ -9,12 +9,12 @@ export interface Category {
 }
 
 export interface FavoriteTemplate {
-  id: string;           // template slug/path
+  id: string; // template slug/path
   name: string;
   description: string;
   categoryId: string | null;
   tags: string[];
-  addedAt: string;      // ISO date string
+  addedAt: string; // ISO date string
 }
 
 export interface FavoritesState {
@@ -22,16 +22,17 @@ export interface FavoritesState {
   categories: Category[];
 }
 
-const STORAGE_KEY = 'soroban_template_favorites';
+const STORAGE_KEY = "soroban_template_favorites";
 
 const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'defi', name: 'DeFi', color: '#2dd4bf' },
-  { id: 'nft', name: 'NFT', color: '#a78bfa' },
-  { id: 'governance', name: 'Governance', color: '#f97316' },
+  { id: "defi", name: "DeFi", color: "#2dd4bf" },
+  { id: "nft", name: "NFT", color: "#a78bfa" },
+  { id: "governance", name: "Governance", color: "#f97316" },
 ];
 
 function load(): FavoritesState {
-  if (typeof window === 'undefined') return { favorites: [], categories: DEFAULT_CATEGORIES };
+  if (typeof window === "undefined")
+    return { favorites: [], categories: DEFAULT_CATEGORIES };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { favorites: [], categories: DEFAULT_CATEGORIES };
@@ -54,7 +55,10 @@ function save(state: FavoritesState) {
 }
 
 export function useFavorites() {
-  const [state, setState] = useState<FavoritesState>({ favorites: [], categories: DEFAULT_CATEGORIES });
+  const [state, setState] = useState<FavoritesState>({
+    favorites: [],
+    categories: DEFAULT_CATEGORIES,
+  });
 
   useEffect(() => {
     setState(load());
@@ -67,54 +71,70 @@ export function useFavorites() {
 
   const isFavorite = useCallback(
     (id: string) => state.favorites.some((f) => f.id === id),
-    [state.favorites]
+    [state.favorites],
   );
 
   const addFavorite = useCallback(
-    (template: Omit<FavoriteTemplate, 'addedAt'>) => {
+    (template: Omit<FavoriteTemplate, "addedAt">) => {
       if (state.favorites.some((f) => f.id === template.id)) return;
       persist({
         ...state,
-        favorites: [...state.favorites, { ...template, addedAt: new Date().toISOString() }],
+        favorites: [
+          ...state.favorites,
+          { ...template, addedAt: new Date().toISOString() },
+        ],
       });
     },
-    [state, persist]
+    [state, persist],
   );
 
   const removeFavorite = useCallback(
     (id: string) => {
-      persist({ ...state, favorites: state.favorites.filter((f) => f.id !== id) });
+      persist({
+        ...state,
+        favorites: state.favorites.filter((f) => f.id !== id),
+      });
     },
-    [state, persist]
+    [state, persist],
   );
 
   const updateFavorite = useCallback(
-    (id: string, patch: Partial<Pick<FavoriteTemplate, 'categoryId' | 'tags'>>) => {
+    (
+      id: string,
+      patch: Partial<Pick<FavoriteTemplate, "categoryId" | "tags">>,
+    ) => {
       persist({
         ...state,
-        favorites: state.favorites.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+        favorites: state.favorites.map((f) =>
+          f.id === id ? { ...f, ...patch } : f,
+        ),
       });
     },
-    [state, persist]
+    [state, persist],
   );
 
   const addCategory = useCallback(
-    (category: Omit<Category, 'id'>) => {
+    (category: Omit<Category, "id">) => {
       const id = `cat_${Date.now()}`;
-      persist({ ...state, categories: [...state.categories, { ...category, id }] });
+      persist({
+        ...state,
+        categories: [...state.categories, { ...category, id }],
+      });
       return id;
     },
-    [state, persist]
+    [state, persist],
   );
 
   const updateCategory = useCallback(
-    (id: string, patch: Partial<Omit<Category, 'id'>>) => {
+    (id: string, patch: Partial<Omit<Category, "id">>) => {
       persist({
         ...state,
-        categories: state.categories.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        categories: state.categories.map((c) =>
+          c.id === id ? { ...c, ...patch } : c,
+        ),
       });
     },
-    [state, persist]
+    [state, persist],
   );
 
   const deleteCategory = useCallback(
@@ -122,18 +142,22 @@ export function useFavorites() {
       persist({
         ...state,
         categories: state.categories.filter((c) => c.id !== id),
-        favorites: state.favorites.map((f) => (f.categoryId === id ? { ...f, categoryId: null } : f)),
+        favorites: state.favorites.map((f) =>
+          f.categoryId === id ? { ...f, categoryId: null } : f,
+        ),
       });
     },
-    [state, persist]
+    [state, persist],
   );
 
   const exportFavorites = useCallback(() => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(state, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'soroban-favorites.json';
+    a.download = "soroban-favorites.json";
     a.click();
     URL.revokeObjectURL(url);
   }, [state]);
@@ -146,19 +170,19 @@ export function useFavorites() {
         categories: [
           ...state.categories,
           ...(parsed.categories ?? []).filter(
-            (c) => !state.categories.some((e) => e.id === c.id)
+            (c) => !state.categories.some((e) => e.id === c.id),
           ),
         ],
         favorites: [
           ...state.favorites,
           ...(parsed.favorites ?? []).filter(
-            (f) => !state.favorites.some((e) => e.id === f.id)
+            (f) => !state.favorites.some((e) => e.id === f.id),
           ),
         ],
       };
       persist(merged);
     },
-    [state, persist]
+    [state, persist],
   );
 
   return {

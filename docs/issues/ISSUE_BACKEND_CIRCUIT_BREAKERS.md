@@ -3,7 +3,7 @@ name: Feature Request
 about: Implement circuit breaker and timeout handling for API endpoints
 title: "[BACKEND] Implement Circuit Breaker and Timeout Handling for API Endpoints"
 labels: enhancement, backend, high-priority
-assignees: ''
+assignees: ""
 ---
 
 ## 📝 Feature Summary
@@ -17,6 +17,7 @@ The current backend lacks circuit breaker patterns and timeout handling, making 
 ## 💡 Proposed Solution
 
 Create comprehensive circuit breaker implementation with:
+
 - Automatic circuit breaker pattern for all external dependencies
 - Configurable timeout handling for API endpoints
 - Fallback mechanisms and graceful degradation
@@ -24,6 +25,7 @@ Create comprehensive circuit breaker implementation with:
 - Integration with existing middleware
 
 ### Key Features
+
 - Circuit breaker pattern for database connections
 - Circuit breaker pattern for Redis cache connections
 - Circuit breaker pattern for Soroban CLI interactions
@@ -32,6 +34,7 @@ Create comprehensive circuit breaker implementation with:
 - Real-time circuit breaker status monitoring
 
 ### Implementation Details
+
 - Location: `backend/src/middleware/circuitBreaker.js`
 - Service: `backend/src/services/circuitBreakerService.js`
 - Configuration: `backend/src/config/circuitBreaker.config.js`
@@ -53,12 +56,12 @@ Create comprehensive circuit breaker implementation with:
 
 ## 📊 Impact & Priority
 
-| Dimension | Assessment |
-|-----------|------------|
-| Who benefits? | Developers, operators, and maintainers of the Soroban Playground |
-| Effort estimate | Medium (3-4 days) |
-| Breaking change? | No |
-| MVP impact | Critical - prevents cascading failures and ensures system resilience during dependency outages |
+| Dimension        | Assessment                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
+| Who benefits?    | Developers, operators, and maintainers of the Soroban Playground                               |
+| Effort estimate  | Medium (3-4 days)                                                                              |
+| Breaking change? | No                                                                                             |
+| MVP impact       | Critical - prevents cascading failures and ensures system resilience during dependency outages |
 
 ## 🔗 Related Issues or References
 

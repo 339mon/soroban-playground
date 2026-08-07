@@ -122,12 +122,16 @@ describe('emailProcessor', () => {
 
     it('throws for invalid email format', async () => {
       const job = makeJob({ to: 'not-an-email' });
-      await expect(emailProcessor(job)).rejects.toThrow('Invalid email address');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        'Invalid email address'
+      );
     });
 
     it('throws for email without domain', async () => {
       const job = makeJob({ to: 'user@' });
-      await expect(emailProcessor(job)).rejects.toThrow('Invalid email address');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        'Invalid email address'
+      );
     });
 
     it('throws when "subject" is empty string', async () => {
@@ -139,22 +143,30 @@ describe('emailProcessor', () => {
 
     it('throws when "subject" is not a string', async () => {
       const job = makeJob({ to: 'user@example.com', subject: 123 });
-      await expect(emailProcessor(job)).rejects.toThrow('"subject" must be a string');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        '"subject" must be a string'
+      );
     });
 
     it('throws when "body" is not a string', async () => {
       const job = makeJob({ to: 'user@example.com', body: 123 });
-      await expect(emailProcessor(job)).rejects.toThrow('"body" must be a string');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        '"body" must be a string'
+      );
     });
 
     it('throws when "html" is not a string', async () => {
       const job = makeJob({ to: 'user@example.com', html: 123 });
-      await expect(emailProcessor(job)).rejects.toThrow('"html" must be a string');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        '"html" must be a string'
+      );
     });
 
     it('throws when "from" is not a string', async () => {
       const job = makeJob({ to: 'user@example.com', from: 123 });
-      await expect(emailProcessor(job)).rejects.toThrow('"from" must be a string');
+      await expect(emailProcessor(job)).rejects.toThrow(
+        '"from" must be a string'
+      );
     });
   });
 

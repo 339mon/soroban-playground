@@ -5,5 +5,5 @@ Architecture and implementation specification for Implement Test Suite for Notif
 ---
 
 ## References
-- Issue reference: Fixes #949
 
+- Issue reference: Fixes #949

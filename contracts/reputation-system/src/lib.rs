@@ -51,8 +51,7 @@ impl ReputationSystemContract {
         env.storage()
             .instance()
             .set(&InstanceKey::Admin, &new_admin);
-        env.events()
-            .publish((symbol_short!("adm_tx"),), new_admin);
+        env.events().publish((symbol_short!("adm_tx"),), new_admin);
         Ok(())
     }
 
@@ -78,8 +77,7 @@ impl ReputationSystemContract {
             last_updated: now,
         };
         Self::storage_set_record(&env, &record);
-        env.events()
-            .publish((symbol_short!("register"),), subject);
+        env.events().publish((symbol_short!("register"),), subject);
         Ok(())
     }
 

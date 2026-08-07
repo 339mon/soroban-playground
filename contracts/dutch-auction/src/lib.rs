@@ -71,7 +71,11 @@ impl DutchAuction {
     }
 
     pub fn get_price(env: Env) -> i128 {
-        let sold: bool = env.storage().instance().get(&DataKey::Sold).unwrap_or(false);
+        let sold: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Sold)
+            .unwrap_or(false);
         if sold {
             return 0;
         }

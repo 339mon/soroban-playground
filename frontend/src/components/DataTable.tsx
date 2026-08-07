@@ -71,7 +71,7 @@ function getNextDirection(current: SortDirection): SortDirection {
 }
 
 function ariaSortValue(
-  direction: SortDirection
+  direction: SortDirection,
 ): "ascending" | "descending" | "none" {
   if (direction === "asc") return "ascending";
   if (direction === "desc") return "descending";
@@ -81,7 +81,7 @@ function ariaSortValue(
 function sortData<T extends Record<string, unknown>>(
   data: T[],
   key: string,
-  direction: SortDirection
+  direction: SortDirection,
 ): T[] {
   if (direction === "none") return data;
 
@@ -133,7 +133,7 @@ function DataTableInner<T extends Record<string, unknown>>({
         setSortDirection("asc");
       }
     },
-    [sortKey, sortDirection]
+    [sortKey, sortDirection],
   );
 
   // --- Error state ---
@@ -175,7 +175,9 @@ function DataTableInner<T extends Record<string, unknown>>({
         className={className}
       >
         {emptyState ?? (
-          <p style={{ textAlign: "center", color: "#6b7280", padding: "24px 0" }}>
+          <p
+            style={{ textAlign: "center", color: "#6b7280", padding: "24px 0" }}
+          >
             No data to display.
           </p>
         )}
@@ -241,7 +243,11 @@ function DataTableInner<T extends Record<string, unknown>>({
                 {col.header}
                 {col.sortable && sortKey === col.key && (
                   <span aria-hidden="true" style={{ marginLeft: "4px" }}>
-                    {sortDirection === "asc" ? "▲" : sortDirection === "desc" ? "▼" : ""}
+                    {sortDirection === "asc"
+                      ? "▲"
+                      : sortDirection === "desc"
+                        ? "▼"
+                        : ""}
                   </span>
                 )}
               </th>

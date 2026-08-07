@@ -6,12 +6,12 @@ This PR implements four new Soroban smart-contract modules as requested in the l
 
 ### Contracts Added
 
-| Contract | Location | Issue |
-|---|---|---|
-| **Upgradeable** | `contracts/upgradeable/` | #587 |
-| **Versioned** | `contracts/versioned/` | #588 |
-| **Access Control** | `contracts/access-control/` | #594 |
-| **Analysis Utils** | `contracts/analysis-utils/` | #595 |
+| Contract           | Location                    | Issue |
+| ------------------ | --------------------------- | ----- |
+| **Upgradeable**    | `contracts/upgradeable/`    | #587  |
+| **Versioned**      | `contracts/versioned/`      | #588  |
+| **Access Control** | `contracts/access-control/` | #594  |
+| **Analysis Utils** | `contracts/analysis-utils/` | #595  |
 
 ---
 
@@ -52,6 +52,7 @@ On-chain audit ledger for off-chain contract analysis tooling: security vulnerab
 ### Testing
 
 Each contract ships with a dedicated `src/test.rs` (15-25 test cases per contract) covering:
+
 - Happy-path flows
 - Double-initialisation guard
 - Unauthorized callers
