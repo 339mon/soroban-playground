@@ -36,7 +36,10 @@ pub enum Error {
 }
 
 fn get_admin(env: &Env) -> Result<Address, Error> {
-    env.storage().instance().get(&ADMIN).ok_or(Error::Unauthorized)
+    env.storage()
+        .instance()
+        .get(&ADMIN)
+        .ok_or(Error::Unauthorized)
 }
 
 fn set_admin(env: &Env, admin: &Address) {
@@ -79,7 +82,9 @@ impl DebuggingUtils {
         }
         admin.require_auth();
         set_admin(&env, &admin);
-        env.storage().instance().set(&LOGS, &Vec::<String>::new(&env));
+        env.storage()
+            .instance()
+            .set(&LOGS, &Vec::<String>::new(&env));
         Ok(())
     }
 
@@ -147,7 +152,9 @@ impl DebuggingUtils {
 
     pub fn clear_logs(env: Env) -> Result<(), Error> {
         ensure_initialized(&env)?;
-        env.storage().instance().set(&LOGS, &Vec::<String>::new(&env));
+        env.storage()
+            .instance()
+            .set(&LOGS, &Vec::<String>::new(&env));
         Ok(())
     }
 

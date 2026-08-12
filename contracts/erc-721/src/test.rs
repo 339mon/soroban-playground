@@ -820,7 +820,9 @@ fn test_safe_transfer_to_self() {
     let owner = make_address(&_env);
     client.mint(&owner, &1).unwrap();
     _env.mock_all_auths();
-    client.safe_transfer_from(&owner, &owner, &owner, &1).unwrap();
+    client
+        .safe_transfer_from(&owner, &owner, &owner, &1)
+        .unwrap();
     assert_eq!(client.owner_of(&1).unwrap(), owner);
 }
 

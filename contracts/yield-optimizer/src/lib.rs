@@ -17,7 +17,8 @@ mod test;
 mod types;
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, String, Symbol, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, String,
+    Symbol, Vec,
 };
 
 use crate::storage::{
@@ -783,8 +784,6 @@ impl YieldOptimizer {
         Ok(())
     }
 }
-
-
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]

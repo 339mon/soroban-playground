@@ -3,8 +3,8 @@
 mod test;
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Map, String, Symbol, Val,
-    Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Map, String,
+    Symbol, Val, Vec,
 };
 
 const ADMIN: Symbol = symbol_short!("ADMIN");
@@ -24,7 +24,10 @@ pub enum Error {
 }
 
 fn get_admin(env: &Env) -> Result<Address, Error> {
-    env.storage().instance().get(&ADMIN).ok_or(Error::Unauthorized)
+    env.storage()
+        .instance()
+        .get(&ADMIN)
+        .ok_or(Error::Unauthorized)
 }
 
 fn set_admin(env: &Env, admin: &Address) {
@@ -304,8 +307,6 @@ impl CrossContractUtils {
     }
 }
 
-
-
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
@@ -351,13 +352,9 @@ impl CrossContractGuard {
 
         let key: Symbol = symbol_short!("invoker");
         if allowed {
-            env.storage()
-                .persistent()
-                .set(&key, &true);
+            env.storage().persistent().set(&key, &true);
         } else {
-            env.storage()
-                .persistent()
-                .remove(&key);
+            env.storage().persistent().remove(&key);
         }
 
         Ok(())
@@ -374,11 +371,7 @@ impl CrossContractGuard {
 
         // 2. Verify invoker_contract is whitelisted in persistent storage
         let key: Symbol = symbol_short!("invoker");
-        let is_allowed: bool = env
-            .storage()
-            .persistent()
-            .get(&key)
-            .unwrap_or(false);
+        let is_allowed: bool = env.storage().persistent().get(&key).unwrap_or(false);
 
         if !is_allowed {
             return Err(GuardError::UnauthorizedInvoker);

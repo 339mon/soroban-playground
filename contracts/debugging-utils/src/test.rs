@@ -910,8 +910,7 @@ fn test_format_error_all_codes() {
 fn test_capture_error_stores_history() {
     let (env, admin, client) = setup();
     client.initialize(&admin);
-    let _formatted = client
-        .capture_error(&1, &make_string(&env, "err1"));
+    let _formatted = client.capture_error(&1, &make_string(&env, "err1"));
     let history = client.get_error_history();
     assert_eq!(history.len(), 1);
 }

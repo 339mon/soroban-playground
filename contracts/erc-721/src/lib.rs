@@ -3,8 +3,8 @@
 mod test;
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
-    Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String,
+    Symbol, Vec,
 };
 
 const ADMIN: Symbol = symbol_short!("ADMIN");
@@ -40,7 +40,10 @@ pub struct RoyaltyInfo {
 }
 
 fn get_admin(env: &Env) -> Result<Address, Error> {
-    env.storage().instance().get(&ADMIN).ok_or(Error::Unauthorized)
+    env.storage()
+        .instance()
+        .get(&ADMIN)
+        .ok_or(Error::Unauthorized)
 }
 
 fn set_admin(env: &Env, admin: &Address) {
@@ -133,12 +136,14 @@ impl Erc721 {
             .instance()
             .get(&DataKey::Balance(to.clone()))
             .unwrap_or(0);
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(from.clone()), &(from_balance.saturating_sub(1)));
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(to.clone()), &(to_balance.saturating_add(1)));
+        env.storage().instance().set(
+            &DataKey::Balance(from.clone()),
+            &(from_balance.saturating_sub(1)),
+        );
+        env.storage().instance().set(
+            &DataKey::Balance(to.clone()),
+            &(to_balance.saturating_add(1)),
+        );
 
         env.events()
             .publish((symbol_short!("Transfer"),), (from, to, token_id));
@@ -176,9 +181,10 @@ impl Erc721 {
             .instance()
             .get(&DataKey::Balance(to.clone()))
             .unwrap_or(0);
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(to.clone()), &(to_balance.saturating_add(1)));
+        env.storage().instance().set(
+            &DataKey::Balance(to.clone()),
+            &(to_balance.saturating_add(1)),
+        );
 
         let total: u64 = env.storage().instance().get(&TOTAL_SUPPLY).unwrap_or(0);
         env.storage()
@@ -213,12 +219,15 @@ impl Erc721 {
             .instance()
             .get(&DataKey::Balance(owner.clone()))
             .unwrap_or(0);
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(owner.clone()), &(balance.saturating_sub(1)));
+        env.storage().instance().set(
+            &DataKey::Balance(owner.clone()),
+            &(balance.saturating_sub(1)),
+        );
 
         let total: u64 = env.storage().instance().get(&TOTAL_SUPPLY).unwrap_or(0);
-        env.storage().instance().set(&TOTAL_SUPPLY, &total.saturating_sub(1));
+        env.storage()
+            .instance()
+            .set(&TOTAL_SUPPLY, &total.saturating_sub(1));
 
         env.events()
             .publish((symbol_short!("Transfer"),), (owner, caller, token_id));
@@ -262,10 +271,8 @@ impl Erc721 {
             &DataKey::ApprovedAll(caller.clone(), operator.clone()),
             &approved,
         );
-        env.events().publish(
-            (symbol_short!("ApprAll"),),
-            (caller, operator, approved),
-        );
+        env.events()
+            .publish((symbol_short!("ApprAll"),), (caller, operator, approved));
 
         Ok(())
     }
@@ -332,7 +339,9 @@ impl Erc721 {
         if bips > 10000 {
             return Err(Error::InvalidInput);
         }
-        env.storage().instance().set(&ROYALTY, &RoyaltyInfo { creator, bips });
+        env.storage()
+            .instance()
+            .set(&ROYALTY, &RoyaltyInfo { creator, bips });
         Ok(())
     }
 
