@@ -12,6 +12,13 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    groups:
+      react-framework:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
     labels:
       - "dependencies"
   - package-ecosystem: "npm"
