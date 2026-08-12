@@ -6,14 +6,19 @@ import path from 'path';
 import MigrationService from '../src/services/migrationService.js';
 import DatabaseService from '../src/services/databaseService.js';
 
+import { fileURLToPath } from 'url';
+
+const testFilename = fileURLToPath(import.meta.url);
+const testDirname = path.dirname(testFilename);
+
 describe('MigrationService', () => {
   let migrationService;
   let testDbPath;
   let testMigrationsPath;
 
   beforeAll(async () => {
-    testDbPath = path.join(__dirname, 'test_migrations.db');
-    testMigrationsPath = path.join(__dirname, 'test_migrations');
+    testDbPath = path.join(testDirname, 'test_migrations.db');
+    testMigrationsPath = path.join(testDirname, 'test_migrations');
 
     // Create test migrations directory
     if (!fs.existsSync(testMigrationsPath)) {

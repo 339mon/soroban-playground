@@ -203,7 +203,12 @@ if (
   config.app?.env === 'development' ||
   process.env.NODE_ENV === 'development'
 ) {
-  app.use('/admin/queues', queueDashboard);
+  app.use('/admin/queues', (req, res, next) => {
+    if (queueDashboard) {
+      return queueDashboard(req, res, next);
+    }
+    res.status(503).json({ error: 'Queue dashboard initializing' });
+  });
 }
 
 app.use('/api/prediction-market', predictionMarketRoute);
@@ -339,8 +344,12 @@ async function gracefulShutdown(signal) {
     console.log('[Shutdown] Closing database and Redis connections...');
     await closeDatabase();
 
-    if (redisService.client) {
-      await redisService.client.quit();
+    if (redisService.client && redisService.client.status !== 'end') {
+      try {
+        await redisService.client.quit();
+      } catch (_) {
+        redisService.client.disconnect();
+      }
     }
 
     console.log('[Shutdown] Graceful shutdown completed cleanly.');

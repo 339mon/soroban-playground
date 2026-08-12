@@ -49,19 +49,19 @@ describe("LoadingSkeleton – loading state", () => {
   });
 
   it("renders 3 skeleton lines by default", () => {
-    render(<LoadingSkeleton />);
-    const lines = screen.getAllByRole("presentation");
+    const { container } = render(<LoadingSkeleton />);
+    const lines = container.querySelectorAll("[role='presentation']");
     expect(lines).toHaveLength(3);
   });
 
   it("renders the correct number of rows when rows prop is supplied", () => {
-    render(<LoadingSkeleton rows={5} />);
-    const lines = screen.getAllByRole("presentation");
+    const { container } = render(<LoadingSkeleton rows={5} />);
+    const lines = container.querySelectorAll("[role='presentation']");
     expect(lines).toHaveLength(5);
   });
 
   it("renders custom lines when lines prop is supplied", () => {
-    render(
+    const { container } = render(
       <LoadingSkeleton
         lines={[
           { variant: "text", width: "80%" },
@@ -69,7 +69,7 @@ describe("LoadingSkeleton – loading state", () => {
         ]}
       />,
     );
-    const lines = screen.getAllByRole("presentation");
+    const lines = container.querySelectorAll("[role='presentation']");
     expect(lines).toHaveLength(2);
     expect(lines[0]).toHaveAttribute("data-variant", "text");
     expect(lines[1]).toHaveAttribute("data-variant", "circle");
@@ -84,14 +84,14 @@ describe("LoadingSkeleton – loading state", () => {
   });
 
   it("clamps rows to at least 1 when rows=0", () => {
-    render(<LoadingSkeleton rows={0} />);
-    const lines = screen.getAllByRole("presentation");
+    const { container } = render(<LoadingSkeleton rows={0} />);
+    const lines = container.querySelectorAll("[role='presentation']");
     expect(lines.length).toBeGreaterThanOrEqual(1);
   });
 
   it("falls back to default rows when lines is an empty array", () => {
-    render(<LoadingSkeleton rows={2} lines={[]} />);
-    const lines = screen.getAllByRole("presentation");
+    const { container } = render(<LoadingSkeleton rows={2} lines={[]} />);
+    const lines = container.querySelectorAll("[role='presentation']");
     // Fallback renders `rows` lines
     expect(lines).toHaveLength(2);
   });

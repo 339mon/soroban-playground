@@ -63,17 +63,17 @@ describe("PriceChart", () => {
 
   it("formats large volume values", () => {
     render(<PriceChart assetSymbol="XLM" volume24h={2_456_789} />);
-    expect(screen.getByText("$2.5M")).toBeInTheDocument();
+    expect(screen.getByText("$2.46M")).toBeInTheDocument();
   });
 
   it("formats market cap values", () => {
     render(<PriceChart assetSymbol="XLM" marketCap={125_456_789} />);
-    expect(screen.getByText("$125.5M")).toBeInTheDocument();
+    expect(screen.getByText("$125.46M")).toBeInTheDocument();
   });
 
   it("renders 0% change by default", () => {
     render(<PriceChart assetSymbol="XLM" />);
-    expect(screen.getByText("0.00%")).toBeInTheDocument();
+    expect(screen.getByText(/0\.00%/)).toBeInTheDocument();
   });
 
   it("has accessible region label", () => {

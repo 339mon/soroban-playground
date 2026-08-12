@@ -212,6 +212,18 @@ export function AssetGallery({
 }: AssetGalleryProps): React.ReactElement {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // --- Filter ---
+  const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return assets;
+    return assets.filter(
+      (a) =>
+        a.symbol.toLowerCase().includes(term) ||
+        a.name.toLowerCase().includes(term) ||
+        (a.issuer ?? "").toLowerCase().includes(term),
+    );
+  }, [assets, searchTerm]);
+
   // --- Error state ---
   if (error) {
     return (
@@ -256,18 +268,6 @@ export function AssetGallery({
       </div>
     );
   }
-
-  // --- Filter ---
-  const filtered = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return assets;
-    return assets.filter(
-      (a) =>
-        a.symbol.toLowerCase().includes(term) ||
-        a.name.toLowerCase().includes(term) ||
-        (a.issuer ?? "").toLowerCase().includes(term),
-    );
-  }, [assets, searchTerm]);
 
   return (
     <section

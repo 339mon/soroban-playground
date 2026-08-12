@@ -42,6 +42,12 @@ export function broadcastTreasuryEvent(event) {
 let wssInstance = null;
 
 export function setupWebsocketServer(httpServer) {
+  if (wssInstance) {
+    try {
+      closeWebsocketServer();
+    } catch (_) {}
+  }
+
   const wss = new WebSocketServer({
     server: httpServer,
     path: '/ws',

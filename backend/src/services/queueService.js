@@ -22,14 +22,35 @@ function createConnection(purpose) {
   const client = new Redis(REDIS_URL, {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: null,
+    retryStrategy(times) {
+      // Reconnect after delay, but prevent log flooding
+      return Math.min(times * 2000, 30000);
+    },
     connectionName: `soroban-playground:bullmq:${purpose}`,
   });
 
+  let loggedError = false;
   client.on('error', (err) => {
-    // Only log if not in test env
-    if (process.env.NODE_ENV !== 'test') {
-      console.error(`[BullMQ Redis Error] [${purpose}]:`, err.message);
+    const isConnRefused =
+      err.code === 'ECONNREFUSED' ||
+      (err.errors && err.errors.some((e) => e.code === 'ECONNREFUSED'));
+    // Log once when offline, suppress log spam
+    if (process.env.NODE_ENV !== 'test' && !loggedError) {
+      if (isConnRefused) {
+        console.warn(
+          `[BullMQ Redis Offline] [${purpose}]: Redis server not reachable at ${REDIS_URL}. Queue features will be paused until Redis is started.`
+        );
+        loggedError = true;
+      } else {
+        console.error(`[BullMQ Redis Error] [${purpose}]:`, err.message);
+      }
     }
+  });
+
+  client.on('connect', () => {
+    loggedError = false;
   });
 
   activeConnections.push(client);
@@ -99,9 +120,28 @@ export function initializeQueues() {
     },
   });
 
+  for (const [name, queue] of Object.entries(queues)) {
+    queue.on('error', (err) => {
+      const isConnRefused =
+        err.code === 'ECONNREFUSED' ||
+        (err.errors && err.errors.some((e) => e.code === 'ECONNREFUSED'));
+      if (process.env.NODE_ENV !== 'test' && !isConnRefused) {
+        console.error(`[BullMQ Queue Error] [${name}]:`, err.message || err);
+      }
+    });
+  }
+
   // 2. Initialize FlowProducer for parent-child job trees
   flowProducer = new FlowProducer({
     connection: createConnection('flow-producer'),
+  });
+  flowProducer.on('error', (err) => {
+    const isConnRefused =
+      err.code === 'ECONNREFUSED' ||
+      (err.errors && err.errors.some((e) => e.code === 'ECONNREFUSED'));
+    if (process.env.NODE_ENV !== 'test' && !isConnRefused) {
+      console.error('[BullMQ FlowProducer Error]:', err.message || err);
+    }
   });
 
   // 3. Initialize Workers (only if not in test mode, to facilitate mock workers in tests)
@@ -160,6 +200,11 @@ export function initializeQueues() {
           `[BullMQ Worker] Job ${job?.id} of queue ${name} has failed:`,
           err.message
         );
+      });
+      worker.on('error', (err) => {
+        if (process.env.NODE_ENV !== 'test') {
+          // Worker error event handled silently by custom createConnection logger
+        }
       });
     }
 

@@ -16,7 +16,9 @@ mod storage;
 mod test;
 mod types;
 
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Vec};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, String, Symbol, Vec,
+};
 
 use crate::storage::{
     get_admin, get_advanced_strategy, get_position, get_strategy, get_strategy_count,
@@ -782,9 +784,7 @@ impl YieldOptimizer {
     }
 }
 
-use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol,
-};
+
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -799,6 +799,7 @@ pub enum VaultError {
 }
 
 #[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DataKey {
     Admin,
     UnderlyingToken,
@@ -813,7 +814,7 @@ pub struct YieldOptimizerVault;
 #[contractimpl]
 impl YieldOptimizerVault {
     /// Initialize the vault with an admin, underlying asset address, and performance fee
-    pub fn initialize(
+    pub fn vault_initialize(
         env: Env,
         admin: Address,
         underlying_token: Address,
@@ -846,7 +847,7 @@ impl YieldOptimizerVault {
     }
 
     /// Deposits underlying tokens and mints proportional vault share tokens
-    pub fn deposit(env: Env, from: Address, amount: i128) -> Result<i128, VaultError> {
+    pub fn vault_deposit(env: Env, from: Address, amount: i128) -> Result<i128, VaultError> {
         from.require_auth();
         if amount <= 0 {
             return Err(VaultError::InvalidAmount);
@@ -908,7 +909,7 @@ impl YieldOptimizerVault {
     }
 
     /// Burns vault shares and returns proportional underlying token assets
-    pub fn withdraw(env: Env, from: Address, shares: i128) -> Result<i128, VaultError> {
+    pub fn vault_withdraw(env: Env, from: Address, shares: i128) -> Result<i128, VaultError> {
         from.require_auth();
         if shares <= 0 {
             return Err(VaultError::InvalidAmount);

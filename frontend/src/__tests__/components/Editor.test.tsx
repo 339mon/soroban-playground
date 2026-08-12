@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
-const MonacoEditorStub = jest.fn(({ value, onChange }) => (
+const mockMonacoEditorStub = jest.fn(({ value, onChange }) => (
   <div data-testid="monaco-editor">
     <div>{value}</div>
     <button type="button" onClick={() => onChange?.("updated code")}>
@@ -19,7 +19,7 @@ jest.mock("@/lib/editorLoadScheduler", () => ({
     void task();
     return jest.fn();
   }),
-  loadMonacoEditor: jest.fn(async () => ({ default: MonacoEditorStub })),
+  loadMonacoEditor: jest.fn(async () => ({ default: mockMonacoEditorStub })),
 }));
 
 jest.mock("@/hooks/useCollaborativeEditor", () => ({
@@ -88,6 +88,6 @@ describe("Editor", () => {
     );
 
     expect(screen.getByText(/Collab \(2\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Connected/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Connected/i)).not.toBeInTheDocument();
   });
 });

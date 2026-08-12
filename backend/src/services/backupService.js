@@ -45,7 +45,7 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import { pipeline } from 'stream/promises';
 import { createGunzip } from 'zlib';
-import tar from 'tar';
+import * as tar from 'tar';
 import {
   S3Client,
   HeadObjectCommand,

@@ -28,7 +28,10 @@ const FormInputItem = React.memo(({
 }) => {
   const inputId = `wasm-spec-input-${input.name}`;
   const kind = useMemo(() => normalizeType(input.type), [input.type]);
-  const fieldError = useMemo(() => validateSorobanType(input.name, input.type, value), [input.name, input.type, value]);
+  const fieldError = useMemo(
+    () => (value !== undefined ? validateSorobanType(input.name, input.type, value) : null),
+    [input.name, input.type, value],
+  );
 
   return (
     <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/50 border border-white/5">

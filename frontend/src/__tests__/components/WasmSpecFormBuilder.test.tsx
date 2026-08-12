@@ -72,7 +72,7 @@ describe("WasmSpecFormBuilder", () => {
         />
       </WalletProvider>,
     );
-    expect(screen.queryByRole("paragraph")).not.toBeInTheDocument();
+    expect(screen.queryByText(/is required/i)).not.toBeInTheDocument();
   });
 });
 

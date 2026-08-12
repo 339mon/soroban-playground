@@ -3,12 +3,12 @@
 mod test;
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Vec,
 };
 
-const ADMIN: symbol_short::Symbol = symbol_short!("ADMIN");
-const VERIFICATION_THRESHOLD: symbol_short::Symbol = symbol_short!("THRESHOLD");
-const CIRCUIT_BREAKER: symbol_short::Symbol = symbol_short!("BREAKER");
+const ADMIN: Symbol = symbol_short!("ADMIN");
+const VERIFICATION_THRESHOLD: Symbol = symbol_short!("THRESHOLD");
+const CIRCUIT_BREAKER: Symbol = symbol_short!("BREAKER");
 const MAX_SOURCES: u32 = 20;
 
 #[contracterror]
@@ -34,15 +34,15 @@ pub struct RiskData {
 }
 
 fn get_admin(env: &Env) -> Result<Address, Error> {
-    env.instance().get(&ADMIN).ok_or(Error::Unauthorized)
+    env.storage().instance().get(&ADMIN).ok_or(Error::Unauthorized)
 }
 
 fn set_admin(env: &Env, admin: &Address) {
-    env.instance().set(&ADMIN, admin);
+    env.storage().instance().set(&ADMIN, admin);
 }
 
 fn ensure_initialized(env: &Env) -> Result<(), Error> {
-    if !env.instance().has::<Address>(&ADMIN) {
+    if !env.storage().instance().has::<Symbol>(&ADMIN) {
         return Err(Error::NotFound);
     }
     Ok(())
@@ -61,16 +61,16 @@ pub struct InsuranceOracle;
 #[contractimpl]
 impl InsuranceOracle {
     pub fn initialize(env: Env, admin: Address) -> Result<(), Error> {
-        if env.instance().has::<Address>(&ADMIN) {
+        if env.storage().instance().has::<Symbol>(&ADMIN) {
             return Err(Error::CapExceeded);
         }
         admin.require_auth();
         set_admin(&env, &admin);
-        env.instance().set(&VERIFICATION_THRESHOLD, &3u32);
+        env.storage().instance().set(&VERIFICATION_THRESHOLD, &3u32);
         env.storage()
             .persistent()
             .set(&symbol_short!("SOURCES"), &Vec::<Address>::new(&env));
-        env.instance().set(&CIRCUIT_BREAKER, &false);
+        env.storage().instance().set(&CIRCUIT_BREAKER, &false);
         Ok(())
     }
 
@@ -80,7 +80,7 @@ impl InsuranceOracle {
         ensure_initialized(&env)?;
         let sources = get_sources(&env);
 
-        if !sources.contains(data.source) {
+        if !sources.contains(data.source.clone()) {
             return Err(Error::Unauthorized);
         }
 
@@ -88,20 +88,20 @@ impl InsuranceOracle {
             return Err(Error::InvalidInput);
         }
 
-        let breaker: bool = env.instance().get(&CIRCUIT_BREAKER).unwrap_or(false);
+        let breaker: bool = env.storage().instance().get(&CIRCUIT_BREAKER).unwrap_or(false);
         if breaker {
             return Err(Error::CircuitOpen);
         }
 
-        if data.risk_type.to_bytes().len() > 64 {
+        if data.risk_type.len() > 64 {
             return Err(Error::InvalidInput);
         }
 
-        if data.metadata.to_bytes().len() > 256 {
+        if data.metadata.len() > 256 {
             return Err(Error::InvalidInput);
         }
 
-        let key: symbol_short::Symbol = symbol_short!("RD");
+        let key: Symbol = symbol_short!("RD");
         let mut all_data: Vec<RiskData> = env
             .storage()
             .persistent()
@@ -111,8 +111,8 @@ impl InsuranceOracle {
         env.storage().persistent().set(&key, &all_data);
 
         env.events().publish(
-            (symbol_short!("RiskDataSubmitted"),),
-            (&data.risk_type, &data.value),
+            (symbol_short!("RiskSub"),),
+            data.value,
         );
 
         Ok(())
@@ -120,7 +120,7 @@ impl InsuranceOracle {
 
     pub fn get_risk_data(env: Env, _risk_type: String) -> Result<Vec<RiskData>, Error> {
         ensure_initialized(&env)?;
-        let key: symbol_short::Symbol = symbol_short!("RD");
+        let key: Symbol = symbol_short!("RD");
         Ok(env
             .storage()
             .persistent()
@@ -135,7 +135,7 @@ impl InsuranceOracle {
         to: u64,
     ) -> Result<Vec<RiskData>, Error> {
         ensure_initialized(&env)?;
-        let key: symbol_short::Symbol = symbol_short!("RD");
+        let key: Symbol = symbol_short!("RD");
         let all_data: Vec<RiskData> = env
             .storage()
             .persistent()
@@ -160,7 +160,7 @@ impl InsuranceOracle {
         }
 
         let mut sources = get_sources(&env);
-        if sources.contains(source) {
+        if sources.contains(source.clone()) {
             return Ok(());
         }
         if sources.len() >= MAX_SOURCES {
@@ -181,24 +181,20 @@ impl InsuranceOracle {
             return Err(Error::Unauthorized);
         }
 
-        let mut sources = get_sources(&env);
-        let mut found = false;
+        let sources = get_sources(&env);
         let mut new_sources: Vec<Address> = Vec::new(&env);
         for s in sources.iter() {
             if s != source {
                 new_sources.push_back(s);
-            } else {
-                found = true;
             }
-        }
-        if !found {
-            return Err(Error::NotFound);
         }
         env.storage()
             .persistent()
             .set(&symbol_short!("SOURCES"), &new_sources);
         Ok(())
     }
+
+    // ── Threshold Configuration ─────────────────────────────────────────────
 
     pub fn set_verification_threshold(
         env: Env,
@@ -211,11 +207,11 @@ impl InsuranceOracle {
             return Err(Error::Unauthorized);
         }
 
-        if threshold < 1 || threshold > 20 {
+        if threshold == 0 {
             return Err(Error::InvalidInput);
         }
 
-        env.instance().set(&VERIFICATION_THRESHOLD, &threshold);
+        env.storage().instance().set(&VERIFICATION_THRESHOLD, &threshold);
         Ok(())
     }
 
@@ -228,9 +224,9 @@ impl InsuranceOracle {
             return Err(Error::Unauthorized);
         }
 
-        env.instance().set(&CIRCUIT_BREAKER, &true);
+        env.storage().instance().set(&CIRCUIT_BREAKER, &true);
         env.events()
-            .publish((symbol_short!("CircuitBreakerActivated"),), &());
+            .publish((symbol_short!("CbAct"),), 0u32);
         Ok(())
     }
 
@@ -241,9 +237,9 @@ impl InsuranceOracle {
             return Err(Error::Unauthorized);
         }
 
-        env.instance().set(&CIRCUIT_BREAKER, &false);
+        env.storage().instance().set(&CIRCUIT_BREAKER, &false);
         env.events()
-            .publish((symbol_short!("CircuitBreakerDeactivated"),), &());
+            .publish((symbol_short!("CbDeact"),), 0u32);
         Ok(())
     }
 
@@ -255,7 +251,7 @@ impl InsuranceOracle {
 
     pub fn get_threshold_fn(env: Env) -> Result<u32, Error> {
         ensure_initialized(&env)?;
-        Ok(env.instance().get(&VERIFICATION_THRESHOLD).unwrap_or(3))
+        Ok(env.storage().instance().get(&VERIFICATION_THRESHOLD).unwrap_or(3))
     }
 
     pub fn get_sources_fn(env: Env) -> Result<Vec<Address>, Error> {
@@ -264,9 +260,7 @@ impl InsuranceOracle {
     }
 }
 
-use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Vec,
-};
+
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -304,7 +298,7 @@ pub struct InsuranceOracleAggregator;
 #[contractimpl]
 impl InsuranceOracleAggregator {
     /// Initializes oracle aggregator with admin and max price staleness window (seconds).
-    pub fn initialize(
+    pub fn aggregator_initialize(
         env: Env,
         admin: Address,
         staleness_threshold_secs: u64,

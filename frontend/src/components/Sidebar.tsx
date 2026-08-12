@@ -156,11 +156,23 @@ export default function SidebarShell({
   );
 
   return (
-    <div className="flex min-h-screen bg-[#060c18] text-[#e6edf7] font-sans antialiased selection:bg-teal-500/30 selection:text-teal-200">
+    <div
+      className="flex min-h-screen bg-[#060c18] text-[#e6edf7] font-sans antialiased selection:bg-teal-500/30 selection:text-teal-200"
+      suppressHydrationWarning
+    >
       {/* Background Gradients */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/10 blur-[120px]" />
+      <div
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        suppressHydrationWarning
+      >
+        <div
+          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/10 blur-[120px]"
+          suppressHydrationWarning
+        />
+        <div
+          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/10 blur-[120px]"
+          suppressHydrationWarning
+        />
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -168,6 +180,7 @@ export default function SidebarShell({
               "linear-gradient(rgba(120, 140, 180, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 140, 180, 0.15) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
+          suppressHydrationWarning
         />
       </div>
 
@@ -176,11 +189,18 @@ export default function SidebarShell({
         className={`fixed inset-y-0 left-0 z-20 hidden md:flex flex-col bg-slate-950/80 border-r border-slate-800/60 backdrop-blur-xl transition-all duration-300 ${
           collapsed ? "w-20" : "w-64"
         }`}
+        suppressHydrationWarning
       >
         {/* Brand header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60">
+        <div
+          className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60"
+          suppressHydrationWarning
+        >
           <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-            <div className="p-1.5 rounded-xl bg-gradient-to-tr from-teal-400 to-orange-400 text-slate-950 shadow-[0_0_20px_rgba(45,212,191,0.3)] animate-pulse">
+            <div
+              className="p-1.5 rounded-xl bg-gradient-to-tr from-teal-400 to-orange-400 text-slate-950 shadow-[0_0_20px_rgba(45,212,191,0.3)] animate-pulse"
+              suppressHydrationWarning
+            >
               <Orbit size={18} className="animate-spin-[duration:12s]" />
             </div>
             {!collapsed && (
@@ -199,9 +219,16 @@ export default function SidebarShell({
         </div>
 
         {/* Navigation list */}
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+        <div
+          className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-800"
+          suppressHydrationWarning
+        >
           {NAVIGATION.map((group) => (
-            <div key={group.groupName} className="space-y-1">
+            <div
+              key={group.groupName}
+              className="space-y-1"
+              suppressHydrationWarning
+            >
               {!collapsed && (
                 <button
                   onClick={() => toggleGroup(group.groupName)}
@@ -218,7 +245,7 @@ export default function SidebarShell({
               )}
 
               {(!collapsed && expandedGroups[group.groupName]) || collapsed ? (
-                <div className="space-y-0.5">
+                <div className="space-y-0.5" suppressHydrationWarning>
                   {group.items.map((item) => {
                     const active = isActive(item.href);
                     return (
@@ -259,9 +286,18 @@ export default function SidebarShell({
 
         {/* Wallet footer connection */}
         {!collapsed && (
-          <div className="p-3 border-t border-slate-800/60 bg-slate-950/40">
-            <div className="rounded-xl bg-slate-900/60 border border-slate-800/40 p-2.5">
-              <div className="flex items-center justify-between gap-2 mb-2">
+          <div
+            className="p-3 border-t border-slate-800/60 bg-slate-950/40"
+            suppressHydrationWarning
+          >
+            <div
+              className="rounded-xl bg-slate-900/60 border border-slate-800/40 p-2.5"
+              suppressHydrationWarning
+            >
+              <div
+                className="flex items-center justify-between gap-2 mb-2"
+                suppressHydrationWarning
+              >
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   Freighter Connected
                 </span>
@@ -275,7 +311,7 @@ export default function SidebarShell({
               </div>
 
               {wallet.status === "connected" && wallet.address ? (
-                <div>
+                <div suppressHydrationWarning>
                   <p className="font-mono text-xs text-emerald-400 truncate mb-1">
                     {formatAddress(wallet.address)}
                   </p>
@@ -306,6 +342,7 @@ export default function SidebarShell({
         <div
           onClick={() => setIsOpen(false)}
           className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          suppressHydrationWarning
         />
       )}
 
@@ -314,8 +351,12 @@ export default function SidebarShell({
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-950/90 border-r border-slate-800/60 backdrop-blur-2xl flex flex-col md:hidden transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        suppressHydrationWarning
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60">
+        <div
+          className="h-16 flex items-center justify-between px-4 border-b border-slate-800/60"
+          suppressHydrationWarning
+        >
           <Link href="/" className="flex items-center gap-2">
             <Orbit
               size={18}
@@ -333,13 +374,20 @@ export default function SidebarShell({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
+        <div
+          className="flex-1 overflow-y-auto py-4 px-3 space-y-4"
+          suppressHydrationWarning
+        >
           {NAVIGATION.map((group) => (
-            <div key={group.groupName} className="space-y-1">
+            <div
+              key={group.groupName}
+              className="space-y-1"
+              suppressHydrationWarning
+            >
               <p className="px-3 py-1 text-[9px] font-semibold text-slate-500 uppercase tracking-widest">
                 {group.groupName}
               </p>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5" suppressHydrationWarning>
                 {group.items.map((item) => {
                   const active = isActive(item.href);
                   return (
@@ -366,9 +414,18 @@ export default function SidebarShell({
           ))}
         </div>
 
-        <div className="p-4 border-t border-slate-800/60 bg-slate-950/40">
-          <div className="rounded-xl bg-slate-900 border border-slate-800 p-3">
-            <div className="flex items-center justify-between mb-2">
+        <div
+          className="p-4 border-t border-slate-800/60 bg-slate-950/40"
+          suppressHydrationWarning
+        >
+          <div
+            className="rounded-xl bg-slate-900 border border-slate-800 p-3"
+            suppressHydrationWarning
+          >
+            <div
+              className="flex items-center justify-between mb-2"
+              suppressHydrationWarning
+            >
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Wallet Status
               </span>
@@ -402,10 +459,14 @@ export default function SidebarShell({
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 z-10 ${
           collapsed ? "md:pl-20" : "md:pl-64"
         }`}
+        suppressHydrationWarning
       >
         {/* Top Navigation Header */}
-        <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-slate-950/40 border-b border-slate-800/60 backdrop-blur-md sticky top-0 z-20">
-          <div className="flex items-center gap-3">
+        <header
+          className="h-16 flex items-center justify-between px-4 sm:px-6 bg-slate-950/40 border-b border-slate-800/60 backdrop-blur-md sticky top-0 z-20"
+          suppressHydrationWarning
+        >
+          <div className="flex items-center gap-3" suppressHydrationWarning>
             <button
               onClick={() => setIsOpen(true)}
               className="p-2 -ml-2 rounded-lg text-slate-400 hover:bg-white/5 md:hidden"
@@ -415,7 +476,7 @@ export default function SidebarShell({
             </button>
 
             {/* Page title / breadcrumb */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" suppressHydrationWarning>
               <span className="hidden sm:inline-flex text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-400 transition-colors">
                 Soroban Play
               </span>
@@ -428,7 +489,7 @@ export default function SidebarShell({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" suppressHydrationWarning>
             {/* Network indicator */}
             {wallet.status === "connected" && wallet.network && (
               <span className="hidden xs:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-semibold tracking-wider uppercase">

@@ -7,10 +7,7 @@ import { faker } from '@faker-js/faker';
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const DEFAULT_DB_PATH = path.join(
-  __dirname,
-  '../data/soroban_playground.sqlite'
-);
+const DEFAULT_DB_PATH = path.join(dirname, '../data/soroban_playground.sqlite');
 
 async function seedDatabase(options = {}) {
   const dbPath = options.dbPath || DEFAULT_DB_PATH;
@@ -46,8 +43,11 @@ async function seedDatabase(options = {}) {
 
     for (let i = 0; i < numUsers; i++) {
       currentUserChunk.push('(?, ?, ?, ?)');
+      const username = (
+        faker.internet.username || faker.internet.userName
+      ).call(faker.internet);
       currentUserParams.push(
-        faker.internet.userName(),
+        username,
         faker.internet.email(),
         faker.internet.password(),
         faker.helpers.arrayElement(['developer', 'admin', 'guest'])

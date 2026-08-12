@@ -28,6 +28,6 @@ describe("RootLayout (Dashboard Layout)", () => {
     );
 
     expect(screen.getByText("child-content")).toBeInTheDocument();
-    expect(screen.getByText(/Soroban Play/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Soroban Play/i)[0]).toBeInTheDocument();
   });
 });

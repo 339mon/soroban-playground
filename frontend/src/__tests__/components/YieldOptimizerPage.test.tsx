@@ -75,7 +75,7 @@ describe("YieldOptimizerPage", () => {
         contractId: "C".repeat(56),
         walletAddress: "GDEMOWALLET000000000000000000000000000000000",
       }),
-      expect.anything(),
+      undefined,
     );
   });
 });
