@@ -63,6 +63,8 @@ next-env.d.ts
 indexer/target/
 *.db
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # Cache and Data
 backend/cache/
