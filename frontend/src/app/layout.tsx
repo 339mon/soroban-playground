@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GraphQLProvider } from "../components/providers/GraphQLProvider";
+import { WalletProvider } from "../components/providers/WalletProvider";
 import SidebarShell from "../components/Sidebar";
+import RenderWarningModal from "../components/RenderWarningModal";
 
 export const metadata: Metadata = {
   title: "Stellar Soroban Playground",
@@ -15,13 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#060c18] text-[#e6edf7] antialiased">
-        <GraphQLProvider>
-          <SidebarShell>
-            {children}
-          </SidebarShell>
-        </GraphQLProvider>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#060c18] text-[#e6edf7] antialiased" suppressHydrationWarning>
+        <WalletProvider>
+          <GraphQLProvider>
+            <SidebarShell>
+              <RenderWarningModal />
+              {children}
+            </SidebarShell>
+          </GraphQLProvider>
+        </WalletProvider>
       </body>
     </html>
   );

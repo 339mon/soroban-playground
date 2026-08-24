@@ -70,8 +70,11 @@ function formatDeadline(ts: number): string {
 
 // ── API client ────────────────────────────────────────────────────────────────
 
-const API_BASE =
-  (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000").replace(/\/$/, "");
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://soroban-playground.onrender.com")
+).replace(/\/$/, "");
 
 async function apiPost(path: string, body: unknown) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -102,7 +105,11 @@ function AnalyticsBar({ analytics }: { analytics: PoolAnalytics }) {
       <div className="flex justify-between text-xs text-gray-400 mb-1">
         <span>Pool: {totalPool.toLocaleString()} stroops</span>
       </div>
-      <div className="flex h-3 rounded overflow-hidden" role="img" aria-label="Stake distribution">
+      <div
+        className="flex h-3 rounded overflow-hidden"
+        role="img"
+        aria-label="Stake distribution"
+      >
         <div
           className="bg-blue-500 transition-all"
           style={{ width: `${home.pct}%` }}
@@ -137,7 +144,12 @@ interface MarketCardProps {
   onRefresh: () => void;
 }
 
-function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCardProps) {
+function MarketCard({
+  market,
+  contractId,
+  walletAddress,
+  onRefresh,
+}: MarketCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [betOutcome, setBetOutcome] = useState<SportOutcome>(0);
   const [betStake, setBetStake] = useState("");
@@ -150,15 +162,15 @@ function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCard
     market.status === "Open"
       ? "text-green-400"
       : market.status === "Resolved"
-      ? "text-blue-400"
-      : "text-gray-400";
+        ? "text-blue-400"
+        : "text-gray-400";
 
   const StatusIcon =
     market.status === "Open"
       ? Activity
       : market.status === "Resolved"
-      ? CheckCircle2
-      : XCircle;
+        ? CheckCircle2
+        : XCircle;
 
   async function loadAnalytics() {
     try {
@@ -206,7 +218,7 @@ function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCard
     try {
       const data = await apiGet(
         `/api/sports-markets/${market.id}/payout/${walletAddress}`,
-        { contractId }
+        { contractId },
       );
       setPayout(data.payout);
     } catch (e: unknown) {
@@ -229,13 +241,19 @@ function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCard
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400">{SPORT_LABELS[market.sport] ?? "Sport"}</p>
-            <h3 className="font-semibold text-white truncate">{market.description}</h3>
+            <p className="text-xs text-gray-400">
+              {SPORT_LABELS[market.sport] ?? "Sport"}
+            </p>
+            <h3 className="font-semibold text-white truncate">
+              {market.description}
+            </h3>
             <p className="text-sm text-gray-300">
               {market.homeTeam} vs {market.awayTeam}
             </p>
           </div>
-          <span className={`flex items-center gap-1 text-xs font-medium ${statusColor}`}>
+          <span
+            className={`flex items-center gap-1 text-xs font-medium ${statusColor}`}
+          >
             <StatusIcon size={12} aria-hidden />
             {market.status}
           </span>
@@ -244,9 +262,21 @@ function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCard
         {/* Odds row */}
         <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
           {[
-            { label: market.homeTeam, bp: market.oddsHomeBp, color: "bg-blue-900 text-blue-300" },
-            { label: "Draw", bp: market.oddsDrawBp, color: "bg-yellow-900 text-yellow-300" },
-            { label: market.awayTeam, bp: market.oddsAwayBp, color: "bg-red-900 text-red-300" },
+            {
+              label: market.homeTeam,
+              bp: market.oddsHomeBp,
+              color: "bg-blue-900 text-blue-300",
+            },
+            {
+              label: "Draw",
+              bp: market.oddsDrawBp,
+              color: "bg-yellow-900 text-yellow-300",
+            },
+            {
+              label: market.awayTeam,
+              bp: market.oddsAwayBp,
+              color: "bg-red-900 text-red-300",
+            },
           ].map(({ label, bp, color }) => (
             <div key={label} className={`rounded px-2 py-1 ${color}`}>
               <div className="font-bold">{bpToMultiplier(bp)}</div>
@@ -333,7 +363,10 @@ function MarketCard({ market, contractId, walletAddress, onRefresh }: MarketCard
           )}
 
           {error && (
-            <p className="text-xs text-red-400 flex items-center gap-1" role="alert">
+            <p
+              className="text-xs text-red-400 flex items-center gap-1"
+              role="alert"
+            >
               <AlertTriangle size={11} aria-hidden />
               {error}
             </p>
@@ -352,7 +385,11 @@ interface CreateMarketFormProps {
   onCreated: () => void;
 }
 
-function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarketFormProps) {
+function CreateMarketForm({
+  contractId,
+  walletAddress,
+  onCreated,
+}: CreateMarketFormProps) {
   const [description, setDescription] = useState("");
   const [sport, setSport] = useState(3);
   const [homeTeam, setHomeTeam] = useState("");
@@ -371,7 +408,8 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
     setBusy(true);
     setError("");
     try {
-      const deadline = Math.floor(Date.now() / 1000) + parseInt(deadlineHours, 10) * 3600;
+      const deadline =
+        Math.floor(Date.now() / 1000) + parseInt(deadlineHours, 10) * 3600;
       await apiPost("/api/sports-markets", {
         contractId,
         creator: walletAddress,
@@ -398,10 +436,17 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3" aria-label="Create sports market">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3"
+      aria-label="Create sports market"
+    >
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-description">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-description"
+          >
             Match Description
           </label>
           <input
@@ -415,7 +460,10 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-sport">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-sport"
+          >
             Sport
           </label>
           <select
@@ -425,13 +473,18 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
             className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
           >
             {Object.entries(SPORT_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
+              <option key={k} value={k}>
+                {v}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-deadline">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-deadline"
+          >
             Deadline (hours)
           </label>
           <input
@@ -445,7 +498,10 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-home">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-home"
+          >
             Home Team
           </label>
           <input
@@ -459,7 +515,10 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-away">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-away"
+          >
             Away Team
           </label>
           <input
@@ -473,7 +532,10 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
         </div>
 
         <div className="col-span-2">
-          <label className="block text-xs text-gray-400 mb-1" htmlFor="spm-oracle">
+          <label
+            className="block text-xs text-gray-400 mb-1"
+            htmlFor="spm-oracle"
+          >
             Oracle Address
           </label>
           <input
@@ -494,12 +556,30 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
         </p>
         <div className="grid grid-cols-3 gap-2">
           {[
-            { id: "spm-odds-home", label: "Home", val: oddsHome, set: setOddsHome },
-            { id: "spm-odds-draw", label: "Draw", val: oddsDraw, set: setOddsDraw },
-            { id: "spm-odds-away", label: "Away", val: oddsAway, set: setOddsAway },
+            {
+              id: "spm-odds-home",
+              label: "Home",
+              val: oddsHome,
+              set: setOddsHome,
+            },
+            {
+              id: "spm-odds-draw",
+              label: "Draw",
+              val: oddsDraw,
+              set: setOddsDraw,
+            },
+            {
+              id: "spm-odds-away",
+              label: "Away",
+              val: oddsAway,
+              set: setOddsAway,
+            },
           ].map(({ id, label, val, set }) => (
             <div key={id}>
-              <label className="block text-xs text-gray-500 mb-0.5" htmlFor={id}>
+              <label
+                className="block text-xs text-gray-500 mb-0.5"
+                htmlFor={id}
+              >
                 {label}
               </label>
               <input
@@ -516,7 +596,10 @@ function CreateMarketForm({ contractId, walletAddress, onCreated }: CreateMarket
       </div>
 
       {error && (
-        <p className="text-xs text-red-400 flex items-center gap-1" role="alert">
+        <p
+          className="text-xs text-red-400 flex items-center gap-1"
+          role="alert"
+        >
           <AlertTriangle size={11} aria-hidden />
           {error}
         </p>
@@ -584,7 +667,9 @@ export default function SportsPredictionMarketPanel({
     if (!contractId) return;
     setAdminBusy(true);
     try {
-      await apiPost(`/api/sports-markets/${paused ? "unpause" : "pause"}`, { contractId });
+      await apiPost(`/api/sports-markets/${paused ? "unpause" : "pause"}`, {
+        contractId,
+      });
       setPaused((v) => !v);
     } catch {
       // ignore
@@ -618,7 +703,11 @@ export default function SportsPredictionMarketPanel({
           className="text-gray-400 hover:text-white transition-colors"
           aria-label="Refresh markets"
         >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden />
+          <RefreshCw
+            size={14}
+            className={loading ? "animate-spin" : ""}
+            aria-hidden
+          />
         </button>
       </div>
 
@@ -652,9 +741,15 @@ export default function SportsPredictionMarketPanel({
             aria-selected={tab === t}
             role="tab"
           >
-            {t === "markets" && <BarChart2 size={11} className="inline mr-1" aria-hidden />}
-            {t === "create" && <Plus size={11} className="inline mr-1" aria-hidden />}
-            {t === "admin" && <Activity size={11} className="inline mr-1" aria-hidden />}
+            {t === "markets" && (
+              <BarChart2 size={11} className="inline mr-1" aria-hidden />
+            )}
+            {t === "create" && (
+              <Plus size={11} className="inline mr-1" aria-hidden />
+            )}
+            {t === "admin" && (
+              <Activity size={11} className="inline mr-1" aria-hidden />
+            )}
             {t}
           </button>
         ))}
@@ -663,14 +758,20 @@ export default function SportsPredictionMarketPanel({
       {/* Body */}
       <div className="p-4">
         {!contractId && (
-          <p className="text-xs text-yellow-400 flex items-center gap-1 mb-3" role="alert">
+          <p
+            className="text-xs text-yellow-400 flex items-center gap-1 mb-3"
+            role="alert"
+          >
             <AlertTriangle size={12} aria-hidden />
             Enter a contract ID to interact with the market.
           </p>
         )}
 
         {error && (
-          <p className="text-xs text-red-400 flex items-center gap-1 mb-3" role="alert">
+          <p
+            className="text-xs text-red-400 flex items-center gap-1 mb-3"
+            role="alert"
+          >
             <AlertTriangle size={12} aria-hidden />
             {error}
           </p>
@@ -680,7 +781,9 @@ export default function SportsPredictionMarketPanel({
         {tab === "markets" && (
           <div className="space-y-3">
             {loading && (
-              <p className="text-xs text-gray-400 text-center py-4">Loading markets…</p>
+              <p className="text-xs text-gray-400 text-center py-4">
+                Loading markets…
+              </p>
             )}
             {!loading && markets.length === 0 && (
               <p className="text-xs text-gray-500 text-center py-4">
@@ -740,8 +843,8 @@ export default function SportsPredictionMarketPanel({
                 )}
               </button>
               <p className="text-xs text-gray-400">
-                Pausing prevents new bets and market creation. Existing markets and
-                payouts are unaffected.
+                Pausing prevents new bets and market creation. Existing markets
+                and payouts are unaffected.
               </p>
             </div>
 

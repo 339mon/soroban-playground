@@ -8,27 +8,68 @@ import { sharedOracleEventBus } from './services/oracle/oracleEvents.js';
 
 const clients = new Set();
 
-export function broadcastTreasuryEvent(event) {
-  const message = JSON.stringify({ type: 'treasury-event', ...event });
-  for (const socket of clients) {
+const HEARTBEAT_INTERVAL_MS = 30_000; // ping every 30 s
+const MAX_MISSED_PONGS = 2; // terminate after 2 consecutive misses
+
+function safeSend(socket, message) {
+  try {
     if (socket.readyState === socket.OPEN) {
       socket.send(message);
     }
+  } catch (err) {
+    console.error('WS send error:', err.message);
+    clients.delete(socket);
   }
 }
 
+function safeStringify(payload) {
+  try {
+    return JSON.stringify(payload);
+  } catch (err) {
+    console.error('WS serialize error:', err.message);
+    return null;
+  }
+}
+
+export function broadcastTreasuryEvent(event) {
+  const message = safeStringify({ type: 'treasury-event', ...event });
+  if (!message) return;
+  for (const socket of clients) {
+    safeSend(socket, message);
+  }
+}
+
+let wssInstance = null;
+
 export function setupWebsocketServer(httpServer) {
+  if (wssInstance) {
+    try {
+      closeWebsocketServer();
+    } catch (_) {}
+  }
+
   const wss = new WebSocketServer({
     server: httpServer,
     path: '/ws',
   });
 
+  wssInstance = wss;
+
+  wss.on('error', (err) => {
+    console.error('WebSocketServer error:', err.message);
+  });
+
   wss.on('connection', (socket, request) => {
+    let url;
+    try {
+      url = new URL(request.url, 'http://localhost');
+    } catch {
+      socket.close(1008, 'Bad Request');
+      return;
+    }
+
     const authHeader = request.headers.authorization || '';
-    const tokenFromQuery = new URL(
-      request.url,
-      'http://localhost'
-    ).searchParams.get('token');
+    const tokenFromQuery = url.searchParams.get('token');
     const token = authHeader.startsWith('Bearer ')
       ? authHeader.slice('Bearer '.length)
       : tokenFromQuery;
@@ -38,13 +79,57 @@ export function setupWebsocketServer(httpServer) {
       return;
     }
 
+    socket.missedPongs = 0;
     clients.add(socket);
-    socket.send(
-      JSON.stringify({
-        type: 'connected',
-        timestamp: new Date().toISOString(),
-      })
+
+    safeSend(
+      socket,
+      safeStringify({ type: 'connected', timestamp: new Date().toISOString() })
     );
+
+    socket.on('message', (data) => {
+      try {
+        const payload = JSON.parse(data);
+        if (
+          payload.type === 'collaboration-join' ||
+          payload.type === 'collaboration-cursor'
+        ) {
+          socket.docId = payload.docId || 'default-doc';
+          if (payload.user) {
+            socket.collaboratorName = payload.user.name;
+            socket.collaboratorColor = payload.user.color;
+          }
+          const peers = Array.from(clients)
+            .filter((s) => s !== socket && s.docId === socket.docId)
+            .map((s, idx) => ({
+              id: `peer-${idx}`,
+              name: s.collaboratorName || `Peer ${idx + 1}`,
+              color: s.collaboratorColor || '#6366f1',
+              cursor: s.cursor,
+              lastActive: new Date().toISOString(),
+            }));
+          safeSend(
+            socket,
+            safeStringify({
+              type: 'collaboration-presence',
+              docId: socket.docId,
+              peers,
+            })
+          );
+        }
+      } catch {
+        // ignore invalid payload
+      }
+    });
+
+    socket.on('pong', () => {
+      socket.missedPongs = 0;
+    });
+
+    socket.on('error', (err) => {
+      console.error('WS client error:', err.message);
+      clients.delete(socket);
+    });
 
     socket.on('close', () => {
       clients.delete(socket);
@@ -52,11 +137,10 @@ export function setupWebsocketServer(httpServer) {
   });
 
   const forward = (type) => (event) => {
-    const message = JSON.stringify({ type, ...event });
+    const message = safeStringify({ type, ...event });
+    if (!message) return;
     for (const socket of clients) {
-      if (socket.readyState === socket.OPEN) {
-        socket.send(message);
-      }
+      safeSend(socket, message);
     }
   };
 
@@ -65,14 +149,35 @@ export function setupWebsocketServer(httpServer) {
   compileProgressBus.on('progress', forward('compile-progress'));
   oracleProofQueueService.on('progress', forward('oracle-proof-progress'));
 
-  // Forward every oracle lifecycle event under a single ws message type
-  // so the frontend can subscribe with one handler.
   sharedOracleEventBus.on('*', (payload) => {
-    const message = JSON.stringify({ type: 'oracle-event', ...payload });
+    const message = safeStringify({ type: 'oracle-event', ...payload });
+    if (!message) return;
     for (const socket of clients) {
-      if (socket.readyState === socket.OPEN) socket.send(message);
+      safeSend(socket, message);
     }
   });
+
+  // Heartbeat: ping all clients every 30 s; terminate after 2 missed pongs
+  const heartbeatTimer = setInterval(() => {
+    for (const socket of clients) {
+      if (socket.missedPongs >= MAX_MISSED_PONGS) {
+        console.warn('WS heartbeat: terminating stale connection');
+        socket.terminate();
+        clients.delete(socket);
+        continue;
+      }
+      socket.missedPongs += 1;
+      try {
+        socket.ping();
+      } catch (err) {
+        console.error('WS ping error:', err.message);
+        socket.terminate();
+        clients.delete(socket);
+      }
+    }
+  }, HEARTBEAT_INTERVAL_MS);
+
+  wss.on('close', () => clearInterval(heartbeatTimer));
 
   // Broadcast analytics every 2 seconds
   setInterval(async () => {
@@ -99,17 +204,17 @@ export function setupWebsocketServer(httpServer) {
         );
       }
 
-      const message = JSON.stringify({
+      const message = safeStringify({
         type: 'rate-limit-analytics',
         timestamp: new Date().toISOString(),
         topIps,
         stats,
       });
 
+      if (!message) return;
+
       for (const socket of clients) {
-        if (socket.readyState === socket.OPEN) {
-          socket.send(message);
-        }
+        safeSend(socket, message);
       }
     } catch (err) {
       console.error('WS Analytics Broadcast Error:', err.message);
@@ -119,11 +224,20 @@ export function setupWebsocketServer(httpServer) {
   return wss;
 }
 
-export function broadcast(payload) {
-  const message = JSON.stringify(payload);
-  for (const socket of clients) {
-    if (socket.readyState === socket.OPEN) {
-      socket.send(message);
+export function closeWebsocketServer() {
+  if (wssInstance) {
+    for (const socket of clients) {
+      socket.terminate();
     }
+    clients.clear();
+    wssInstance.close();
+  }
+}
+
+export function broadcast(payload) {
+  const message = safeStringify(payload);
+  if (!message) return;
+  for (const socket of clients) {
+    safeSend(socket, message);
   }
 }

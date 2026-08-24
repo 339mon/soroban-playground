@@ -55,38 +55,83 @@ class RedisService {
 
   init() {
     try {
-      this.client = new Redis(REDIS_URL, {
-        maxRetriesPerRequest: 1,
-        connectTimeout: 5000,
-        retryStrategy: (times) => {
-          if (times > this.maxAttempts) {
-            console.error(
-              'Redis connection failed, switching to fallback mode'
-            );
-            this.isFallbackMode = true;
-            return null;
-          }
-          return Math.min(times * 100, 2000);
-        },
-        connectionName: 'soroban-playground',
-      });
+      // If no REDIS_URL is provided and we are in production, default to fallback to avoid localhost connection spam
+      if (!process.env.REDIS_URL && process.env.NODE_ENV === 'production') {
+        console.log(
+          'No REDIS_URL provided in production, switching to fallback mode'
+        );
+        this.isFallbackMode = true;
+        return;
+      }
 
-      this.client.on('error', (err) => {
-        console.error('Redis Error:', err.message);
-        if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
-          this.isFallbackMode = true;
-        }
-      });
-
-      this.client.on('connect', () => {
-        console.log('Connected to Redis');
-        this.isFallbackMode = false;
-        this.defineScripts();
-      });
+      this.client = this._buildClient(REDIS_URL);
     } catch (err) {
-      console.error('Failed to initialize Redis:', err.message);
+      console.error('Failed to initialize Redis:', err.message || err);
       this.isFallbackMode = true;
     }
+  }
+
+  // Creates a configured Redis client with the shared retry strategy and event
+  // handlers. Used by init() and by rotateConnection() during credential
+  // rotation so both paths behave identically.
+  _buildClient(url) {
+    const client = new Redis(url, {
+      maxRetriesPerRequest: 1,
+      connectTimeout: 5000,
+      retryStrategy: (times) => {
+        if (times > this.maxAttempts) {
+          console.error('Redis connection failed, switching to fallback mode');
+          this.isFallbackMode = true;
+          return null;
+        }
+        return Math.min(times * 100, 2000);
+      },
+      connectionName: 'soroban-playground',
+    });
+
+    client.on('error', (err) => {
+      if (!this.isFallbackMode) {
+        if (err.code !== 'ECONNREFUSED' && err.code !== 'ETIMEDOUT') {
+          console.error('Redis Error:', err.message || err);
+        }
+      }
+      if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
+        this.isFallbackMode = true;
+      }
+    });
+
+    client.on('connect', () => {
+      console.log('Connected to Redis');
+      this.isFallbackMode = false;
+      this.defineScripts();
+    });
+
+    return client;
+  }
+
+  /**
+   * Reconnects Redis with a new URL without a restart (for credential
+   * rotation). Connects the new client, swaps it in, then gracefully quits the
+   * old one so its in-flight commands complete.
+   */
+  async rotateConnection(url) {
+    const next = this._buildClient(url);
+    const previous = this.client;
+    this.client = next;
+    this.isFallbackMode = false;
+
+    if (previous && previous !== next) {
+      try {
+        await previous.quit();
+      } catch {
+        try {
+          previous.disconnect();
+        } catch {
+          // already gone
+        }
+      }
+    }
+    return next;
   }
 
   defineScripts() {
@@ -199,7 +244,6 @@ class RedisService {
     const windowStart = now - windowMs;
 
     // Filter out expired timestamps and enforce a hard cap to prevent array bloat
-    // Even if the limit is high, we don't store more than what is needed to verify the current window
     const fresh = bucket.filter((ts) => ts > windowStart).slice(-limit);
 
     if (fresh.length < limit) {
@@ -217,6 +261,51 @@ class RedisService {
     };
   }
 
+  async get(key) {
+    if (this.isFallbackMode || !this.client) {
+      const val = this.localCache.get(key);
+      return val !== undefined ? val : null;
+    }
+    return await this.client.get(key);
+  }
+
+  async set(key, value, ttl) {
+    if (this.isFallbackMode || !this.client) {
+      this.localCache.set(key, value);
+      return 'OK';
+    }
+    return await this.client.set(key, value, 'EX', ttl);
+  }
+
+  async setNX(key, value, ttlSeconds) {
+    try {
+      if (this.client && !this.isFallbackMode) {
+        return await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
+      }
+    } catch (err) {
+      console.warn('Redis setNX error, using memory fallback:', err.message);
+    }
+    if (!this.localCache.has(key)) {
+      this.localCache.set(key, value, { ttl: ttlSeconds * 1000 });
+      return 'OK';
+    }
+    return null;
+  }
+
+  async delete(key) {
+    if (this.isFallbackMode || !this.client) {
+      this.localCache.delete?.(key);
+      return 1;
+    }
+    return await this.client.del(key);
+  }
+
+  /**
+   * Log analytics data for endpoint usage.
+   * @param {string} endpoint - The API endpoint being accessed.
+   * @param {string} ip - IP address of the requester.
+   * @param {string} status - Status label (e.g., 'success', 'error').
+   */
   async logAnalytics(endpoint, ip, status) {
     const safeEndpoint = normalizeAnalyticsValue(endpoint, 'unknown');
     const safeIp = normalizeAnalyticsValue(ip, 'unknown');
@@ -264,5 +353,7 @@ class RedisService {
   }
 }
 
+// Export both default and named instance for compatibility
 const redisService = new RedisService();
 export default redisService;
+export { redisService };

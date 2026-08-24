@@ -19,7 +19,7 @@ export const rateLimiter = (options = {}) => {
     limit = 100,
     windowMs = 60 * 1000,
     strategyName = 'SlidingWindowCounter',
-    identifier = 'ip',
+    identifier = 'apiKeyOrIp',
   } = options;
 
   const strategy = getStrategy(strategyName);
@@ -27,11 +27,21 @@ export const rateLimiter = (options = {}) => {
   return async (req, res, next) => {
     let id;
     if (identifier === 'apiKey') {
-      id = req.headers['x-api-key'] || req.ip;
+      id =
+        req.headers['x-api-key'] || req.user?.apiKey || req.user?.id || req.ip;
     } else if (identifier === 'endpoint') {
       id = `${req.ip}:${req.originalUrl}`;
+    } else if (identifier === 'apiKeyOrIp') {
+      id =
+        req.headers['x-api-key'] ||
+        req.user?.apiKey ||
+        req.user?.id ||
+        req.ip ||
+        req.headers['x-forwarded-for'] ||
+        req.socket?.remoteAddress;
     } else {
-      id = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      id =
+        req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
     }
 
     const key = `ratelimit:${strategy.getName()}:${id}`;
@@ -46,22 +56,26 @@ export const rateLimiter = (options = {}) => {
         console.warn(`Rate limiter took ${duration.toFixed(2)}ms for ${key}`);
       }
 
+      const retryAfterSec = result.retryAfter || Math.ceil(windowMs / 1000);
+      const resetTimestamp = Math.ceil(
+        (Date.now() + retryAfterSec * 1000) / 1000
+      );
+
       res.set({
         'X-RateLimit-Limit': limit,
-        'X-RateLimit-Remaining': Math.max(0, limit - result.current),
+        'X-RateLimit-Remaining': Math.max(0, limit - (result.current || 0)),
+        'X-RateLimit-Reset': String(resetTimestamp),
       });
 
       if (!result.allowed) {
-        res.set(
-          'Retry-After',
-          String(result.retryAfter || Math.ceil(windowMs / 1000))
-        );
+        res.set('Retry-After', String(retryAfterSec));
 
         await redisService.logAnalytics(req.originalUrl, id, 'blocked');
 
         return next(
           createHttpError(429, 'Too Many Requests', {
-            retryAfter: result.retryAfter,
+            retryAfter: retryAfterSec,
+            reset: resetTimestamp,
           })
         );
       }
@@ -77,10 +91,11 @@ export const rateLimiter = (options = {}) => {
 
 /**
  * Factory function to create rate limit middleware with config
- * @param {string} configKey - Key from config.rateLimit (e.g., 'global', 'compile')
+ * @param {string} configKey - Key from config.rateLimit (e.g., 'global', 'compile', 'deploy')
+ * @param {Object} options - Override options
  * @returns {Function} Express middleware function
  */
-export const rateLimitMiddleware = (configKey) => {
+export const rateLimitMiddleware = (configKey, options = {}) => {
   const rateLimitConfig =
     config.rateLimit[configKey] || config.rateLimit['global'];
 
@@ -93,7 +108,7 @@ export const rateLimitMiddleware = (configKey) => {
   return rateLimiter({
     limit: rateLimitConfig.max,
     windowMs: rateLimitConfig.windowMs,
-    strategyName: 'SlidingWindowCounter',
-    identifier: 'ip',
+    strategyName: options.strategyName || 'SlidingWindowCounter',
+    identifier: options.identifier || 'apiKeyOrIp',
   });
 };

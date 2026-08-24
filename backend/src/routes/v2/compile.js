@@ -35,6 +35,19 @@ router.post(
         code,
         dependencies: depValidation.deps,
       });
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          status: 'error',
+          message: 'Contract compilation failed',
+          cached: result.cached,
+          hash: result.hash,
+          duration_ms: result.durationMs,
+          logs: result.logs,
+          artifact: null,
+        });
+      }
+
       return res.json({
         success: true,
         status: 'success',
@@ -52,8 +65,14 @@ router.post(
         },
       });
     } catch (error) {
+      // A rejected job is a client error, not a server fault — don't report
+      // it as a 500 and don't alert on it.
+      const status = error.statusCode === 400 ? 400 : 500;
       return next(
-        createHttpError(500, 'Compilation failed', { details: error.message })
+        createHttpError(status, 'Compilation failed', {
+          details: error.message,
+          code: error.code,
+        })
       );
     }
   })

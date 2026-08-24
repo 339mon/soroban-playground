@@ -1,21 +1,67 @@
-version: "3.9"
+# Docker Compose configuration for the Soroban Playground.
+#
+# This file is intentionally kept AGNOSCTIC (no top-level `version:` key).
+# Docker Compose v2+ ignores `version` and reports a warning; we drop it so
+# the schema stays portable across `docker compose` and `docker-compose`.
+#
+# Two build profiles are exposed via the FRONTEND_TARGET / BACKEND_TARGET
+# environment variables:
+#   * default (`docker compose up`)            - local dev with hot reload
+#   * prod    (FRONTEND_TARGET=runtime FRONTEND_TARGET=runtime
+#              docker compose up)
+#                                              - hardened production images
+#                                                (`runtime` stage from each
+#                                                Dockerfile), no bind mounts.
+#
+# Issue #980 cleanup:
+#   - Dropped `version: "3.9"`.
+#   - Added `target:` overrides for both frontend and backend so the same
+#     compose file works in dev and prod.
+#   - Added frontend `healthcheck` using a `node -e` probe (works without
+#     `wget` in either target).
+#   - Added `restart: unless-stopped` and `logging` json-file driver to
+#     every service.
+#   - Gated `depends_on` behind `condition: service_started` so the
+#     frontend waits for its peers before booting.
+
+name: soroban-playground
 
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: ${FRONTEND_TARGET:-dev}
     ports:
       - "3000:3000"
     volumes:
+      # Bind mounts only apply to the dev target — the runtime target
+      # is intended to run with source baked into the image.
       - ./frontend:/app:cached
     environment:
       - CHOKIDAR_USEPOLLING=true
       - NEXT_PUBLIC_WS_URL=ws://localhost:3001/ws/events
       - NEXT_PUBLIC_INDEXER_URL=http://localhost:3001
     depends_on:
-      - backend
-      - indexer
+      backend:
+        condition: service_started
+      indexer:
+        condition: service_started
+    healthcheck:
+      # Node-based probe — works without `wget` in either dev or runtime.
+      test:
+        - CMD-SHELL
+        - node -e "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - soroban-net
 
@@ -23,19 +69,26 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: ${BACKEND_TARGET:-dev}
     ports:
       - "5000:5000"
     volumes:
       - ./backend:/app:cached
       - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - soroban-net
 
@@ -56,6 +109,12 @@ services:
       - MAX_WS_CONNECTIONS=200
       # Optional dual-write to Postgres:
       # - SECONDARY_DATABASE_URL=postgres://user:pass@postgres:5432/indexer
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - soroban-net
 
@@ -65,4 +124,3 @@ networks:
 
 volumes:
   indexer-db:
-

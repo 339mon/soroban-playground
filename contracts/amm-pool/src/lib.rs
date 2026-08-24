@@ -19,14 +19,14 @@ mod types;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env};
 
 use crate::storage::{
-    get_fee_bps, get_last_ts, get_lp, get_price_a_cum, get_price_b_cum, get_reserve_a,
-    get_reserve_b, get_token_a, get_token_b, get_total_lp, is_initialized, set_admin,
-    set_fee_bps, set_last_ts, set_lp, set_price_a_cum, set_price_b_cum, set_reserve_a,
-    set_reserve_b, set_token_a, set_token_b, set_total_lp, set_nft_collection,
-    get_total_volume, set_total_volume, get_total_fees, set_total_fees, get_collection_stats,
-    set_collection_stats, get_floor_price, set_floor_price,
+    get_collection_stats, get_fee_bps, get_floor_price, get_last_ts, get_lp, get_nft_collection,
+    get_price_a_cum, get_price_b_cum, get_reserve_a, get_reserve_b, get_token_a, get_token_b,
+    get_total_fees, get_total_lp, get_total_volume, is_initialized, set_admin,
+    set_collection_stats, set_fee_bps, set_floor_price, set_last_ts, set_lp, set_nft_collection,
+    set_price_a_cum, set_price_b_cum, set_reserve_a, set_reserve_b, set_token_a, set_token_b,
+    set_total_fees, set_total_lp, set_total_volume,
 };
-use crate::types::Error;
+use crate::types::{CollectionStats, Error};
 
 /// Minimum liquidity permanently locked on first deposit.
 const MIN_LIQUIDITY: i128 = 1_000;
@@ -73,9 +73,8 @@ impl AmmPool {
             Self::initialize(env.clone(), admin, token_a, token_b, fee_bps)?;
         }
         set_nft_collection(&env, nft_collection.clone());
-        
-        // Initialize collection stats
-        let stats = types::CollectionStats {
+
+        let stats = CollectionStats {
             floor_price: 0,
             ceiling_price: 0,
             total_volume: 0,
@@ -84,8 +83,9 @@ impl AmmPool {
             last_update: env.ledger().timestamp(),
         };
         set_collection_stats(&env, &stats);
-        
-        env.events().publish((symbol_short!("nft_init"),), nft_collection);
+
+        env.events()
+            .publish((symbol_short!("nft_init"),), nft_collection);
         Ok(())
     }
 
@@ -197,15 +197,7 @@ impl AmmPool {
             return Err(Error::ZeroAmount);
         }
 
-        let ta = get_token_a(&env)?;
-        let tb = get_token_b(&env)?;
-        let (ra, rb, a_to_b) = if token_in == ta {
-            (get_reserve_a(&env), get_reserve_b(&env), true)
-        } else if token_in == tb {
-            (get_reserve_b(&env), get_reserve_a(&env), false)
-        } else {
-            return Err(Error::InvalidToken);
-        };
+        let (ra, rb, a_to_b) = reserves_for_token_in(&env, &token_in)?;
 
         if ra == 0 || rb == 0 {
             return Err(Error::InsufficientLiquidity);
@@ -232,9 +224,7 @@ impl AmmPool {
         update_twap(&env, ra, rb);
 
         // Track volume and fees for NFT analytics
-        let fee_amount = amount_in.checked_mul(get_fee_bps(&env)).ok_or(Error::Overflow)? / 10_000;
-        set_total_volume(&env, get_total_volume(&env) + amount_in);
-        set_total_fees(&env, get_total_fees(&env) + fee_amount);
+        record_swap_metrics(&env, amount_in)?;
 
         env.events().publish((symbol_short!("swap"),), amount_out);
         Ok(amount_out)
@@ -243,21 +233,9 @@ impl AmmPool {
     // ── Read-only ─────────────────────────────────────────────────────────────
 
     /// Preview output for a swap without state changes.
-    pub fn get_amount_out(
-        env: Env,
-        amount_in: i128,
-        token_in: Address,
-    ) -> Result<i128, Error> {
+    pub fn get_amount_out(env: Env, amount_in: i128, token_in: Address) -> Result<i128, Error> {
         ensure_initialized(&env)?;
-        let ta = get_token_a(&env)?;
-        let tb = get_token_b(&env)?;
-        let (ra, rb) = if token_in == ta {
-            (get_reserve_a(&env), get_reserve_b(&env))
-        } else if token_in == tb {
-            (get_reserve_b(&env), get_reserve_a(&env))
-        } else {
-            return Err(Error::InvalidToken);
-        };
+        let (ra, rb, _) = reserves_for_token_in(&env, &token_in)?;
         get_amount_out(amount_in, ra, rb, get_fee_bps(&env))
     }
 
@@ -279,7 +257,11 @@ impl AmmPool {
     /// Returns (price_a_cumulative, price_b_cumulative, last_timestamp).
     pub fn get_twap(env: Env) -> Result<(i128, i128, u64), Error> {
         ensure_initialized(&env)?;
-        Ok((get_price_a_cum(&env), get_price_b_cum(&env), get_last_ts(&env)))
+        Ok((
+            get_price_a_cum(&env),
+            get_price_b_cum(&env),
+            get_last_ts(&env),
+        ))
     }
 
     pub fn get_fee_bps(env: Env) -> Result<i128, Error> {
@@ -290,34 +272,31 @@ impl AmmPool {
     // ── NFT Collection Analytics ──────────────────────────────────────────────
 
     /// Get current collection statistics.
-    pub fn get_collection_stats(env: Env) -> Result<types::CollectionStats, Error> {
+    pub fn get_collection_stats(env: Env) -> Result<CollectionStats, Error> {
         ensure_initialized(&env)?;
         get_collection_stats(&env).ok_or(Error::NotInitialized)
     }
 
     /// Update floor price based on swap activity.
-    pub fn update_floor_price(
-        env: Env,
-        admin: Address,
-        new_floor: i128,
-    ) -> Result<(), Error> {
+    pub fn update_floor_price(env: Env, admin: Address, new_floor: i128) -> Result<(), Error> {
         ensure_initialized(&env)?;
         admin.require_auth();
-        
+
         if new_floor < 0 {
             return Err(Error::ZeroAmount);
         }
-        
+
         set_floor_price(&env, new_floor);
-        
+
         // Update collection stats
         if let Some(mut stats) = get_collection_stats(&env) {
             stats.floor_price = new_floor;
             stats.last_update = env.ledger().timestamp();
             set_collection_stats(&env, &stats);
         }
-        
-        env.events().publish((symbol_short!("floor_upd"),), new_floor);
+
+        env.events()
+            .publish((symbol_short!("floor_upd"),), new_floor);
         Ok(())
     }
 
@@ -332,6 +311,12 @@ impl AmmPool {
         ensure_initialized(&env)?;
         Ok(get_floor_price(&env))
     }
+
+    /// Returns the NFT collection address when this pool was initialized as an NFT AMM.
+    pub fn get_nft_collection(env: Env) -> Result<Option<Address>, Error> {
+        ensure_initialized(&env)?;
+        Ok(get_nft_collection(&env))
+    }
 }
 
 // ── Private helpers ───────────────────────────────────────────────────────────
@@ -343,6 +328,27 @@ fn ensure_initialized(env: &Env) -> Result<(), Error> {
     Ok(())
 }
 
+/// Resolve live reserve balances for a swap input token.
+fn reserves_for_token_in(env: &Env, token_in: &Address) -> Result<(i128, i128, bool), Error> {
+    let token_a = get_token_a(env)?;
+    let token_b = get_token_b(env)?;
+    if token_in == &token_a {
+        Ok((get_reserve_a(env), get_reserve_b(env), true))
+    } else if token_in == &token_b {
+        Ok((get_reserve_b(env), get_reserve_a(env), false))
+    } else {
+        Err(Error::InvalidToken)
+    }
+}
+
+fn record_swap_metrics(env: &Env, amount_in: i128) -> Result<(), Error> {
+    let fee_bps = get_fee_bps(env);
+    let fee_amount = amount_in.checked_mul(fee_bps).ok_or(Error::Overflow)? / 10_000;
+    set_total_volume(env, get_total_volume(env) + amount_in);
+    set_total_fees(env, get_total_fees(env) + fee_amount);
+    Ok(())
+}
+
 /// Constant-product output: amount_out = (amount_in * (10000 - fee_bps) * rb)
 ///                                       / (ra * 10000 + amount_in * (10000 - fee_bps))
 fn get_amount_out(amount_in: i128, ra: i128, rb: i128, fee_bps: i128) -> Result<i128, Error> {
@@ -350,9 +356,14 @@ fn get_amount_out(amount_in: i128, ra: i128, rb: i128, fee_bps: i128) -> Result<
         return Err(Error::InsufficientLiquidity);
     }
     let fee_factor = 10_000 - fee_bps;
-    let numerator = amount_in.checked_mul(fee_factor).ok_or(Error::Overflow)?
-        .checked_mul(rb).ok_or(Error::Overflow)?;
-    let denominator = ra.checked_mul(10_000).ok_or(Error::Overflow)?
+    let numerator = amount_in
+        .checked_mul(fee_factor)
+        .ok_or(Error::Overflow)?
+        .checked_mul(rb)
+        .ok_or(Error::Overflow)?;
+    let denominator = ra
+        .checked_mul(10_000)
+        .ok_or(Error::Overflow)?
         .checked_add(amount_in.checked_mul(fee_factor).ok_or(Error::Overflow)?)
         .ok_or(Error::Overflow)?;
     Ok(numerator / denominator)
@@ -385,7 +396,13 @@ fn update_twap(env: &Env, ra: i128, rb: i128) {
     // price_a = rb / ra  (scaled by TWAP_PRECISION)
     let price_a = rb.saturating_mul(TWAP_PRECISION) / ra;
     let price_b = ra.saturating_mul(TWAP_PRECISION) / rb;
-    set_price_a_cum(env, get_price_a_cum(env).saturating_add(price_a.saturating_mul(elapsed)));
-    set_price_b_cum(env, get_price_b_cum(env).saturating_add(price_b.saturating_mul(elapsed)));
+    set_price_a_cum(
+        env,
+        get_price_a_cum(env).saturating_add(price_a.saturating_mul(elapsed)),
+    );
+    set_price_b_cum(
+        env,
+        get_price_b_cum(env).saturating_add(price_b.saturating_mul(elapsed)),
+    );
     set_last_ts(env, now);
 }

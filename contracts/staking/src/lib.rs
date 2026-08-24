@@ -25,6 +25,9 @@ impl Staking {
         if is_initialized(&env) {
             return Err(Error::AlreadyInitialized);
         }
+        if unstake_period == 0 {
+            return Err(Error::InvalidWithdrawalPeriod);
+        }
         admin.require_auth();
         set_admin(&env, &admin);
         set_token(&env, &token);
@@ -44,26 +47,49 @@ impl Staking {
         let total_staked = get_total_staked(&env);
         let total_shares = get_total_shares(&env);
 
-        let token = get_token(&env)?;
-        let token_client = token::Client::new(&env, &token);
-        token_client.transfer(&user, &env.current_contract_address(), &amount);
-
         let shares = if total_shares == 0 {
             amount
         } else {
-            (amount * total_shares) / total_staked
+            if total_staked <= 0 {
+                return Err(Error::MathOverflow);
+            }
+            amount
+                .checked_mul(total_shares)
+                .ok_or(Error::MathOverflow)?
+                / total_staked
         };
+
+        if shares <= 0 {
+            return Err(Error::ZeroAmount);
+        }
+
+        let token = get_token(&env)?;
+        let token_client = token::Client::new(&env, &token);
+        token_client.transfer(&user, &env.current_contract_address(), &amount);
 
         let mut user_stake = get_stake(&env, &user).unwrap_or(StakeInfo {
             amount: 0,
             shares: 0,
         });
-        user_stake.amount += amount;
-        user_stake.shares += shares;
+        user_stake.amount = user_stake
+            .amount
+            .checked_add(amount)
+            .ok_or(Error::MathOverflow)?;
+        user_stake.shares = user_stake
+            .shares
+            .checked_add(shares)
+            .ok_or(Error::MathOverflow)?;
         set_stake(&env, &user, &user_stake);
 
-        set_total_staked(&env, total_staked + amount);
-        set_total_shares(&env, total_shares + shares);
+        let new_total_staked = total_staked
+            .checked_add(amount)
+            .ok_or(Error::MathOverflow)?;
+        let new_total_shares = total_shares
+            .checked_add(shares)
+            .ok_or(Error::MathOverflow)?;
+
+        set_total_staked(&env, new_total_staked);
+        set_total_shares(&env, new_total_shares);
 
         Ok(shares)
     }
@@ -83,22 +109,46 @@ impl Staking {
 
         let total_staked = get_total_staked(&env);
         let total_shares = get_total_shares(&env);
-        let amount = (shares * total_staked) / total_shares;
+        if total_shares <= 0 {
+            return Err(Error::NothingToUnstake);
+        }
+
+        let amount = shares
+            .checked_mul(total_staked)
+            .ok_or(Error::MathOverflow)?
+            / total_shares;
+
+        if amount <= 0 {
+            return Err(Error::ZeroAmount);
+        }
 
         user_stake.shares -= shares;
-        user_stake.amount -= amount;
+        user_stake.amount = user_stake.amount.saturating_sub(amount);
         set_stake(&env, &user, &user_stake);
 
-        set_total_staked(&env, total_staked - amount);
-        set_total_shares(&env, total_shares - shares);
+        let new_total_staked = total_staked.saturating_sub(amount);
+        let new_total_shares = total_shares.saturating_sub(shares);
+
+        set_total_staked(&env, new_total_staked);
+        set_total_shares(&env, new_total_shares);
 
         let count = get_unstake_count(&env, &user);
+        let unstake_period = get_unstake_period(&env);
+        let unlock_timestamp = env
+            .ledger()
+            .timestamp()
+            .checked_add(unstake_period)
+            .ok_or(Error::MathOverflow)?;
+
         let request = UnstakeRequest {
             amount,
-            unlock_timestamp: env.ledger().timestamp() + get_unstake_period(&env),
+            unlock_timestamp,
+            claimed: false,
         };
         set_unstake_request(&env, &user, count, &request);
-        set_unstake_count(&env, &user, count + 1);
+
+        let new_count = count.checked_add(1).ok_or(Error::MathOverflow)?;
+        set_unstake_count(&env, &user, new_count);
 
         Ok(count)
     }
@@ -107,12 +157,20 @@ impl Staking {
         ensure_initialized(&env)?;
         user.require_auth();
 
-        let request = get_unstake_request(&env, &user, request_idx).ok_or(Error::RequestNotFound)?;
-        let now = env.ledger().timestamp();
+        let mut request =
+            get_unstake_request(&env, &user, request_idx).ok_or(Error::RequestNotFound)?;
 
+        if request.claimed {
+            return Err(Error::AlreadyClaimed);
+        }
+
+        let now = env.ledger().timestamp();
         if now < request.unlock_timestamp {
             return Err(Error::InvalidWithdrawalPeriod);
         }
+
+        request.claimed = true;
+        set_unstake_request(&env, &user, request_idx, &request);
 
         let token = get_token(&env)?;
         let token_client = token::Client::new(&env, &token);
@@ -139,6 +197,16 @@ impl Staking {
     pub fn get_total_shares(env: Env) -> Result<i128, Error> {
         ensure_initialized(&env)?;
         Ok(get_total_shares(&env))
+    }
+
+    pub fn get_admin(env: Env) -> Result<Address, Error> {
+        ensure_initialized(&env)?;
+        get_admin(&env)
+    }
+
+    pub fn get_unstake_period(env: Env) -> Result<u64, Error> {
+        ensure_initialized(&env)?;
+        Ok(get_unstake_period(&env))
     }
 
     pub fn is_initialized(env: Env) -> bool {
