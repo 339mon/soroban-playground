@@ -104,4 +104,9 @@ pub enum Error {
     NotHandler = 8,
     AlreadyRecalled = 9,
     QualityReportNotFound = 10,
+    InvalidSlaRange = 11,
+    ViolationNotFound = 12,
+    PenaltyAlreadyApplied = 13,
+    SlaNotConfigured = 14,
+    InvalidDeposit = 15,
 }
