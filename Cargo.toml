@@ -24,4 +24,5 @@ members = [
     "contracts/cross-contract-utils",
     "contracts/insurance-oracle",
     "contracts/erc-721",
+    "contracts/zk-verifier",
 ]
