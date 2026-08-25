@@ -3001,6 +3001,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-yield-farming"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "soroban-yield-optimizer"
 version = "0.1.0"
 dependencies = [
