@@ -3,7 +3,9 @@
 
 use soroban_sdk::{Address, Env, String};
 
-use crate::types::{DataKey, Error, InstanceKey, OracleReading, Policy, Product};
+use crate::types::{
+    CropTerms, DataKey, Error, InstanceKey, OracleReading, Policy, Product, ReserveConfig,
+};
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
@@ -116,4 +118,68 @@ pub fn set_oracle_reading(
         &DataKey::OracleReading(oracle.clone(), parameter_key.clone()),
         reading,
     );
+}
+
+// ── Crop insurance and reserves ───────────────────────────────────────────────
+
+pub fn set_crop_terms(env: &Env, product_id: u32, terms: &CropTerms) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::CropTerms(product_id), terms);
+}
+
+pub fn get_crop_terms(env: &Env, product_id: u32) -> Result<CropTerms, Error> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::CropTerms(product_id))
+        .ok_or(Error::SatelliteDataRequired)
+}
+
+pub fn has_crop_terms(env: &Env, product_id: u32) -> bool {
+    env.storage()
+        .persistent()
+        .has(&DataKey::CropTerms(product_id))
+}
+
+pub fn set_reserve_config(env: &Env, config: &ReserveConfig) {
+    env.storage()
+        .instance()
+        .set(&InstanceKey::ReserveConfig, config);
+}
+
+pub fn get_reserve_config(env: &Env) -> Result<ReserveConfig, Error> {
+    env.storage()
+        .instance()
+        .get(&InstanceKey::ReserveConfig)
+        .ok_or(Error::ReserveNotConfigured)
+}
+
+pub fn has_reserve_config(env: &Env) -> bool {
+    env.storage().instance().has(&InstanceKey::ReserveConfig)
+}
+
+pub fn get_total_reserved(env: &Env) -> i128 {
+    env.storage()
+        .instance()
+        .get(&InstanceKey::TotalReserved)
+        .unwrap_or(0)
+}
+
+pub fn set_total_reserved(env: &Env, amount: i128) {
+    env.storage()
+        .instance()
+        .set(&InstanceKey::TotalReserved, &amount);
+}
+
+pub fn set_policy_funded(env: &Env, policy_id: u32, funded: bool) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::FundedPolicy(policy_id), &funded);
+}
+
+pub fn is_policy_funded(env: &Env, policy_id: u32) -> bool {
+    env.storage()
+        .persistent()
+        .get(&DataKey::FundedPolicy(policy_id))
+        .unwrap_or(false)
 }
