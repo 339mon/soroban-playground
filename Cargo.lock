@@ -2904,6 +2904,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-prediction-market"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "soroban-proxy-pattern"
 version = "0.1.0"
 dependencies = [
