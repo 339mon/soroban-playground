@@ -44,5 +44,6 @@ members = [
     "contracts/insurance-protocol",
     "contracts/identity-registry",
     "contracts/reputation-system",
+    "contracts/reputation",
     "contracts/bug-bounty",
 ]
