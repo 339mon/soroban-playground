@@ -6,6 +6,7 @@
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _, Ledger as _},
+    token::{Client as TokenClient, StellarAssetClient},
     Env, String,
 };
 
@@ -13,7 +14,13 @@ const STRIKE: i128 = 100_000_000;
 const PREMIUM: i128 = 5_000_000;
 const AMOUNT: i128 = 1_000_000_000;
 
-fn setup() -> (Env, OptionsProtocolClient<'static>, Address, Address, Address) {
+fn setup() -> (
+    Env,
+    OptionsProtocolClient<'static>,
+    Address,
+    Address,
+    Address,
+) {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, OptionsProtocol);
@@ -492,4 +499,324 @@ fn test_is_paused_getter() {
     assert!(!client.is_paused());
     client.set_paused(&admin, &true);
     assert!(client.is_paused());
+}
+
+fn assert_approx(actual: i128, expected: i128, tolerance: i128) {
+    let difference = if actual >= expected {
+        actual - expected
+    } else {
+        expected - actual
+    };
+    assert!(
+        difference <= tolerance,
+        "actual {actual}, expected {expected}, tolerance {tolerance}"
+    );
+}
+
+#[test]
+fn test_black_scholes_call_reference_values() {
+    let (_env, client, ..) = setup();
+    let result = client.calculate_greeks(&GreeksInput {
+        spot_price: 1_000_000_000,
+        strike_price: 1_000_000_000,
+        volatility: 2_000_000,
+        risk_free_rate: 500_000,
+        time_to_expiry: 31_557_600,
+        kind: OptionKind::Call,
+    });
+
+    // Reference values: price 10.4506, delta .6368, gamma .01876,
+    // vega 37.524, theta -6.414, rho 53.232 (annualized).
+    assert_approx(result.price, 104_506_000, 100_000);
+    assert_approx(result.delta, 6_368_000, 5_000);
+    assert_approx(result.gamma, 187_600, 2_000);
+    assert_approx(result.vega, 375_240_000, 300_000);
+    assert_approx(result.theta, -64_140_000, 300_000);
+    assert_approx(result.rho, 532_320_000, 500_000);
+}
+
+#[test]
+fn test_black_scholes_put_call_parity_and_delta() {
+    let (_env, client, ..) = setup();
+    let call = client.calculate_greeks(&GreeksInput {
+        spot_price: 1_000_000_000,
+        strike_price: 1_000_000_000,
+        volatility: 2_000_000,
+        risk_free_rate: 500_000,
+        time_to_expiry: 31_557_600,
+        kind: OptionKind::Call,
+    });
+    let put = client.calculate_greeks(&GreeksInput {
+        spot_price: 1_000_000_000,
+        strike_price: 1_000_000_000,
+        volatility: 2_000_000,
+        risk_free_rate: 500_000,
+        time_to_expiry: 31_557_600,
+        kind: OptionKind::Put,
+    });
+
+    assert_approx(put.price, 55_735_000, 100_000);
+    assert_eq!(call.delta - put.delta, 10_000_000);
+    assert_eq!(call.gamma, put.gamma);
+    assert_eq!(call.vega, put.vega);
+    assert!(put.rho < 0);
+}
+
+#[test]
+fn test_black_scholes_rejects_invalid_inputs() {
+    let (_env, client, ..) = setup();
+    let input = GreeksInput {
+        spot_price: 1_000_000_000,
+        strike_price: 1_000_000_000,
+        volatility: 0,
+        risk_free_rate: 500_000,
+        time_to_expiry: 31_557_600,
+        kind: OptionKind::Call,
+    };
+    assert_eq!(
+        client.try_calculate_greeks(&input),
+        Err(Ok(Error::InvalidVolatility))
+    );
+}
+
+struct MarginSetup {
+    env: Env,
+    client: OptionsProtocolClient<'static>,
+    admin: Address,
+    oracle: Address,
+    writer: Address,
+    holder: Address,
+    token_address: Address,
+    token: TokenClient<'static>,
+    token_admin: StellarAssetClient<'static>,
+}
+
+fn setup_margin() -> MarginSetup {
+    let env = Env::default();
+    env.mock_all_auths();
+    let admin = Address::generate(&env);
+    let oracle = Address::generate(&env);
+    let writer = Address::generate(&env);
+    let holder = Address::generate(&env);
+    let asset_admin = Address::generate(&env);
+    let asset = env.register_stellar_asset_contract_v2(asset_admin);
+    let token_address = asset.address();
+    let token = TokenClient::new(&env, &token_address);
+    let token_admin = StellarAssetClient::new(&env, &token_address);
+    let contract_id = env.register_contract(None, OptionsProtocol);
+    let client = OptionsProtocolClient::new(&env, &contract_id);
+    client.initialize(&admin);
+    client.configure_margin_pool(&admin, &token_address, &oracle, &1_000, &600);
+    token_admin.mint(&writer, &2_000_000_000);
+    token_admin.mint(&holder, &1_000_000_000);
+    client.update_price(&oracle, &String::from_str(&env, "XLM"), &1_000_000_000);
+    MarginSetup {
+        env,
+        client,
+        admin,
+        oracle,
+        writer,
+        holder,
+        token_address,
+        token,
+        token_admin,
+    }
+}
+
+fn write_margin_call(setup: &MarginSetup, deposit: i128) -> u32 {
+    setup.client.deposit_margin(&setup.writer, &deposit);
+    setup.client.write_collateralized_option(
+        &setup.writer,
+        &setup.holder,
+        &String::from_str(&setup.env, "XLM"),
+        &1_000_000_000,
+        &50_000_000,
+        &10_000_000,
+        &(setup.env.ledger().timestamp() + 3_600),
+        &OptionKind::Call,
+        &1_000_000_000,
+    )
+}
+
+#[test]
+fn test_margin_deposit_and_available_withdrawal() {
+    let setup = setup_margin();
+    setup.client.deposit_margin(&setup.writer, &500_000_000);
+    assert_eq!(
+        setup.client.get_margin_account(&setup.writer).balance,
+        500_000_000
+    );
+    setup.client.withdraw_margin(&setup.writer, &200_000_000);
+    assert_eq!(
+        setup.client.get_margin_account(&setup.writer).balance,
+        300_000_000
+    );
+    assert_eq!(setup.token.balance(&setup.writer), 1_700_000_000);
+}
+
+#[test]
+fn test_collateralized_write_locks_margin_and_blocks_legacy_exercise() {
+    let setup = setup_margin();
+    let id = write_margin_call(&setup, 600_000_000);
+    let account = setup.client.get_margin_account(&setup.writer);
+    assert_eq!(account.balance, 600_000_000);
+    assert_eq!(account.locked, 100_000_000);
+    assert_eq!(
+        setup.client.get_margin_position(&id).max_payout,
+        1_000_000_000
+    );
+    assert_eq!(setup.token.balance(&setup.holder), 950_000_000);
+    assert_eq!(setup.token.balance(&setup.writer), 1_450_000_000);
+    assert_eq!(
+        setup.client.try_exercise(&setup.holder, &id),
+        Err(Ok(Error::EuropeanOnly))
+    );
+    assert_eq!(
+        setup
+            .client
+            .try_withdraw_margin(&setup.writer, &550_000_000),
+        Err(Ok(Error::InsufficientMargin))
+    );
+}
+
+#[test]
+fn test_margin_call_trigger_and_cure() {
+    let setup = setup_margin();
+    let id = write_margin_call(&setup, 600_000_000);
+    setup.client.update_price(
+        &setup.oracle,
+        &String::from_str(&setup.env, "XLM"),
+        &1_500_000_000,
+    );
+    assert!(!setup.client.check_margin(&id));
+    assert_eq!(
+        setup.client.get_option(&id).status,
+        OptionStatus::MarginCalled
+    );
+
+    setup.token_admin.mint(&setup.writer, &100_000_000);
+    setup.client.deposit_margin(&setup.writer, &100_000_000);
+    setup.client.cure_margin_call(&setup.writer, &id);
+    assert_eq!(setup.client.get_option(&id).status, OptionStatus::Active);
+    assert_eq!(setup.client.get_margin_position(&id).locked, 650_000_000);
+}
+
+#[test]
+fn test_cash_settlement_transfers_intrinsic_value_and_releases_margin() {
+    let setup = setup_margin();
+    let id = write_margin_call(&setup, 1_000_000_000);
+    let expiry = setup.client.get_option(&id).expiry;
+    setup
+        .env
+        .ledger()
+        .with_mut(|ledger| ledger.timestamp = expiry);
+    setup.client.update_price(
+        &setup.oracle,
+        &String::from_str(&setup.env, "XLM"),
+        &1_500_000_000,
+    );
+    setup.client.check_margin(&id);
+
+    let holder_balance = setup.token.balance(&setup.holder);
+    let payout = setup.client.settle_option(&id);
+    assert_eq!(payout, 500_000_000);
+    assert_eq!(setup.token.balance(&setup.holder), holder_balance + payout);
+    assert_eq!(setup.client.get_option(&id).status, OptionStatus::Exercised);
+    let account = setup.client.get_margin_account(&setup.writer);
+    assert_eq!(account.balance, 500_000_000);
+    assert_eq!(account.locked, 0);
+    assert_eq!(
+        setup.client.try_get_margin_position(&id),
+        Err(Ok(Error::PositionNotCollateralized))
+    );
+}
+
+#[test]
+fn test_out_of_money_settlement_and_cancel_release_all_margin() {
+    let setup = setup_margin();
+    let first = write_margin_call(&setup, 600_000_000);
+    assert_eq!(
+        setup.client.try_cancel_option(&setup.writer, &first),
+        Err(Ok(Error::EuropeanOnly))
+    );
+    setup
+        .client
+        .cancel_collateralized_option(&setup.writer, &setup.holder, &first);
+    assert_eq!(setup.client.get_margin_account(&setup.writer).locked, 0);
+
+    let second = setup.client.write_collateralized_option(
+        &setup.writer,
+        &setup.holder,
+        &String::from_str(&setup.env, "XLM"),
+        &1_000_000_000,
+        &50_000_000,
+        &10_000_000,
+        &(setup.env.ledger().timestamp() + 3_600),
+        &OptionKind::Put,
+        &1_000_000_000,
+    );
+    let expiry = setup.client.get_option(&second).expiry;
+    setup
+        .env
+        .ledger()
+        .with_mut(|ledger| ledger.timestamp = expiry);
+    setup.client.update_price(
+        &setup.oracle,
+        &String::from_str(&setup.env, "XLM"),
+        &1_100_000_000,
+    );
+    assert_eq!(setup.client.settle_option(&second), 0);
+    assert_eq!(
+        setup.client.get_option(&second).status,
+        OptionStatus::Expired
+    );
+    assert_eq!(setup.client.get_margin_account(&setup.writer).locked, 0);
+}
+
+#[test]
+fn test_stale_and_unauthorized_oracle_prices_are_rejected() {
+    let setup = setup_margin();
+    let impostor = Address::generate(&setup.env);
+    assert_eq!(
+        setup.client.try_update_price(
+            &impostor,
+            &String::from_str(&setup.env, "XLM"),
+            &1_100_000_000,
+        ),
+        Err(Ok(Error::Unauthorized))
+    );
+    setup
+        .env
+        .ledger()
+        .with_mut(|ledger| ledger.timestamp += 601);
+    setup.client.deposit_margin(&setup.writer, &600_000_000);
+    assert_eq!(
+        setup.client.try_write_collateralized_option(
+            &setup.writer,
+            &setup.holder,
+            &String::from_str(&setup.env, "XLM"),
+            &1_000_000_000,
+            &50_000_000,
+            &10_000_000,
+            &(setup.env.ledger().timestamp() + 3_600),
+            &OptionKind::Call,
+            &1_000_000_000,
+        ),
+        Err(Ok(Error::StalePrice))
+    );
+}
+
+#[test]
+fn test_margin_pool_can_only_be_configured_once() {
+    let setup = setup_margin();
+    assert_eq!(
+        setup.client.try_configure_margin_pool(
+            &setup.admin,
+            &setup.token_address,
+            &setup.oracle,
+            &1_000,
+            &600,
+        ),
+        Err(Ok(Error::PoolAlreadyConfigured))
+    );
 }
