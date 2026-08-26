@@ -1,12 +1,43 @@
 // Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
-//! # Yield Farming Aggregator
+//! # Yield Farming Strategy Optimizer with Multi-Pool Rebalancing
 //!
-//! A Soroban smart contract that aggregates yield strategies with:
-//! - Auto-compounding: reinvests accrued rewards back into the principal.
-//! - Strategy optimization: admin can update APY and pause/resume strategies.
-//! - Portfolio tracking: per-user position tracking across multiple strategies.
+//! ## Issue #1295 — Dynamic APY Calculations & Auto-Compounding for Liquidity Vault Tokens
+//!
+//! This contract implements a production-grade yield farming aggregator with:
+//!
+//! ### Auto-Compounding
+//! - `compound(user, strategy_id)` — compound a single position (keeper-callable)
+//! - `compound_all(user)` — compound all positions in one transaction
+//! - `deposit(user, strategy_id, amount)` — automatically compounds before deposit
+//! - `withdraw(user, strategy_id, amount)` — automatically compounds before withdrawal
+//!
+//! ### Dynamic APY Calculation
+//! - `dynamic_apy(strategy_id, additional_amount)` — fee-adjusted, TVL-aware APY
+//!   at any hypothetical deposit size.  Pools with `annual_rewards > 0` use
+//!   emissions-based APY (`rewards / projected_TVL`); legacy pools use their
+//!   administrator-supplied APY.
+//! - `get_optimization_preview(total_amount, max_risk)` — read-only dry-run of
+//!   the optimizer that returns expected allocations and weighted APY without
+//!   modifying state.
+//!
+//! ### Multi-Pool Rebalancing
+//! - `optimize_allocation(total_amount, max_risk_score)` — risk- and capacity-
+//!   aware allocation targets across all active pools.
+//! - `rebalance(user, max_risk_score)` — atomic compound-and-redistribute:
+//!   compounds all user positions, then moves capital to the highest-scoring
+//!   allocation. Reverts if the new portfolio does not improve weighted APY.
+//! - `auto_rebalance_threshold(user, max_risk_score, min_improvement_bps)` —
+//!   keeper-friendly: only rebalances if the improvement exceeds the caller's
+//!   configured threshold.
+//!
+//! ### Pool Configuration
+//! - `configure_pool(admin, strategy_id, annual_rewards, capacity, fee_bps,
+//!                   risk_score, max_allocation_bps)` — optimizer metadata per pool.
+//!
+//! ### Strategy Management (admin-only)
+//! - `add_strategy`, `update_strategy_apy`, `set_strategy_active`
 
 #![no_std]
 
@@ -364,6 +395,127 @@ impl YieldFarmingContract {
         max_risk_score: u32,
     ) -> Result<Vec<Allocation>, Error> {
         Self::build_allocation(&env, total_amount, max_risk_score, None)
+    }
+
+    /// **Read-only dry-run** of the multi-pool optimizer.
+    ///
+    /// Returns the same [`Vec<Allocation>`] that `rebalance` would write, plus
+    /// the weighted projected APY (in bps) for the proposed portfolio.  No
+    /// storage is modified.
+    ///
+    /// Useful for frontend "what-if" previews before committing a rebalance.
+    ///
+    /// # Arguments
+    /// * `total_amount`    — capital to allocate (same unit as deposit amounts)
+    /// * `max_risk_score`  — upper bound on pool risk_score (0–100)
+    ///
+    /// # Returns
+    /// `(allocations, weighted_apy_bps)`
+    pub fn get_optimization_preview(
+        env: Env,
+        total_amount: i128,
+        max_risk_score: u32,
+    ) -> Result<(Vec<Allocation>, u32), Error> {
+        let allocations = Self::build_allocation(&env, total_amount, max_risk_score, None)?;
+
+        // Compute portfolio-weighted APY from the proposed allocations
+        let mut weighted_yield = 0i128;
+        for alloc in allocations.iter() {
+            weighted_yield = weighted_yield
+                .checked_add(
+                    alloc
+                        .amount
+                        .checked_mul(alloc.projected_apy_bps as i128)
+                        .ok_or(Error::ArithmeticOverflow)?,
+                )
+                .ok_or(Error::ArithmeticOverflow)?;
+        }
+        let weighted_apy_bps = if total_amount > 0 {
+            (weighted_yield / total_amount) as u32
+        } else {
+            0
+        };
+
+        Ok((allocations, weighted_apy_bps))
+    }
+
+    /// **Threshold-gated rebalance** — keeper-friendly variant that only
+    /// executes the rebalance if the projected improvement in weighted APY
+    /// meets or exceeds `min_improvement_bps`.
+    ///
+    /// Unlike `rebalance`, this function does **not** revert when APY would
+    /// not improve; it returns `false` to signal a no-op, allowing callers
+    /// (e.g. a cron keeper) to cheaply check without paying revert costs.
+    ///
+    /// # Arguments
+    /// * `user`                — position owner (must authorize)
+    /// * `max_risk_score`      — passed through to the optimizer (0–100)
+    /// * `min_improvement_bps` — minimum APY improvement required (e.g. 50 = 0.50 %)
+    ///
+    /// # Returns
+    /// `true`  — rebalance executed (improvement ≥ threshold).
+    /// `false` — rebalance skipped (improvement below threshold or no positions).
+    pub fn auto_rebalance_threshold(
+        env: Env,
+        user: Address,
+        max_risk_score: u32,
+        min_improvement_bps: u32,
+    ) -> Result<bool, Error> {
+        Self::assert_initialized(&env)?;
+        user.require_auth();
+        if max_risk_score > MAX_RISK_SCORE {
+            return Err(Error::InvalidRiskScore);
+        }
+
+        // Compute current portfolio total and weighted APY
+        let now = env.ledger().timestamp();
+        let count = get_strategy_count(&env);
+        let mut total_balance = 0i128;
+        let mut current_weighted_yield = 0i128;
+        let mut found = false;
+
+        for strategy_id in 1..=count {
+            if !has_position(&env, strategy_id, &user) {
+                continue;
+            }
+            found = true;
+            let strategy = get_strategy(&env, strategy_id)?;
+            let position =
+                Self::compound_position(get_position(&env, strategy_id, &user)?, &strategy, now);
+            let config = Self::pool_config_or_default(&env, strategy_id);
+            let apy = Self::calculate_dynamic_apy(&strategy, &config, strategy.total_deposited)?;
+            total_balance = total_balance
+                .checked_add(position.compounded_balance)
+                .ok_or(Error::ArithmeticOverflow)?;
+            current_weighted_yield = current_weighted_yield
+                .checked_add(
+                    position
+                        .compounded_balance
+                        .checked_mul(apy as i128)
+                        .ok_or(Error::ArithmeticOverflow)?,
+                )
+                .ok_or(Error::ArithmeticOverflow)?;
+        }
+
+        if !found || total_balance <= 0 {
+            return Ok(false);
+        }
+
+        let current_weighted_apy = (current_weighted_yield / total_balance) as u32;
+
+        // Preview the proposed allocation
+        let (_, proposed_apy) =
+            Self::get_optimization_preview(env.clone(), total_balance, max_risk_score)?;
+
+        // Check improvement threshold
+        let improvement = proposed_apy.saturating_sub(current_weighted_apy);
+        if improvement < min_improvement_bps {
+            return Ok(false);
+        }
+
+        // Threshold met — execute the full rebalance
+        YieldFarmingContract::rebalance(env, user, max_risk_score)?;
+        Ok(true)
     }
 
     /// Atomically compound and redistribute all of a user's positions across
