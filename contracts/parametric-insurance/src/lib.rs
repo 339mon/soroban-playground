@@ -18,17 +18,31 @@ mod storage;
 mod test;
 mod types;
 
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
+use soroban_sdk::{
+    contract, contractclient, contractimpl, symbol_short, token, Address, Env, String,
+};
 
 use crate::storage::{
-    get_admin, get_oracle_reading, get_policy, get_policy_count, get_product, get_product_count,
-    is_initialized, is_oracle, set_admin, set_oracle, set_oracle_reading, set_policy,
-    set_policy_count, set_product, set_product_count,
+    get_admin, get_crop_terms, get_oracle_reading, get_policy, get_policy_count, get_product,
+    get_product_count, get_reserve_config, get_total_reserved, has_crop_terms, has_reserve_config,
+    is_initialized, is_oracle, is_policy_funded, set_admin, set_crop_terms, set_oracle,
+    set_oracle_reading, set_policy, set_policy_count, set_policy_funded, set_product,
+    set_product_count, set_reserve_config, set_total_reserved,
 };
-use crate::types::{Error, OracleReading, Policy, PolicyStatus, Product, TriggerDirection};
+pub use crate::types::{
+    CropTerms, DataSourceType, Error, OracleReading, Policy, PolicyStatus, Product, ReserveConfig,
+    SatelliteWeatherData, TriggerDirection, WeatherDataStatus,
+};
 
 /// Maximum staleness window for oracle data (24 hours).
 const MAX_ORACLE_STALENESS_SECS: u64 = 86_400;
+const MAX_CROP_OBSERVATION_AGE_SECS: u64 = 7 * 86_400;
+
+/// Read-only interface implemented by `contracts/weather-data-oracle`.
+#[contractclient(name = "SatelliteOracleClient")]
+pub trait SatelliteOracle {
+    fn get_weather_data(env: Env, data_id: u32) -> SatelliteWeatherData;
+}
 
 #[contract]
 pub struct ParametricInsurance;
@@ -91,6 +105,63 @@ impl ParametricInsurance {
         get_oracle_reading(&env, &oracle, &parameter_key)
     }
 
+    // ── Token-backed reserve ──────────────────────────────────────────────────
+
+    /// Configure the settlement token once. This does not affect legacy,
+    /// accounting-only policies.
+    pub fn configure_reserve(
+        env: Env,
+        admin: Address,
+        settlement_token: Address,
+    ) -> Result<(), Error> {
+        Self::assert_admin(&env, &admin)?;
+        if has_reserve_config(&env) {
+            return Err(Error::ReserveAlreadyConfigured);
+        }
+        set_reserve_config(&env, &ReserveConfig { settlement_token });
+        set_total_reserved(&env, 0);
+        env.events().publish((symbol_short!("reserve"),), admin);
+        Ok(())
+    }
+
+    /// Add settlement tokens to the claims reserve. Any account may fund it.
+    pub fn fund_reserve(env: Env, funder: Address, amount: i128) -> Result<(), Error> {
+        Self::assert_initialized(&env)?;
+        funder.require_auth();
+        if amount <= 0 {
+            return Err(Error::InvalidConfig);
+        }
+        let config = get_reserve_config(&env)?;
+        token::Client::new(&env, &config.settlement_token).transfer(
+            &funder,
+            &env.current_contract_address(),
+            &amount,
+        );
+        env.events()
+            .publish((symbol_short!("reserve"),), (funder, amount));
+        Ok(())
+    }
+
+    /// Withdraw only reserve funds not committed to active crop policies.
+    pub fn withdraw_excess_reserve(env: Env, admin: Address, amount: i128) -> Result<(), Error> {
+        Self::assert_admin(&env, &admin)?;
+        if amount <= 0 {
+            return Err(Error::InvalidConfig);
+        }
+        let config = get_reserve_config(&env)?;
+        let token_client = token::Client::new(&env, &config.settlement_token);
+        let balance = token_client.balance(&env.current_contract_address());
+        let available = balance
+            .checked_sub(get_total_reserved(&env))
+            .ok_or(Error::Overflow)?;
+        if amount > available {
+            return Err(Error::InsufficientReserve);
+        }
+        token_client.transfer(&env.current_contract_address(), &admin, &amount);
+        env.events().publish((symbol_short!("withdraw"),), amount);
+        Ok(())
+    }
+
     // ── Product management (admin) ────────────────────────────────────────────
 
     /// Create a new insurance product. Returns the product ID.
@@ -150,6 +221,66 @@ impl ParametricInsurance {
         get_product(&env, product_id)
     }
 
+    /// Create a drought/flood product settled from verified satellite rainfall.
+    /// Rainfall threshold units match the weather oracle: millimetres × 10.
+    pub fn create_crop_product(
+        env: Env,
+        admin: Address,
+        name: String,
+        premium: i128,
+        coverage_amount: i128,
+        satellite_oracle: Address,
+        region: String,
+        rainfall_threshold: i128,
+        trigger_direction: TriggerDirection,
+        term_secs: u64,
+        max_observation_age: u64,
+    ) -> Result<u32, Error> {
+        Self::assert_admin(&env, &admin)?;
+        if name.is_empty() || region.is_empty() {
+            return Err(Error::EmptyName);
+        }
+        if premium <= 0 {
+            return Err(Error::ZeroPremium);
+        }
+        if coverage_amount <= 0 {
+            return Err(Error::ZeroCoverage);
+        }
+        if rainfall_threshold < 0
+            || term_secs == 0
+            || max_observation_age == 0
+            || max_observation_age > MAX_CROP_OBSERVATION_AGE_SECS
+        {
+            return Err(Error::InvalidConfig);
+        }
+        let id = get_product_count(&env)
+            .checked_add(1)
+            .ok_or(Error::Overflow)?;
+        let product = Product {
+            name,
+            premium,
+            coverage_amount,
+            oracle: satellite_oracle,
+            parameter_key: String::from_str(&env, "SAT_RAIN"),
+            trigger_threshold: rainfall_threshold,
+            trigger_direction,
+            term_secs,
+            is_active: true,
+        };
+        set_product(&env, id, &product);
+        set_crop_terms(
+            &env,
+            id,
+            &CropTerms {
+                region,
+                max_observation_age,
+            },
+        );
+        set_product_count(&env, id);
+        env.events().publish((symbol_short!("crop_prod"),), id);
+        Ok(id)
+    }
+
     pub fn product_count(env: Env) -> u32 {
         get_product_count(&env)
     }
@@ -164,16 +295,22 @@ impl ParametricInsurance {
         if !product.is_active {
             return Err(Error::ProductInactive);
         }
+        if has_crop_terms(&env, product_id) {
+            return Err(Error::SatelliteDataRequired);
+        }
 
         let now = env.ledger().timestamp();
-        let id = get_policy_count(&env) + 1;
+        let id = get_policy_count(&env)
+            .checked_add(1)
+            .ok_or(Error::Overflow)?;
+        let expires_at = now.checked_add(product.term_secs).ok_or(Error::Overflow)?;
         let policy = Policy {
             product_id,
             holder: holder.clone(),
             premium_paid: product.premium,
             coverage_amount: product.coverage_amount,
             purchased_at: now,
-            expires_at: now + product.term_secs,
+            expires_at,
             status: PolicyStatus::Active,
             trigger_value: None,
             payout_amount: None,
@@ -191,6 +328,48 @@ impl ParametricInsurance {
 
     pub fn policy_count(env: Env) -> u32 {
         get_policy_count(&env)
+    }
+
+    /// Purchase a token-backed crop policy and reserve its full coverage.
+    pub fn buy_crop_policy(env: Env, holder: Address, product_id: u32) -> Result<u32, Error> {
+        Self::assert_initialized(&env)?;
+        holder.require_auth();
+        get_crop_terms(&env, product_id)?;
+        let product = get_product(&env, product_id)?;
+        if !product.is_active {
+            return Err(Error::ProductInactive);
+        }
+        let config = get_reserve_config(&env)?;
+        let now = env.ledger().timestamp();
+        let expires_at = now.checked_add(product.term_secs).ok_or(Error::Overflow)?;
+        let id = get_policy_count(&env)
+            .checked_add(1)
+            .ok_or(Error::Overflow)?;
+        let new_reserved = get_total_reserved(&env)
+            .checked_add(product.coverage_amount)
+            .ok_or(Error::Overflow)?;
+        let token_client = token::Client::new(&env, &config.settlement_token);
+        token_client.transfer(&holder, &env.current_contract_address(), &product.premium);
+        if token_client.balance(&env.current_contract_address()) < new_reserved {
+            return Err(Error::InsufficientReserve);
+        }
+        let policy = Policy {
+            product_id,
+            holder: holder.clone(),
+            premium_paid: product.premium,
+            coverage_amount: product.coverage_amount,
+            purchased_at: now,
+            expires_at,
+            status: PolicyStatus::Active,
+            trigger_value: None,
+            payout_amount: None,
+        };
+        set_policy(&env, id, &policy);
+        set_policy_funded(&env, id, true);
+        set_total_reserved(&env, new_reserved);
+        set_policy_count(&env, id);
+        env.events().publish((symbol_short!("cropbuy"), id), holder);
+        Ok(id)
     }
 
     // ── Claim processing ──────────────────────────────────────────────────────
@@ -224,6 +403,10 @@ impl ParametricInsurance {
 
         let product = get_product(&env, policy.product_id)?;
 
+        if has_crop_terms(&env, policy.product_id) {
+            return Err(Error::SatelliteDataRequired);
+        }
+
         let reading = get_oracle_reading(&env, &product.oracle, &product.parameter_key)
             .ok_or(Error::OracleDataStale)?;
 
@@ -254,6 +437,83 @@ impl ParametricInsurance {
         Ok(payout)
     }
 
+    /// Process a crop claim against a verified/finalized satellite observation
+    /// fetched directly from the configured weather-oracle contract.
+    pub fn process_satellite_claim(
+        env: Env,
+        policy_id: u32,
+        weather_data_id: u32,
+    ) -> Result<i128, Error> {
+        Self::assert_initialized(&env)?;
+        let mut policy = get_policy(&env, policy_id)?;
+        if policy.status != PolicyStatus::Active {
+            if policy.status == PolicyStatus::Claimed {
+                return Err(Error::PolicyAlreadyClaimed);
+            }
+            return Err(Error::PolicyNotActive);
+        }
+        if !is_policy_funded(&env, policy_id) {
+            return Err(Error::PolicyNotFunded);
+        }
+        let now = env.ledger().timestamp();
+        if now > policy.expires_at {
+            return Err(Error::PolicyExpired);
+        }
+        let product = get_product(&env, policy.product_id)?;
+        let terms = get_crop_terms(&env, policy.product_id)?;
+        let reading =
+            SatelliteOracleClient::new(&env, &product.oracle).get_weather_data(&weather_data_id);
+        if (reading.status != WeatherDataStatus::Verified
+            && reading.status != WeatherDataStatus::Finalized)
+            || reading.source_type != DataSourceType::Satellite
+            || reading.confirmations == 0
+        {
+            return Err(Error::InvalidOracleData);
+        }
+        if reading.location != terms.region {
+            return Err(Error::WrongRegion);
+        }
+        if reading.timestamp < policy.purchased_at
+            || reading.timestamp > now
+            || reading.timestamp > policy.expires_at
+            || now.saturating_sub(reading.timestamp) > terms.max_observation_age
+        {
+            return Err(Error::InvalidObservation);
+        }
+
+        let rainfall = reading.precipitation as i128;
+        let triggered = match product.trigger_direction {
+            TriggerDirection::AtOrAbove => rainfall >= product.trigger_threshold,
+            TriggerDirection::AtOrBelow => rainfall <= product.trigger_threshold,
+        };
+        if !triggered {
+            return Err(Error::TriggerNotMet);
+        }
+
+        policy.status = PolicyStatus::Claimed;
+        policy.trigger_value = Some(rainfall);
+        policy.payout_amount = Some(policy.coverage_amount);
+        set_policy(&env, policy_id, &policy);
+        Self::release_reserved_coverage(&env, policy.coverage_amount)?;
+        set_policy_funded(&env, policy_id, false);
+        let config = get_reserve_config(&env)?;
+        token::Client::new(&env, &config.settlement_token).transfer(
+            &env.current_contract_address(),
+            &policy.holder,
+            &policy.coverage_amount,
+        );
+        env.events().publish(
+            (symbol_short!("satclaim"), policy_id),
+            (
+                weather_data_id,
+                policy.holder,
+                policy.coverage_amount,
+                rainfall,
+            ),
+        );
+        Ok(policy.coverage_amount)
+    }
+
     /// Expire a policy that has passed its term without a triggered payout.
     pub fn expire_policy(env: Env, policy_id: u32) -> Result<(), Error> {
         Self::assert_initialized(&env)?;
@@ -266,6 +526,10 @@ impl ParametricInsurance {
         }
         policy.status = PolicyStatus::Expired;
         set_policy(&env, policy_id, &policy);
+        if is_policy_funded(&env, policy_id) {
+            Self::release_reserved_coverage(&env, policy.coverage_amount)?;
+            set_policy_funded(&env, policy_id, false);
+        }
         env.events().publish((symbol_short!("expired"),), policy_id);
         Ok(())
     }
@@ -284,6 +548,22 @@ impl ParametricInsurance {
         is_initialized(&env)
     }
 
+    pub fn get_crop_terms(env: Env, product_id: u32) -> Result<CropTerms, Error> {
+        get_crop_terms(&env, product_id)
+    }
+
+    pub fn get_reserve_config(env: Env) -> Result<ReserveConfig, Error> {
+        get_reserve_config(&env)
+    }
+
+    pub fn get_total_reserved(env: Env) -> i128 {
+        get_total_reserved(&env)
+    }
+
+    pub fn is_policy_funded(env: Env, policy_id: u32) -> bool {
+        is_policy_funded(&env, policy_id)
+    }
+
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     fn assert_initialized(env: &Env) -> Result<(), Error> {
@@ -300,6 +580,16 @@ impl ParametricInsurance {
         if *caller != admin {
             return Err(Error::Unauthorized);
         }
+        Ok(())
+    }
+
+    fn release_reserved_coverage(env: &Env, amount: i128) -> Result<(), Error> {
+        let total_reserved = get_total_reserved(env);
+        if amount < 0 || amount > total_reserved {
+            return Err(Error::Overflow);
+        }
+        let updated = total_reserved.checked_sub(amount).ok_or(Error::Overflow)?;
+        set_total_reserved(env, updated);
         Ok(())
     }
 }
