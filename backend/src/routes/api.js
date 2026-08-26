@@ -17,6 +17,7 @@ import eventsRouter from './events.js';
 import patentsRouter from './patents.js';
 import tokenBurnRouter from './tokenBurn.js';
 import oracleRouter from './oracle.js';
+import verificationRouter from './verification.js';
 import {
   versionTransformer,
   requestTransformerV2,
@@ -102,6 +103,7 @@ router.use((req, res, next) => {
   return next();
 });
 router.use('/oracle', oracleRouter);
+router.use('/verify', verificationRouter);
 
 // Default to v1 for backward compatibility, while allowing headers such as:
 // Accept: application/vnd.soroban-playground.v2+json

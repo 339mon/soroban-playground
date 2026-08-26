@@ -30,6 +30,12 @@
   - `400` when dependency payload cannot be safely transformed into `Cargo.toml`.
   - `500` on compilation failures (stderr/diagnostics included).
 
+## Contract Source Verification
+
+The backend exposes `POST /api/verify/contracts` to compile submitted Soroban Rust source and compare the SHA-256 hash of the exact resulting WASM bytes with the deployed contract WASM retrieved through Soroban RPC. It also supports `GET /api/verify/contracts/:id`, `GET /api/verify/contracts/:id/source`, `POST /api/verify/contracts/:id/reverify`, and `GET /api/verify/contracts/search`.
+
+Use `wasmBase64` or `wasmPath` when a caller already has the compiled artifact. Status and search responses intentionally omit source code; see [`src/docs/verification.md`](src/docs/verification.md) for request examples, configuration, and the meaning of each hash.
+
 ## Cache Administration
 
 The backend now includes a multi-level compile cache with:
