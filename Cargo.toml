@@ -48,5 +48,6 @@ members = [
     "contracts/reputation-system",
     "contracts/reputation",
     "contracts/bug-bounty",
+    "contracts/prediction-market",
     "contracts/royalty",
 ]
