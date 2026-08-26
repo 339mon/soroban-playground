@@ -3,10 +3,14 @@
 
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, Address, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger},
+    token::{Client as TokenClient, StellarAssetClient},
+    Address, Env, String, Vec,
+};
 
-use crate::{PredictionMarket, PredictionMarketClient};
 use crate::types::{Error, MarketStatus, MarketType};
+use crate::{PredictionMarket, PredictionMarketClient};
 
 // ── Test helpers ───────────────────────────────────────────────────────────────
 
@@ -36,6 +40,59 @@ fn create_market_helper(
     let question = String::from_str(env, "Test market question?");
     let id = client.create_market(&creator, &question, &market_type, &deadline, &oracle);
     (creator, oracle, id)
+}
+
+struct ConditionalFixture {
+    env: Env,
+    client: PredictionMarketClient<'static>,
+    creator: Address,
+    oracle: Address,
+    token_client: TokenClient<'static>,
+    token_admin: StellarAssetClient<'static>,
+    market_id: u32,
+    deadline: u64,
+}
+
+fn setup_conditional(outcome_count: u32) -> ConditionalFixture {
+    let (env, _, client) = setup_initialized();
+    let creator = Address::generate(&env);
+    let oracle = Address::generate(&env);
+    let resolver = Address::generate(&env);
+    let token_issuer = Address::generate(&env);
+    let token_contract = env.register_stellar_asset_contract_v2(token_issuer);
+    let token = token_contract.address();
+    let token_client = TokenClient::new(&env, &token);
+    let token_admin = StellarAssetClient::new(&env, &token);
+    token_admin.mint(&creator, &10_000);
+    let deadline = env.ledger().timestamp() + 1_000;
+    let question = String::from_str(&env, "Which outcome wins?");
+    let market_id = if outcome_count == 2 {
+        client.create_binary_market(
+            &creator, &question, &deadline, &oracle, &resolver, &token, &100, &1_000,
+        )
+    } else {
+        let outcomes = Vec::from_array(
+            &env,
+            [
+                String::from_str(&env, "red"),
+                String::from_str(&env, "green"),
+                String::from_str(&env, "blue"),
+            ],
+        );
+        client.create_categorical_market(
+            &creator, &question, &outcomes, &deadline, &oracle, &resolver, &token, &100, &1_000,
+        )
+    };
+    ConditionalFixture {
+        env,
+        client,
+        creator,
+        oracle,
+        token_client,
+        token_admin,
+        market_id,
+        deadline,
+    }
 }
 
 // ── Initialization tests ──────────────────────────────────────────────────────
@@ -540,4 +597,252 @@ fn test_scalar_market_full_flow() {
 
     let payout_b = client.calculate_payout(&id, &trader_b);
     assert_eq!(payout_b, 0); // lost
+}
+
+// -- Collateralized binary and categorical markets --------------------------
+
+#[test]
+fn test_create_categorical_market_mints_complete_sets_and_lp_shares() {
+    let fixture = setup_conditional(3);
+    let conditional = fixture.client.get_conditional_market(&fixture.market_id);
+
+    assert_eq!(conditional.outcomes.len(), 3);
+    assert_eq!(
+        conditional.pool_balances,
+        Vec::from_array(&fixture.env, [1_000, 1_000, 1_000])
+    );
+    assert_eq!(conditional.collateral_locked, 1_000);
+    assert_eq!(conditional.minimum_dispute_bond, 10);
+    assert_eq!(
+        fixture
+            .client
+            .liquidity_balance(&fixture.market_id, &fixture.creator),
+        1_000
+    );
+    assert_eq!(fixture.token_client.balance(&fixture.creator), 9_000);
+}
+
+#[test]
+fn test_buy_shares_uses_fixed_product_quote_and_escrows_collateral() {
+    let fixture = setup_conditional(2);
+    let buyer = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&buyer, &500);
+
+    let quote = fixture.client.quote_buy(&fixture.market_id, &1, &100);
+    assert_eq!(quote, 190);
+    let received = fixture
+        .client
+        .buy_shares(&buyer, &fixture.market_id, &1, &100, &190);
+
+    assert_eq!(received, 190);
+    assert_eq!(
+        fixture
+            .client
+            .outcome_balance(&fixture.market_id, &buyer, &1),
+        190
+    );
+    assert_eq!(fixture.token_client.balance(&buyer), 400);
+    let conditional = fixture.client.get_conditional_market(&fixture.market_id);
+    assert_eq!(
+        conditional.pool_balances,
+        Vec::from_array(&fixture.env, [1_100, 910])
+    );
+    assert_eq!(conditional.collateral_locked, 1_100);
+    assert!(fixture.client.spot_price(&fixture.market_id, &1) > 5_000);
+}
+
+#[test]
+fn test_buy_shares_slippage_guard_is_atomic() {
+    let fixture = setup_conditional(2);
+    let buyer = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&buyer, &500);
+
+    assert_eq!(
+        fixture
+            .client
+            .try_buy_shares(&buyer, &fixture.market_id, &1, &100, &191),
+        Err(Ok(Error::SlippageExceeded))
+    );
+    assert_eq!(fixture.token_client.balance(&buyer), 500);
+    assert_eq!(
+        fixture
+            .client
+            .outcome_balance(&fixture.market_id, &buyer, &1),
+        0
+    );
+}
+
+#[test]
+fn test_liquidity_can_be_removed_and_complete_set_redeemed() {
+    let fixture = setup_conditional(3);
+    let provider = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&provider, &500);
+
+    let minted = fixture
+        .client
+        .add_liquidity(&provider, &fixture.market_id, &300, &300);
+    assert_eq!(minted, 300);
+    let basket = fixture
+        .client
+        .remove_liquidity(&provider, &fixture.market_id, &300);
+    assert_eq!(basket, Vec::from_array(&fixture.env, [300, 300, 300]));
+
+    fixture
+        .client
+        .redeem_complete_set(&provider, &fixture.market_id, &300);
+    assert_eq!(fixture.token_client.balance(&provider), 500);
+    assert_eq!(
+        fixture
+            .client
+            .liquidity_balance(&fixture.market_id, &provider),
+        0
+    );
+}
+
+#[test]
+fn test_undisputed_resolution_finalizes_after_window_and_redeems() {
+    let fixture = setup_conditional(2);
+    let buyer = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&buyer, &500);
+    let shares = fixture
+        .client
+        .buy_shares(&buyer, &fixture.market_id, &1, &100, &1);
+
+    fixture.env.ledger().set_timestamp(fixture.deadline);
+    fixture.client.propose_resolution(&fixture.market_id, &1);
+    assert_eq!(
+        fixture.client.try_finalize_resolution(&fixture.market_id),
+        Err(Ok(Error::DisputeWindowActive))
+    );
+    fixture.env.ledger().set_timestamp(fixture.deadline + 100);
+    fixture.client.finalize_resolution(&fixture.market_id);
+    assert_eq!(
+        fixture.client.get_market(&fixture.market_id).status,
+        MarketStatus::Resolved
+    );
+
+    fixture
+        .client
+        .redeem_winnings(&buyer, &fixture.market_id, &shares);
+    assert_eq!(fixture.token_client.balance(&buyer), 500 - 100 + shares);
+    assert_eq!(
+        fixture
+            .client
+            .outcome_balance(&fixture.market_id, &buyer, &1),
+        0
+    );
+}
+
+#[test]
+fn test_dispute_overturn_returns_bond_and_sets_final_outcome() {
+    let fixture = setup_conditional(3);
+    let challenger = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&challenger, &250);
+    fixture.env.ledger().set_timestamp(fixture.deadline);
+    fixture.client.propose_resolution(&fixture.market_id, &0);
+    fixture
+        .client
+        .dispute_resolution(&challenger, &fixture.market_id, &200);
+    assert_eq!(fixture.token_client.balance(&challenger), 50);
+
+    fixture.client.resolve_dispute(&fixture.market_id, &2);
+    assert_eq!(fixture.token_client.balance(&challenger), 250);
+    let market = fixture.client.get_market(&fixture.market_id);
+    assert_eq!(market.status, MarketStatus::Resolved);
+    assert_eq!(market.winning_outcome, Some(2));
+}
+
+#[test]
+fn test_upheld_dispute_bond_is_awarded_to_oracle() {
+    let fixture = setup_conditional(2);
+    let challenger = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&challenger, &100);
+    fixture.env.ledger().set_timestamp(fixture.deadline);
+    fixture.client.propose_resolution(&fixture.market_id, &1);
+    fixture
+        .client
+        .dispute_resolution(&challenger, &fixture.market_id, &100);
+    fixture.client.resolve_dispute(&fixture.market_id, &1);
+
+    assert_eq!(fixture.token_client.balance(&challenger), 0);
+    assert_eq!(fixture.token_client.balance(&fixture.oracle), 100);
+}
+
+#[test]
+fn test_resolution_and_trading_deadlines_are_enforced() {
+    let fixture = setup_conditional(2);
+    assert_eq!(
+        fixture
+            .client
+            .try_propose_resolution(&fixture.market_id, &1),
+        Err(Ok(Error::ResolutionTooEarly))
+    );
+    fixture.env.ledger().set_timestamp(fixture.deadline);
+    assert_eq!(
+        fixture
+            .client
+            .try_buy_shares(&fixture.creator, &fixture.market_id, &1, &10, &1,),
+        Err(Ok(Error::MarketExpired))
+    );
+    let challenger = Address::generate(&fixture.env);
+    fixture.token_admin.mint(&challenger, &10);
+    fixture.client.propose_resolution(&fixture.market_id, &1);
+    assert_eq!(
+        fixture
+            .client
+            .try_dispute_resolution(&challenger, &fixture.market_id, &9),
+        Err(Ok(Error::DisputeBondTooSmall))
+    );
+    assert_eq!(fixture.token_client.balance(&challenger), 10);
+}
+
+#[test]
+fn test_categorical_input_and_outcome_validation() {
+    let (env, _, client) = setup_initialized();
+    let creator = Address::generate(&env);
+    let oracle = Address::generate(&env);
+    let resolver = Address::generate(&env);
+    let token_issuer = Address::generate(&env);
+    let token = env
+        .register_stellar_asset_contract_v2(token_issuer)
+        .address();
+    StellarAssetClient::new(&env, &token).mint(&creator, &2_000);
+    let duplicate = Vec::from_array(
+        &env,
+        [
+            String::from_str(&env, "same"),
+            String::from_str(&env, "same"),
+        ],
+    );
+    let deadline = env.ledger().timestamp() + 100;
+    assert_eq!(
+        client.try_create_categorical_market(
+            &creator,
+            &String::from_str(&env, "Duplicate labels"),
+            &duplicate,
+            &deadline,
+            &oracle,
+            &resolver,
+            &token,
+            &10,
+            &1_000,
+        ),
+        Err(Ok(Error::InvalidOutcome))
+    );
+
+    let fixture = setup_conditional(3);
+    assert_eq!(
+        fixture.client.try_quote_buy(&fixture.market_id, &3, &100),
+        Err(Ok(Error::InvalidOutcome))
+    );
+}
+
+#[test]
+fn test_legacy_market_api_remains_available() {
+    let (env, _, client) = setup_initialized();
+    let (_, _, market_id) = create_market_helper(&env, &client, 0);
+    let trader = Address::generate(&env);
+    client.place_bet(&trader, &market_id, &1, &100);
+    client.resolve_market(&market_id, &1);
+    assert_eq!(client.calculate_payout(&market_id, &trader), 100);
 }
