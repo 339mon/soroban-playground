@@ -50,4 +50,8 @@ members = [
     "contracts/bug-bounty",
     "contracts/prediction-market",
     "contracts/royalty",
+    "contracts/vc-vesting",
+    "contracts/index-token",
+    "contracts/ad-network",
+    "contracts/charity-tracker",
 ]
