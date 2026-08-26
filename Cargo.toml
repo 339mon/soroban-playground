@@ -50,4 +50,6 @@ members = [
     "contracts/bug-bounty",
     "contracts/prediction-market",
     "contracts/royalty",
+    "contracts/emergency-pause",
+    "contracts/energy-trading",
 ]
