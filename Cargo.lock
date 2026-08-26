@@ -2370,6 +2370,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "royalty"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "rsa"
 version = "0.9.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
