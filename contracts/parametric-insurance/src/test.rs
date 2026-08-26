@@ -1,11 +1,16 @@
 #![cfg(test)]
 
 use super::{
-    types::{Error, PolicyStatus, TriggerDirection},
+    types::{
+        DataSourceType, Error, PolicyStatus, SatelliteWeatherData, TriggerDirection,
+        WeatherDataStatus,
+    },
     ParametricInsurance, ParametricInsuranceClient,
 };
 use soroban_sdk::{
+    contract, contractimpl,
     testutils::{Address as _, Ledger},
+    token::{Client as TokenClient, StellarAssetClient},
     Address, Env, String,
 };
 
@@ -303,4 +308,322 @@ fn test_expire_policy_after_term() {
     client.expire_policy(&policy_id);
     let policy = client.get_policy(&policy_id);
     assert_eq!(policy.status, PolicyStatus::Expired);
+}
+
+#[contract]
+struct MockSatelliteOracle;
+
+#[contractimpl]
+impl MockSatelliteOracle {
+    pub fn set_weather(env: Env, record: SatelliteWeatherData) {
+        env.storage().persistent().set(&record.id, &record);
+    }
+
+    pub fn get_weather_data(env: Env, data_id: u32) -> SatelliteWeatherData {
+        env.storage().persistent().get(&data_id).unwrap()
+    }
+}
+
+struct CropSetup {
+    env: Env,
+    client: ParametricInsuranceClient<'static>,
+    admin: Address,
+    holder: Address,
+    token_address: Address,
+    oracle_address: Address,
+    token: TokenClient<'static>,
+    oracle: MockSatelliteOracleClient<'static>,
+    product_id: u32,
+}
+
+fn setup_crop(reserve_amount: i128) -> CropSetup {
+    let env = Env::default();
+    env.mock_all_auths();
+    env.ledger().with_mut(|ledger| ledger.timestamp = 1_000);
+    let admin = Address::generate(&env);
+    let holder = Address::generate(&env);
+    let funder = Address::generate(&env);
+
+    let asset = env.register_stellar_asset_contract_v2(Address::generate(&env));
+    let token_address = asset.address();
+    let token = TokenClient::new(&env, &token_address);
+    let token_admin = StellarAssetClient::new(&env, &token_address);
+    token_admin.mint(&holder, &100);
+    token_admin.mint(&funder, &2_000);
+
+    let insurance_id = env.register_contract(None, ParametricInsurance);
+    let client = ParametricInsuranceClient::new(&env, &insurance_id);
+    client.initialize(&admin);
+    client.configure_reserve(&admin, &token_address);
+    if reserve_amount > 0 {
+        client.fund_reserve(&funder, &reserve_amount);
+    }
+
+    let oracle_id = env.register_contract(None, MockSatelliteOracle);
+    let oracle = MockSatelliteOracleClient::new(&env, &oracle_id);
+    let product_id = client.create_crop_product(
+        &admin,
+        &String::from_str(&env, "Satellite Drought Cover"),
+        &10,
+        &1_000,
+        &oracle_id,
+        &String::from_str(&env, "KE-Nakuru-001"),
+        &500,
+        &TriggerDirection::AtOrBelow,
+        &86_400,
+        &3_600,
+    );
+    CropSetup {
+        env,
+        client,
+        admin,
+        holder,
+        token_address,
+        oracle_address: oracle_id,
+        token,
+        oracle,
+        product_id,
+    }
+}
+
+fn weather(setup: &CropSetup, id: u32, precipitation: u32) -> SatelliteWeatherData {
+    SatelliteWeatherData {
+        id,
+        location: String::from_str(&setup.env, "KE-Nakuru-001"),
+        latitude: -3_0364,
+        longitude: 363_068,
+        temperature: 2_500,
+        humidity: 4_000,
+        pressure: 10_132,
+        wind_speed: 120,
+        wind_direction: 180,
+        precipitation,
+        timestamp: setup.env.ledger().timestamp(),
+        status: WeatherDataStatus::Verified,
+        submitter: Address::generate(&setup.env),
+        confirmations: 2,
+        source_type: DataSourceType::Satellite,
+    }
+}
+
+#[test]
+fn test_crop_product_and_funded_policy_reserve_full_liability() {
+    let setup = setup_crop(1_000);
+    let terms = setup.client.get_crop_terms(&setup.product_id);
+    assert_eq!(terms.region, String::from_str(&setup.env, "KE-Nakuru-001"));
+
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    assert!(setup.client.is_policy_funded(&policy_id));
+    assert_eq!(setup.client.get_total_reserved(), 1_000);
+    assert_eq!(setup.token.balance(&setup.holder), 90);
+    assert_eq!(setup.token.balance(&setup.client.address), 1_010);
+}
+
+#[test]
+fn test_verified_satellite_drought_triggers_automatic_token_payout() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    setup.oracle.set_weather(&weather(&setup, 7, 200));
+
+    let payout = setup.client.process_satellite_claim(&policy_id, &7);
+    assert_eq!(payout, 1_000);
+    assert_eq!(setup.token.balance(&setup.holder), 1_090);
+    assert_eq!(setup.token.balance(&setup.client.address), 10);
+    assert_eq!(setup.client.get_total_reserved(), 0);
+    assert!(!setup.client.is_policy_funded(&policy_id));
+    let policy = setup.client.get_policy(&policy_id);
+    assert_eq!(policy.status, PolicyStatus::Claimed);
+    assert_eq!(policy.trigger_value, Some(200));
+}
+
+#[test]
+fn test_non_triggering_rainfall_preserves_policy_and_reserve() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    setup.oracle.set_weather(&weather(&setup, 8, 800));
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &8),
+        Err(Ok(Error::TriggerNotMet))
+    );
+    assert_eq!(
+        setup.client.get_policy(&policy_id).status,
+        PolicyStatus::Active
+    );
+    assert_eq!(setup.client.get_total_reserved(), 1_000);
+}
+
+#[test]
+fn test_unverified_or_non_satellite_observation_is_rejected() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    let mut pending = weather(&setup, 9, 200);
+    pending.status = WeatherDataStatus::Pending;
+    setup.oracle.set_weather(&pending);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &9),
+        Err(Ok(Error::InvalidOracleData))
+    );
+
+    let mut station = weather(&setup, 10, 200);
+    station.source_type = DataSourceType::GroundStation;
+    setup.oracle.set_weather(&station);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &10),
+        Err(Ok(Error::InvalidOracleData))
+    );
+}
+
+#[test]
+fn test_wrong_region_and_stale_observation_are_rejected() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    let mut wrong_region = weather(&setup, 11, 200);
+    wrong_region.location = String::from_str(&setup.env, "KE-Kisumu-001");
+    setup.oracle.set_weather(&wrong_region);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &11),
+        Err(Ok(Error::WrongRegion))
+    );
+
+    let mut stale = weather(&setup, 12, 200);
+    stale.timestamp = setup.env.ledger().timestamp();
+    setup.oracle.set_weather(&stale);
+    setup
+        .env
+        .ledger()
+        .with_mut(|ledger| ledger.timestamp += 3_601);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &12),
+        Err(Ok(Error::InvalidObservation))
+    );
+}
+
+#[test]
+fn test_pre_policy_and_future_observations_are_rejected() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    let mut old = weather(&setup, 13, 200);
+    old.timestamp -= 1;
+    setup.oracle.set_weather(&old);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &13),
+        Err(Ok(Error::InvalidObservation))
+    );
+
+    let mut future = weather(&setup, 14, 200);
+    future.timestamp += 1;
+    setup.oracle.set_weather(&future);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &14),
+        Err(Ok(Error::InvalidObservation))
+    );
+}
+
+#[test]
+fn test_insufficient_reserve_rolls_back_premium_and_policy() {
+    let setup = setup_crop(500);
+    assert_eq!(
+        setup
+            .client
+            .try_buy_crop_policy(&setup.holder, &setup.product_id),
+        Err(Ok(Error::InsufficientReserve))
+    );
+    assert_eq!(setup.token.balance(&setup.holder), 100);
+    assert_eq!(setup.client.policy_count(), 0);
+    assert_eq!(setup.client.get_total_reserved(), 0);
+}
+
+#[test]
+fn test_admin_cannot_withdraw_reserved_claim_funds() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    assert_eq!(
+        setup.client.try_withdraw_excess_reserve(&setup.admin, &11),
+        Err(Ok(Error::InsufficientReserve))
+    );
+    setup.client.withdraw_excess_reserve(&setup.admin, &10);
+    assert_eq!(setup.client.get_total_reserved(), 1_000);
+    assert_eq!(
+        setup.client.get_policy(&policy_id).status,
+        PolicyStatus::Active
+    );
+}
+
+#[test]
+fn test_expiring_crop_policy_releases_reserved_liability() {
+    let setup = setup_crop(1_000);
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    setup
+        .env
+        .ledger()
+        .with_mut(|ledger| ledger.timestamp += 86_401);
+    setup.client.expire_policy(&policy_id);
+    assert_eq!(setup.client.get_total_reserved(), 0);
+    assert!(!setup.client.is_policy_funded(&policy_id));
+}
+
+#[test]
+fn test_crop_policy_rejects_legacy_reading_claim_path_and_double_claim() {
+    let setup = setup_crop(1_000);
+    assert_eq!(
+        setup
+            .client
+            .try_buy_policy(&setup.holder, &setup.product_id),
+        Err(Ok(Error::SatelliteDataRequired))
+    );
+    let policy_id = setup
+        .client
+        .buy_crop_policy(&setup.holder, &setup.product_id);
+    assert_eq!(
+        setup.client.try_process_claim(&policy_id),
+        Err(Ok(Error::SatelliteDataRequired))
+    );
+    setup.oracle.set_weather(&weather(&setup, 15, 200));
+    setup.client.process_satellite_claim(&policy_id, &15);
+    assert_eq!(
+        setup.client.try_process_satellite_claim(&policy_id, &15),
+        Err(Ok(Error::PolicyAlreadyClaimed))
+    );
+}
+
+#[test]
+fn test_crop_configuration_validation_and_single_reserve_asset() {
+    let setup = setup_crop(1_000);
+    assert_eq!(
+        setup
+            .client
+            .try_configure_reserve(&setup.admin, &setup.token_address),
+        Err(Ok(Error::ReserveAlreadyConfigured))
+    );
+    assert_eq!(
+        setup.client.try_create_crop_product(
+            &setup.admin,
+            &String::from_str(&setup.env, "Invalid"),
+            &10,
+            &1_000,
+            &setup.oracle_address,
+            &String::from_str(&setup.env, "KE-Nakuru-001"),
+            &500,
+            &TriggerDirection::AtOrBelow,
+            &86_400,
+            &(7 * 86_400 + 1),
+        ),
+        Err(Ok(Error::InvalidConfig))
+    );
 }
