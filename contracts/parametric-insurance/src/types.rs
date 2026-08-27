@@ -23,6 +23,73 @@ pub enum Error {
     OracleDataStale = 14,
     EmptyName = 15,
     PolicyNotActive = 16,
+    ReserveNotConfigured = 17,
+    ReserveAlreadyConfigured = 18,
+    InsufficientReserve = 19,
+    InvalidOracleData = 20,
+    WrongRegion = 21,
+    SatelliteDataRequired = 22,
+    PolicyNotFunded = 23,
+    InvalidObservation = 24,
+    InvalidConfig = 25,
+    Overflow = 26,
+}
+
+/// Verification status mirrored from `weather-data-oracle`.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum WeatherDataStatus {
+    Pending,
+    Verified,
+    Disputed,
+    Finalized,
+}
+
+/// Source provenance mirrored from `weather-data-oracle`.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DataSourceType {
+    Satellite,
+    GroundStation,
+    WeatherAPI,
+}
+
+/// Cross-contract weather record returned by the repository weather oracle.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SatelliteWeatherData {
+    pub id: u32,
+    pub location: String,
+    pub latitude: i64,
+    pub longitude: i64,
+    pub temperature: i32,
+    pub humidity: u32,
+    pub pressure: u32,
+    pub wind_speed: u32,
+    pub wind_direction: u32,
+    /// Precipitation in millimetres × 10.
+    pub precipitation: u32,
+    pub timestamp: u64,
+    pub status: WeatherDataStatus,
+    pub submitter: Address,
+    pub confirmations: u32,
+    pub source_type: DataSourceType,
+}
+
+/// Additional immutable constraints for a satellite-backed crop product.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CropTerms {
+    pub region: String,
+    /// Maximum age of an observation at claim time.
+    pub max_observation_age: u64,
+}
+
+/// Settlement-token configuration for funded crop policies.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReserveConfig {
+    pub settlement_token: Address,
 }
 
 /// Direction of the trigger comparison.
@@ -109,6 +176,8 @@ pub enum InstanceKey {
     Admin,
     ProductCount,
     PolicyCount,
+    ReserveConfig,
+    TotalReserved,
 }
 
 #[contracttype]
@@ -119,4 +188,8 @@ pub enum DataKey {
     OracleReading(Address, String),
     /// Authorised oracle addresses.
     Oracle(Address),
+    /// Crop-specific satellite constraints keyed by product.
+    CropTerms(u32),
+    /// Whether a policy has premium custody and reserved payout funds.
+    FundedPolicy(u32),
 }

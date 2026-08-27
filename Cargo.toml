@@ -11,6 +11,7 @@ dotenv = "0.15"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
+hex = "0.4"
 aes-gcm = "0.10"
 aead = "0.5"
 aws-config = "0.55"
@@ -20,10 +21,12 @@ tokio-util = { version = "0.7", features = ["io"] }
 
 [workspace]
 members = [
+    "contracts/gaming-crafting",
     "contracts/debugging-utils",
     "contracts/cross-contract-utils",
     "contracts/insurance-oracle",
     "contracts/erc-721",
+    "contracts/zk-verifier",
     "contracts/upgradeable",
     "contracts/versioned",
     "contracts/access-control",
@@ -41,9 +44,11 @@ members = [
     "contracts/did-registry",
     "contracts/multisig-wallet",
     "contracts/yield-optimizer",
+    "contracts/yield-farming",
     "contracts/insurance-protocol",
     "contracts/identity-registry",
     "contracts/reputation-system",
+    "contracts/reputation",
     "contracts/bug-bounty",
     "contracts/options-protocol",
 ]
