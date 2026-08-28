@@ -64,4 +64,7 @@ tokio-util = { version = "0.7", features = ["io"] }
     "contracts/emergency-pause",
     "contracts/energy-trading",
     "contracts/amm-pool",
+    "contracts/staking-derivatives",
+    "contracts/perpetuals",
+    "contracts/stablecoin",
 ]

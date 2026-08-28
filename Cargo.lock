@@ -3505,6 +3505,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-perpetuals"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "soroban-playground-indexer"
 version = "0.1.0"
 dependencies = [
@@ -3678,6 +3685,13 @@ dependencies = [
  "stellar-xdr 26.0.1",
  "syn 2.0.119",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "soroban-staking-derivatives"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]
@@ -3958,6 +3972,13 @@ name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+
+[[package]]
+name = "stablecoin"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
 
 [[package]]
 name = "static_assertions"
