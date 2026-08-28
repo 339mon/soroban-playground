@@ -258,7 +258,7 @@ impl AdNetworkContract {
             .set(&DataKey::ImpressionHash(user_hash), &id);
 
         env.events()
-            .publish((symbol_short!("ad"), symbol_short!("impression")), id);
+            .publish((symbol_short!("ad"), symbol_short!("impress")), id);
         Ok(id)
     }
 

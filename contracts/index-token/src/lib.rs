@@ -397,7 +397,7 @@ impl IndexTokenContract {
             .set(&DataKey::RebalanceProposal(pool_id), &p);
 
         env.events()
-            .publish((symbol_short!("idx"), symbol_short!("rebal_done")), pool_id);
+            .publish((symbol_short!("idx"), symbol_short!("rebal")), pool_id);
         Ok(())
     }
 

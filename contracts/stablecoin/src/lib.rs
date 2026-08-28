@@ -679,7 +679,7 @@ impl AlgorithmicStablecoin {
         admin.require_auth();
         Self::assert_admin(&env, &admin)?;
 
-        if Self::is_paused(&env) {
+        if Self::is_paused(env.clone()) {
             return Err(Error::AlreadyInState);
         }
 
@@ -694,7 +694,7 @@ impl AlgorithmicStablecoin {
         admin.require_auth();
         Self::assert_admin(&env, &admin)?;
 
-        if !Self::is_paused(&env) {
+        if !Self::is_paused(env.clone()) {
             return Err(Error::AlreadyInState);
         }
 

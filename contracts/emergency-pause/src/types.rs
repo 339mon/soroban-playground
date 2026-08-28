@@ -22,6 +22,8 @@ pub enum Error {
     GuardianNotFound = 11,
     TimeLockNotExpired = 12,
     InvalidThreshold = 13,
+    AlreadyExists = 14,
+    AlreadySigned = 15,
 }
 
 // ── Structs ───────────────────────────────────────────────────────────────────

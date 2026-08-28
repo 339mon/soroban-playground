@@ -19,9 +19,10 @@ mod types;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
 
 use crate::storage::{
-    get_admin, get_balance, get_meter, get_meter_count, get_meter_reading, get_trade_count,
-    get_total_energy_traded, is_initialized, next_meter_id, next_trade_id, set_admin,
-    set_balance, set_meter, set_meter_reading, set_total_energy_traded, set_trade_order,
+    get_admin, get_balance, get_energy_trade, get_meter, get_meter_count, get_meter_reading,
+    get_total_energy_traded, get_trade_count, get_trade_order, is_initialized, next_meter_id,
+    next_trade_id, set_admin, set_balance, set_energy_trade, set_meter, set_meter_reading,
+    set_total_energy_traded, set_trade_order,
 };
 use crate::types::{
     EnergyBalance, EnergyTrade, EnergyType, Error, MeterReading, MeterStatus, SmartMeter,
@@ -256,7 +257,7 @@ impl EnergyTrading {
             created_at: now,
             settled_at: Some(now),
         };
-        set_trade_order(&env, trade_id, &trade);
+        set_energy_trade(&env, trade_id, &trade);
 
         // Update order status
         order.status = TradeStatus::Matched;

@@ -14,4 +14,3 @@ soroban-sdk = "21.0.6"
 
 [dev-dependencies]
 soroban-sdk = { version = "21.0.6", features = ["testutils"] }
-[workspace]

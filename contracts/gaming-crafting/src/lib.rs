@@ -43,13 +43,14 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, vec, Address, Env, Symbol, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, vec, Address, Env, Symbol, Vec,
 };
 
 // ── Error codes ───────────────────────────────────────────────────────────────
 
-#[contracttype]
-#[derive(Clone, Debug, PartialEq)]
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
 pub enum Error {
     /// Contract was already initialised.
     AlreadyInitialized = 1,
@@ -240,16 +241,10 @@ fn remove_inv_slot(env: &Env, player: &Address, slot: u32) {
 /// stat rolled.
 fn derive_seed(env: &Env, crafter: &Address, item_def_id: u32, recipe_id: u32) -> u64 {
     let seq = env.ledger().sequence() as u64;
+    let ts = env.ledger().timestamp();
+    let addr_val = crafter.to_val().get_payload();
 
-    // Take the first 8 bytes of the address's raw bytes representation.
-    let addr_bytes = crafter.to_string().into_bytes();
-    let addr_slice = addr_bytes.slice(0..addr_bytes.len().min(8));
-    let mut addr_val: u64 = 0;
-    for i in 0..addr_slice.len() {
-        addr_val = addr_val.wrapping_shl(8).wrapping_add(addr_slice.get_unchecked(i) as u64);
-    }
-
-    seq ^ addr_val ^ (item_def_id as u64).wrapping_shl(32) ^ (recipe_id as u64)
+    seq ^ ts ^ addr_val ^ ((item_def_id as u64).wrapping_shl(32)) ^ (recipe_id as u64)
 }
 
 /// Advance the LCG seed and return a value in `[0, range]`.

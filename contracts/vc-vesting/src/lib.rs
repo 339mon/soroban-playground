@@ -411,7 +411,7 @@ impl VCVestingContract {
         }
 
         let approval_rate = (tranche.approve_votes * 10000) / total_investor_allocation;
-        let approved = approval_rate >= tranche.required_votes_bps;
+        let approved = approval_rate >= (tranche.required_votes_bps as i128);
 
         if approved {
             tranche.released = true;
