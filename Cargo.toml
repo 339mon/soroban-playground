@@ -60,4 +60,5 @@ members = [
     "contracts/index-token",
     "contracts/ad-network",
     "contracts/charity-tracker",
+    "contracts/emergency-pause",
 ]
