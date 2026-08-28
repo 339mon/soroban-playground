@@ -61,4 +61,5 @@ members = [
     "contracts/ad-network",
     "contracts/charity-tracker",
     "contracts/emergency-pause",
+    "contracts/energy-trading",
 ]
