@@ -19,7 +19,7 @@ pub enum InstanceKey {
     PriceBCum,
     /// Ledger timestamp of last swap (for TWAP)
     LastTimestamp,
-    /// Swap fee in basis points (default 30 = 0.30%)
+    /// Base swap fee in basis points (default 30 = 0.30%)
     FeeBps,
     /// NFT collection address (for NFT AMM pools)
     NftCollection,
@@ -27,6 +27,12 @@ pub enum InstanceKey {
     TotalVolume,
     /// Total fees collected
     TotalFees,
+    /// Volatility EMA (exponential moving average of price returns, TWAP_PRECISION scaled)
+    VolEma,
+    /// Rolling window sum of price returns for variance estimation
+    VolWindowSum,
+    /// Current count in rolling window
+    VolWindowCount,
 }
 
 #[contracttype]
@@ -51,6 +57,18 @@ pub struct CollectionStats {
     pub last_update: u64,
 }
 
+/// Pool configuration returned by get_pool_config().
+#[contracttype]
+#[derive(Clone, Debug)]
+pub struct PoolConfig {
+    pub base_fee_bps: i128,
+    pub min_fee_bps: i128,
+    pub max_fee_bps: i128,
+    pub vol_ema: i128,
+    pub reserve_a: i128,
+    pub reserve_b: i128,
+}
+
 // ── Errors ────────────────────────────────────────────────────────────────────
 
 #[contracterror]
@@ -67,4 +85,5 @@ pub enum Error {
     InvalidToken = 8,
     Overflow = 9,
     ZeroOutput = 10,
+    InvalidFee = 11,
 }
