@@ -20,8 +20,9 @@ chrono = "0.4"
 tokio-util = { version = "0.7", features = ["io"] }
 
 [workspace]
-members = [
     "contracts/gaming-crafting",
+    "contracts/bounty-dispute",
+    "contracts/supply-chain",
     "contracts/debugging-utils",
     "contracts/cross-contract-utils",
     "contracts/insurance-oracle",

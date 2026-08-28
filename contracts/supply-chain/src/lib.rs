@@ -12,6 +12,7 @@
 
 #![no_std]
 
+mod coldchain;
 mod storage;
 mod test;
 mod types;
