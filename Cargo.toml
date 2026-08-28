@@ -51,4 +51,5 @@ members = [
     "contracts/reputation",
     "contracts/bug-bounty",
     "contracts/sports-betting",
+    "contracts/options-protocol",
 ]
