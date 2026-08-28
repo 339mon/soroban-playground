@@ -63,4 +63,5 @@ tokio-util = { version = "0.7", features = ["io"] }
     "contracts/charity-tracker",
     "contracts/emergency-pause",
     "contracts/energy-trading",
+    "contracts/amm-pool",
 ]

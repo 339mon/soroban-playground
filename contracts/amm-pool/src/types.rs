@@ -19,7 +19,7 @@ pub enum InstanceKey {
     PriceBCum,
     /// Ledger timestamp of last swap (for TWAP)
     LastTimestamp,
-    /// Base swap fee in basis points (default 30 = 0.30%)
+    /// Swap fee in basis points (default 30 = 0.30%)
     FeeBps,
     /// NFT collection address (for NFT AMM pools)
     NftCollection,
@@ -27,12 +27,10 @@ pub enum InstanceKey {
     TotalVolume,
     /// Total fees collected
     TotalFees,
-    /// Volatility EMA (exponential moving average of price returns, TWAP_PRECISION scaled)
-    VolEma,
-    /// Rolling window sum of price returns for variance estimation
-    VolWindowSum,
-    /// Current count in rolling window
-    VolWindowCount,
+    /// Opt-in bounds and weighting for volatility-adjusted fees.
+    DynamicFeeConfig,
+    /// Exponentially weighted recent pool-price volatility.
+    VolatilityState,
 }
 
 #[contracttype]
@@ -57,16 +55,44 @@ pub struct CollectionStats {
     pub last_update: u64,
 }
 
-/// Pool configuration returned by get_pool_config().
+/// Risk controls for the opt-in dynamic fee model.
 #[contracttype]
-#[derive(Clone, Debug)]
-pub struct PoolConfig {
-    pub base_fee_bps: i128,
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DynamicFeeConfig {
+    /// Lower bound for the effective swap fee.
     pub min_fee_bps: i128,
+    /// Upper bound for the effective swap fee.
     pub max_fee_bps: i128,
-    pub vol_ema: i128,
-    pub reserve_a: i128,
-    pub reserve_b: i128,
+    /// Portion of recent volatility added to the fee (10_000 = 1x).
+    pub volatility_multiplier_bps: i128,
+    /// Portion of per-swap reserve utilization added to the fee.
+    pub utilization_multiplier_bps: i128,
+    /// Weight assigned to the latest absolute price return.
+    pub ema_alpha_bps: i128,
+    /// Seconds after which inactive historical volatility fully decays.
+    pub volatility_window: u64,
+    /// Maximum fee-inclusive execution price impact accepted by the pool.
+    pub max_price_impact_bps: i128,
+}
+
+/// Current volatility observation, expressed in basis points.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VolatilityState {
+    pub ema_volatility_bps: i128,
+    pub last_price: i128,
+    pub last_timestamp: u64,
+}
+
+/// Deterministic swap preview including each dynamic fee input.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SwapQuote {
+    pub amount_out: i128,
+    pub fee_bps: i128,
+    pub price_impact_bps: i128,
+    pub volatility_bps: i128,
+    pub utilization_bps: i128,
 }
 
 // ── Errors ────────────────────────────────────────────────────────────────────
@@ -86,4 +112,8 @@ pub enum Error {
     Overflow = 9,
     ZeroOutput = 10,
     InvalidFee = 11,
+    InvalidDynamicFeeConfig = 12,
+    PriceImpactExceeded = 13,
+    FeeLimitExceeded = 14,
+    DeadlineExpired = 15,
 }
