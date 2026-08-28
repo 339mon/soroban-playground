@@ -40,6 +40,11 @@ const options = {
         description: 'Contract deployment and invocation operations',
       },
       {
+        name: 'Contract Verification',
+        description:
+          'Source-to-WASM hash verification for deployed Soroban contracts',
+      },
+      {
         name: 'RPC Network Manager',
         description: 'Circuit breaker & RPC health status',
       },
@@ -54,6 +59,14 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
+        },
+      },
+      parameters: {
+        VerificationId: {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
         },
       },
       schemas: {
@@ -87,6 +100,51 @@ const options = {
             },
             status: { type: 'string', example: 'queued' },
             createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        VerificationRequest: {
+          type: 'object',
+          required: ['contractId', 'sourceCode'],
+          properties: {
+            contractId: {
+              type: 'string',
+              description: 'Stellar Soroban contract ID',
+            },
+            network: { type: 'string', default: 'testnet' },
+            sourceCode: {
+              type: 'string',
+              description: 'Rust source for src/lib.rs',
+            },
+            dependencies: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+            },
+            metadata: { type: 'object' },
+            wasmBase64: {
+              type: 'string',
+              description: 'Optional compiled WASM artifact',
+            },
+            wasmPath: {
+              type: 'string',
+              description:
+                'Optional artifact path inside VERIFICATION_ARTIFACT_ROOT',
+            },
+          },
+        },
+        VerificationRecord: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            contractId: { type: 'string' },
+            network: { type: 'string' },
+            sourceHash: { type: 'string' },
+            wasmHash: { type: 'string', nullable: true },
+            onChainWasmHash: { type: 'string', nullable: true },
+            status: {
+              type: 'string',
+              enum: ['pending', 'verified', 'mismatch', 'failed'],
+            },
+            verified: { type: 'boolean' },
           },
         },
         CompileJobStatus: {
