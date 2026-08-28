@@ -1,8 +1,8 @@
 [package]
-name = "stablecoin"
+name = "soroban-staking-derivatives"
 version = "0.1.0"
 edition = "2021"
-publish = false
+description = "Liquid staking exchange-rate accrual and unbonding queue"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

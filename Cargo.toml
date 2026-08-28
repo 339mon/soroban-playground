@@ -45,4 +45,7 @@ members = [
     "contracts/identity-registry",
     "contracts/reputation-system",
     "contracts/bug-bounty",
+    "contracts/staking-derivatives",
+    "contracts/perpetuals",
+    "contracts/stablecoin",
 ]
