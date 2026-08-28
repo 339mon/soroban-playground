@@ -60,6 +60,15 @@ instance_set!(set_last_ts, LastTimestamp, u64);
 instance_get!(get_fee_bps, FeeBps, i128, 30);
 instance_set!(set_fee_bps, FeeBps, i128);
 
+// ── Volatility oracle state ───────────────────────────────────────────────────
+
+instance_get!(get_vol_ema, VolEma, i128, 0);
+instance_set!(set_vol_ema, VolEma, i128);
+instance_get!(get_vol_window_sum, VolWindowSum, i128, 0);
+instance_set!(set_vol_window_sum, VolWindowSum, i128);
+instance_get!(get_vol_window_count, VolWindowCount, i128, 0);
+instance_set!(set_vol_window_count, VolWindowCount, i128);
+
 // ── LP balances ───────────────────────────────────────────────────────────────
 
 pub fn get_lp(env: &Env, addr: &Address) -> i128 {
