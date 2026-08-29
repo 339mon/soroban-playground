@@ -585,3 +585,411 @@ fn test_paused_blocks_all_state_changing_ops() {
         Err(Ok(Error::Paused))
     );
 }
+
+// ── Escrow with Milestones ────────────────────────────────────────────────────
+
+#[test]
+fn test_create_escrow() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    assert_eq!(e_id, 1);
+    assert_eq!(client.get_escrow_count(), 1);
+
+    let escrow = client.get_escrow(&e_id);
+    assert_eq!(escrow.payer, licensee);
+    assert_eq!(escrow.total_amount, 10_000);
+    assert_eq!(escrow.status, EscrowStatus::Funded);
+}
+
+#[test]
+fn test_create_escrow_unauthorized() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+    let stranger = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    assert_eq!(
+        client.try_create_escrow(&stranger, &p_id, &l_id, &10_000),
+        Err(Ok(Error::Unauthorized))
+    );
+}
+
+#[test]
+fn test_create_escrow_invalid_amount() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    assert_eq!(
+        client.try_create_escrow(&licensee, &p_id, &l_id, &0),
+        Err(Ok(Error::InvalidFee))
+    );
+}
+
+#[test]
+fn test_add_milestone() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1: Prototype"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    assert_eq!(m_id, 1);
+    assert_eq!(client.get_milestone_count(), 1);
+
+    let milestone = client.get_milestone(&m_id);
+    assert_eq!(milestone.amount, 5_000);
+    assert_eq!(milestone.status, MilestoneStatus::Pending);
+}
+
+#[test]
+fn test_add_milestone_unauthorized() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+    let stranger = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    assert_eq!(
+        client.try_add_milestone(
+            &stranger,
+            &e_id,
+            &String::from_str(&env, "Phase 1"),
+            &5_000,
+            &(env.ledger().timestamp() + 86400),
+        ),
+        Err(Ok(Error::Unauthorized))
+    );
+}
+
+#[test]
+fn test_add_milestone_exceeds_escrow_amount() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    assert_eq!(
+        client.try_add_milestone(
+            &inventor,
+            &e_id,
+            &String::from_str(&env, "Phase 1"),
+            &15_000,
+            &(env.ledger().timestamp() + 86400),
+        ),
+        Err(Ok(Error::InsufficientDeposit))
+    );
+}
+
+#[test]
+fn test_complete_milestone() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    client.complete_milestone(&licensee, &m_id);
+    let milestone = client.get_milestone(&m_id);
+    assert_eq!(milestone.status, MilestoneStatus::Completed);
+    assert!(milestone.completed_at.is_some());
+}
+
+#[test]
+fn test_complete_milestone_unauthorized() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+    let stranger = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    assert_eq!(
+        client.try_complete_milestone(&stranger, &m_id),
+        Err(Ok(Error::Unauthorized))
+    );
+}
+
+#[test]
+fn test_complete_milestone_wrong_status() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    client.complete_milestone(&licensee, &m_id);
+    assert_eq!(
+        client.try_complete_milestone(&licensee, &m_id),
+        Err(Ok(Error::InvalidMilestoneStatus))
+    );
+}
+
+#[test]
+fn test_verify_and_release() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    client.complete_milestone(&licensee, &m_id);
+    client.verify_and_release(&inventor, &m_id);
+
+    let milestone = client.get_milestone(&m_id);
+    assert_eq!(milestone.status, MilestoneStatus::Verified);
+    assert!(milestone.verified_at.is_some());
+
+    let escrow = client.get_escrow(&e_id);
+    assert_eq!(escrow.released_amount, 5_000);
+    assert_eq!(escrow.status, EscrowStatus::PartiallyReleased);
+}
+
+#[test]
+fn test_verify_and_release_unauthorized() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+    let stranger = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    client.complete_milestone(&licensee, &m_id);
+    assert_eq!(
+        client.try_verify_and_release(&stranger, &m_id),
+        Err(Ok(Error::Unauthorized))
+    );
+}
+
+#[test]
+fn test_reject_milestone() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    let m_id = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+
+    client.complete_milestone(&licensee, &m_id);
+    client.reject_milestone(&inventor, &m_id);
+
+    let milestone = client.get_milestone(&m_id);
+    assert_eq!(milestone.status, MilestoneStatus::Rejected);
+}
+
+#[test]
+fn test_full_escrow_lifecycle() {
+    let (env, admin, client) = setup();
+    let inventor = Address::generate(&env);
+    let licensee = Address::generate(&env);
+
+    let p_id = file_active_patent(&env, &client, &admin, &inventor);
+    let l_id = client.grant_license(
+        &inventor,
+        &p_id,
+        &licensee,
+        &LicenseType::NonExclusive,
+        &10_000,
+        &9999999999,
+    );
+
+    let e_id = client.create_escrow(&licensee, &p_id, &l_id, &10_000);
+    client.fund_escrow(&licensee, &e_id);
+
+    // Milestone 1
+    let m1 = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 1"),
+        &5_000,
+        &(env.ledger().timestamp() + 86400),
+    );
+    client.complete_milestone(&licensee, &m1);
+    client.verify_and_release(&inventor, &m1);
+
+    // Milestone 2
+    let m2 = client.add_milestone(
+        &inventor,
+        &e_id,
+        &String::from_str(&env, "Phase 2"),
+        &5_000,
+        &(env.ledger().timestamp() + 172800),
+    );
+    client.complete_milestone(&licensee, &m2);
+    client.verify_and_release(&inventor, &m2);
+
+    let escrow = client.get_escrow(&e_id);
+    assert_eq!(escrow.released_amount, 10_000);
+    assert_eq!(escrow.status, EscrowStatus::FullyReleased);
+}

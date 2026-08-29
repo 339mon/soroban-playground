@@ -19,19 +19,23 @@ mod types;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env};
 
 use crate::storage::{
-    get_collection_stats, get_fee_bps, get_floor_price, get_last_ts, get_lp, get_nft_collection,
-    get_price_a_cum, get_price_b_cum, get_reserve_a, get_reserve_b, get_token_a, get_token_b,
-    get_total_fees, get_total_lp, get_total_volume, is_initialized, set_admin,
-    set_collection_stats, set_fee_bps, set_floor_price, set_last_ts, set_lp, set_nft_collection,
-    set_price_a_cum, set_price_b_cum, set_reserve_a, set_reserve_b, set_token_a, set_token_b,
-    set_total_fees, set_total_lp, set_total_volume,
+    get_admin, get_collection_stats, get_dynamic_fee_config, get_fee_bps, get_floor_price,
+    get_last_ts, get_lp, get_nft_collection, get_price_a_cum, get_price_b_cum, get_reserve_a,
+    get_reserve_b, get_token_a, get_token_b, get_total_fees, get_total_lp, get_total_volume,
+    get_volatility_state, is_initialized, remove_dynamic_fee_config, set_admin,
+    set_collection_stats, set_dynamic_fee_config, set_fee_bps, set_floor_price, set_last_ts,
+    set_lp, set_nft_collection, set_price_a_cum, set_price_b_cum, set_reserve_a, set_reserve_b,
+    set_token_a, set_token_b, set_total_fees, set_total_lp, set_total_volume, set_volatility_state,
 };
-use crate::types::{CollectionStats, Error};
+pub use crate::types::{CollectionStats, DynamicFeeConfig, Error, SwapQuote, VolatilityState};
 
 /// Minimum liquidity permanently locked on first deposit.
 const MIN_LIQUIDITY: i128 = 1_000;
 /// Precision multiplier for TWAP accumulators.
 const TWAP_PRECISION: i128 = 1_000_000;
+/// Precision used for direction-independent spot-price observations.
+const PRICE_PRECISION: i128 = 10_000_000;
+const BPS: i128 = 10_000;
 
 #[contract]
 pub struct AmmPool;
@@ -52,11 +56,47 @@ impl AmmPool {
             return Err(Error::AlreadyInitialized);
         }
         admin.require_auth();
+        if token_a == token_b {
+            return Err(Error::InvalidToken);
+        }
+        let configured_fee = fee_bps.unwrap_or(30);
+        validate_fee(configured_fee)?;
         set_admin(&env, &admin);
         set_token_a(&env, &token_a);
         set_token_b(&env, &token_b);
-        set_fee_bps(&env, fee_bps.unwrap_or(30));
+        set_fee_bps(&env, configured_fee);
         set_last_ts(&env, env.ledger().timestamp());
+        Ok(())
+    }
+
+    /// Enable or update the volatility/utilization-adjusted fee model.
+    /// Existing pools remain fixed-fee until their admin opts in here.
+    pub fn configure_dynamic_fees(
+        env: Env,
+        admin: Address,
+        config: DynamicFeeConfig,
+    ) -> Result<(), Error> {
+        ensure_admin(&env, &admin)?;
+        validate_dynamic_config(&config)?;
+        set_dynamic_fee_config(&env, &config);
+
+        let ra = get_reserve_a(&env);
+        let rb = get_reserve_b(&env);
+        let mut state = get_volatility_state(&env);
+        if state.last_price == 0 && ra > 0 && rb > 0 {
+            state.last_price = spot_price(ra, rb)?;
+            state.last_timestamp = env.ledger().timestamp();
+            set_volatility_state(&env, &state);
+        }
+        env.events().publish((symbol_short!("dynfee"),), config);
+        Ok(())
+    }
+
+    /// Return to the pool's original fixed fee without deleting observations.
+    pub fn disable_dynamic_fees(env: Env, admin: Address) -> Result<(), Error> {
+        ensure_admin(&env, &admin)?;
+        remove_dynamic_fee_config(&env);
+        env.events().publish((symbol_short!("dynfee"),), false);
         Ok(())
     }
 
@@ -193,41 +233,30 @@ impl AmmPool {
     ) -> Result<i128, Error> {
         ensure_initialized(&env)?;
         trader.require_auth();
-        if amount_in <= 0 {
-            return Err(Error::ZeroAmount);
-        }
+        execute_swap(&env, &token_in, amount_in, min_out, None, None)
+    }
 
-        let (ra, rb, a_to_b) = reserves_for_token_in(&env, &token_in)?;
-
-        if ra == 0 || rb == 0 {
-            return Err(Error::InsufficientLiquidity);
-        }
-
-        let amount_out = get_amount_out(amount_in, ra, rb, get_fee_bps(&env))?;
-        if amount_out < min_out {
-            return Err(Error::SlippageExceeded);
-        }
-        if amount_out == 0 {
-            return Err(Error::ZeroOutput);
-        }
-
-        // Update reserves.
-        let (new_ra, new_rb) = if a_to_b {
-            (ra + amount_in, rb - amount_out)
-        } else {
-            (rb - amount_out, ra + amount_in)
-        };
-        set_reserve_a(&env, if a_to_b { new_ra } else { new_rb });
-        set_reserve_b(&env, if a_to_b { new_rb } else { new_ra });
-
-        // Update TWAP accumulators.
-        update_twap(&env, ra, rb);
-
-        // Track volume and fees for NFT analytics
-        record_swap_metrics(&env, amount_in)?;
-
-        env.events().publish((symbol_short!("swap"),), amount_out);
-        Ok(amount_out)
+    /// Swap with protection against both output slippage and a fee increase
+    /// between quote and execution. `deadline` is a ledger timestamp.
+    pub fn swap_with_limits(
+        env: Env,
+        trader: Address,
+        token_in: Address,
+        amount_in: i128,
+        min_out: i128,
+        max_fee_bps: i128,
+        deadline: u64,
+    ) -> Result<i128, Error> {
+        ensure_initialized(&env)?;
+        trader.require_auth();
+        execute_swap(
+            &env,
+            &token_in,
+            amount_in,
+            min_out,
+            Some(max_fee_bps),
+            Some(deadline),
+        )
     }
 
     // ── Read-only ─────────────────────────────────────────────────────────────
@@ -236,7 +265,18 @@ impl AmmPool {
     pub fn get_amount_out(env: Env, amount_in: i128, token_in: Address) -> Result<i128, Error> {
         ensure_initialized(&env)?;
         let (ra, rb, _) = reserves_for_token_in(&env, &token_in)?;
-        get_amount_out(amount_in, ra, rb, get_fee_bps(&env))
+        Ok(build_swap_quote(&env, amount_in, ra, rb)?.amount_out)
+    }
+
+    /// Preview output, effective fee, impact, volatility, and utilization.
+    pub fn quote_dynamic_swap(
+        env: Env,
+        amount_in: i128,
+        token_in: Address,
+    ) -> Result<SwapQuote, Error> {
+        ensure_initialized(&env)?;
+        let (ra, rb, _) = reserves_for_token_in(&env, &token_in)?;
+        build_swap_quote(&env, amount_in, ra, rb)
     }
 
     pub fn get_reserves(env: Env) -> Result<(i128, i128), Error> {
@@ -267,6 +307,16 @@ impl AmmPool {
     pub fn get_fee_bps(env: Env) -> Result<i128, Error> {
         ensure_initialized(&env)?;
         Ok(get_fee_bps(&env))
+    }
+
+    pub fn get_dynamic_fee_config(env: Env) -> Result<Option<DynamicFeeConfig>, Error> {
+        ensure_initialized(&env)?;
+        Ok(get_dynamic_fee_config(&env))
+    }
+
+    pub fn get_volatility_state(env: Env) -> Result<VolatilityState, Error> {
+        ensure_initialized(&env)?;
+        Ok(get_volatility_state(&env))
     }
 
     // ── NFT Collection Analytics ──────────────────────────────────────────────
@@ -328,6 +378,37 @@ fn ensure_initialized(env: &Env) -> Result<(), Error> {
     Ok(())
 }
 
+fn ensure_admin(env: &Env, admin: &Address) -> Result<(), Error> {
+    ensure_initialized(env)?;
+    admin.require_auth();
+    if get_admin(env)? != *admin {
+        return Err(Error::Unauthorized);
+    }
+    Ok(())
+}
+
+fn validate_fee(fee_bps: i128) -> Result<(), Error> {
+    if !(0..BPS).contains(&fee_bps) {
+        return Err(Error::InvalidFee);
+    }
+    Ok(())
+}
+
+fn validate_dynamic_config(config: &DynamicFeeConfig) -> Result<(), Error> {
+    if config.min_fee_bps < 0
+        || config.max_fee_bps >= BPS
+        || config.min_fee_bps > config.max_fee_bps
+        || !(0..=BPS).contains(&config.volatility_multiplier_bps)
+        || !(0..=BPS).contains(&config.utilization_multiplier_bps)
+        || !(1..=BPS).contains(&config.ema_alpha_bps)
+        || config.volatility_window == 0
+        || !(1..=BPS).contains(&config.max_price_impact_bps)
+    {
+        return Err(Error::InvalidDynamicFeeConfig);
+    }
+    Ok(())
+}
+
 /// Resolve live reserve balances for a swap input token.
 fn reserves_for_token_in(env: &Env, token_in: &Address) -> Result<(i128, i128, bool), Error> {
     let token_a = get_token_a(env)?;
@@ -341,17 +422,228 @@ fn reserves_for_token_in(env: &Env, token_in: &Address) -> Result<(i128, i128, b
     }
 }
 
-fn record_swap_metrics(env: &Env, amount_in: i128) -> Result<(), Error> {
-    let fee_bps = get_fee_bps(env);
+fn record_swap_metrics(env: &Env, amount_in: i128, fee_bps: i128) -> Result<(), Error> {
     let fee_amount = amount_in.checked_mul(fee_bps).ok_or(Error::Overflow)? / 10_000;
-    set_total_volume(env, get_total_volume(env) + amount_in);
-    set_total_fees(env, get_total_fees(env) + fee_amount);
+    set_total_volume(
+        env,
+        get_total_volume(env)
+            .checked_add(amount_in)
+            .ok_or(Error::Overflow)?,
+    );
+    set_total_fees(
+        env,
+        get_total_fees(env)
+            .checked_add(fee_amount)
+            .ok_or(Error::Overflow)?,
+    );
+    Ok(())
+}
+
+fn decayed_volatility(env: &Env, config: &DynamicFeeConfig) -> Result<i128, Error> {
+    let state = get_volatility_state(env);
+    let elapsed = env
+        .ledger()
+        .timestamp()
+        .saturating_sub(state.last_timestamp);
+    if elapsed >= config.volatility_window {
+        return Ok(0);
+    }
+    state
+        .ema_volatility_bps
+        .checked_mul((config.volatility_window - elapsed) as i128)
+        .and_then(|value| value.checked_div(config.volatility_window as i128))
+        .ok_or(Error::Overflow)
+}
+
+fn utilization_bps(amount_in: i128, reserve_in: i128) -> Result<i128, Error> {
+    let denominator = reserve_in.checked_add(amount_in).ok_or(Error::Overflow)?;
+    amount_in
+        .checked_mul(BPS)
+        .and_then(|value| value.checked_div(denominator))
+        .ok_or(Error::Overflow)
+}
+
+fn effective_fee(
+    env: &Env,
+    amount_in: i128,
+    reserve_in: i128,
+) -> Result<(i128, i128, i128), Error> {
+    let utilization = utilization_bps(amount_in, reserve_in)?;
+    let Some(config) = get_dynamic_fee_config(env) else {
+        return Ok((get_fee_bps(env), 0, utilization));
+    };
+    let volatility = decayed_volatility(env, &config)?;
+    let volatility_fee = volatility
+        .checked_mul(config.volatility_multiplier_bps)
+        .and_then(|value| value.checked_div(BPS))
+        .ok_or(Error::Overflow)?;
+    let utilization_fee = utilization
+        .checked_mul(config.utilization_multiplier_bps)
+        .and_then(|value| value.checked_div(BPS))
+        .ok_or(Error::Overflow)?;
+    let fee = get_fee_bps(env)
+        .checked_add(volatility_fee)
+        .and_then(|value| value.checked_add(utilization_fee))
+        .ok_or(Error::Overflow)?
+        .clamp(config.min_fee_bps, config.max_fee_bps);
+    Ok((fee, volatility, utilization))
+}
+
+fn build_swap_quote(
+    env: &Env,
+    amount_in: i128,
+    reserve_in: i128,
+    reserve_out: i128,
+) -> Result<SwapQuote, Error> {
+    if amount_in <= 0 {
+        return Err(Error::ZeroAmount);
+    }
+    if reserve_in <= 0 || reserve_out <= 0 {
+        return Err(Error::InsufficientLiquidity);
+    }
+    let (fee_bps, volatility_bps, utilization_bps) = effective_fee(env, amount_in, reserve_in)?;
+    let amount_out = constant_product_amount_out(amount_in, reserve_in, reserve_out, fee_bps)?;
+    if amount_out == 0 {
+        return Err(Error::ZeroOutput);
+    }
+    let ideal_out = amount_in
+        .checked_mul(reserve_out)
+        .and_then(|value| value.checked_div(reserve_in))
+        .ok_or(Error::Overflow)?;
+    let price_impact_bps = if ideal_out == 0 || amount_out >= ideal_out {
+        0
+    } else {
+        ideal_out
+            .checked_sub(amount_out)
+            .and_then(|difference| difference.checked_mul(BPS))
+            .and_then(|value| value.checked_div(ideal_out))
+            .ok_or(Error::Overflow)?
+    };
+    Ok(SwapQuote {
+        amount_out,
+        fee_bps,
+        price_impact_bps,
+        volatility_bps,
+        utilization_bps,
+    })
+}
+
+fn execute_swap(
+    env: &Env,
+    token_in: &Address,
+    amount_in: i128,
+    min_out: i128,
+    max_fee_bps: Option<i128>,
+    deadline: Option<u64>,
+) -> Result<i128, Error> {
+    if deadline.is_some_and(|value| env.ledger().timestamp() > value) {
+        return Err(Error::DeadlineExpired);
+    }
+    let (reserve_in, reserve_out, a_to_b) = reserves_for_token_in(env, token_in)?;
+    let quote = build_swap_quote(env, amount_in, reserve_in, reserve_out)?;
+    if max_fee_bps.is_some_and(|limit| quote.fee_bps > limit) {
+        return Err(Error::FeeLimitExceeded);
+    }
+    if quote.amount_out < min_out {
+        return Err(Error::SlippageExceeded);
+    }
+    if let Some(config) = get_dynamic_fee_config(env) {
+        if quote.price_impact_bps > config.max_price_impact_bps {
+            return Err(Error::PriceImpactExceeded);
+        }
+    }
+
+    let old_reserve_a = get_reserve_a(env);
+    let old_reserve_b = get_reserve_b(env);
+    let (new_reserve_a, new_reserve_b) = if a_to_b {
+        (
+            reserve_in.checked_add(amount_in).ok_or(Error::Overflow)?,
+            reserve_out
+                .checked_sub(quote.amount_out)
+                .ok_or(Error::Overflow)?,
+        )
+    } else {
+        (
+            reserve_out
+                .checked_sub(quote.amount_out)
+                .ok_or(Error::Overflow)?,
+            reserve_in.checked_add(amount_in).ok_or(Error::Overflow)?,
+        )
+    };
+    set_reserve_a(env, new_reserve_a);
+    set_reserve_b(env, new_reserve_b);
+    update_twap(env, old_reserve_a, old_reserve_b);
+    update_volatility(env, new_reserve_a, new_reserve_b)?;
+    record_swap_metrics(env, amount_in, quote.fee_bps)?;
+
+    env.events()
+        .publish((symbol_short!("swap"),), quote.amount_out);
+    if get_dynamic_fee_config(env).is_some() {
+        env.events().publish(
+            (symbol_short!("fee_curve"),),
+            (
+                quote.fee_bps,
+                quote.volatility_bps,
+                quote.utilization_bps,
+                quote.price_impact_bps,
+            ),
+        );
+    }
+    Ok(quote.amount_out)
+}
+
+fn spot_price(reserve_a: i128, reserve_b: i128) -> Result<i128, Error> {
+    if reserve_a <= 0 || reserve_b <= 0 {
+        return Err(Error::InsufficientLiquidity);
+    }
+    reserve_b
+        .checked_mul(PRICE_PRECISION)
+        .and_then(|value| value.checked_div(reserve_a))
+        .ok_or(Error::Overflow)
+}
+
+fn update_volatility(env: &Env, reserve_a: i128, reserve_b: i128) -> Result<(), Error> {
+    let Some(config) = get_dynamic_fee_config(env) else {
+        return Ok(());
+    };
+    let price = spot_price(reserve_a, reserve_b)?;
+    let mut state = get_volatility_state(env);
+    let recent_volatility = decayed_volatility(env, &config)?;
+    let absolute_return = if state.last_price == 0 {
+        0
+    } else {
+        price
+            .abs_diff(state.last_price)
+            .checked_mul(BPS as u128)
+            .and_then(|value| value.checked_div(state.last_price as u128))
+            .and_then(|value| i128::try_from(value).ok())
+            .ok_or(Error::Overflow)?
+            .min(BPS)
+    };
+    let retained = recent_volatility
+        .checked_mul(BPS - config.ema_alpha_bps)
+        .ok_or(Error::Overflow)?;
+    let latest = absolute_return
+        .checked_mul(config.ema_alpha_bps)
+        .ok_or(Error::Overflow)?;
+    state.ema_volatility_bps = retained
+        .checked_add(latest)
+        .and_then(|value| value.checked_div(BPS))
+        .ok_or(Error::Overflow)?;
+    state.last_price = price;
+    state.last_timestamp = env.ledger().timestamp();
+    set_volatility_state(env, &state);
     Ok(())
 }
 
 /// Constant-product output: amount_out = (amount_in * (10000 - fee_bps) * rb)
 ///                                       / (ra * 10000 + amount_in * (10000 - fee_bps))
-fn get_amount_out(amount_in: i128, ra: i128, rb: i128, fee_bps: i128) -> Result<i128, Error> {
+fn constant_product_amount_out(
+    amount_in: i128,
+    ra: i128,
+    rb: i128,
+    fee_bps: i128,
+) -> Result<i128, Error> {
     if ra == 0 || rb == 0 {
         return Err(Error::InsufficientLiquidity);
     }
