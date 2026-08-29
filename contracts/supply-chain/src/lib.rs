@@ -9,7 +9,126 @@
 //! - Quality assurance reports by authorised inspectors
 //! - Recall mechanism for compromised products
 //! - Cold-chain temperature logging with SLA penalty enforcement
+// contracts/supply-chain/src/lib.rs
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol};
 
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ShipmentSla {
+    pub carrier: Address,
+    pub shipper: Address,
+    pub deposit_amount: i128,
+    pub min_temp: i32,
+    pub max_temp: i32,
+    pub is_slashed: bool,
+    pub is_completed: bool,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Shipment(u64),
+}
+
+#[contract]
+pub struct ColdChainSlaContract;
+
+#[contractimpl]
+impl ColdChainSlaContract {
+    pub fn initialize_shipment(
+        env: Env,
+        shipper: Address,
+        carrier: Address,
+        shipment_id: u64,
+        deposit_amount: i128,
+        min_temp: i32,
+        max_temp: i32,
+    ) {
+        shipper.require_auth();
+
+        let key = DataKey::Shipment(shipment_id);
+        if env.storage().persistent().has(&key) {
+            panic!("Shipment SLA already initialized");
+        }
+
+        let shipment = ShipmentSla {
+            carrier,
+            shipper,
+            deposit_amount,
+            min_temp,
+            max_temp,
+            is_slashed: false,
+            is_completed: false,
+        };
+
+        env.storage().persistent().set(&key, &shipment);
+
+        env.events().publish(
+            (Symbol::new(&env, "ShipmentInitialized"), shipment_id),
+            deposit_amount,
+        );
+    }
+
+    pub fn log_temperature(
+        env: Env,
+        oracle: Address,
+        shipment_id: u64,
+        temperature: i32,
+    ) {
+        oracle.require_auth();
+
+        let key = DataKey::Shipment(shipment_id);
+        let mut shipment: ShipmentSla = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Shipment not found"));
+
+        if shipment.is_completed || shipment.is_slashed {
+            panic!("Shipment is already closed or slashed");
+        }
+
+        if temperature < shipment.min_temp || temperature > shipment.max_temp {
+            shipment.is_slashed = true;
+            env.storage().persistent().set(&key, &shipment);
+
+            env.events().publish(
+                (Symbol::new(&env, "DepositSlashed"), shipment_id),
+                temperature,
+            );
+        } else {
+            env.events().publish(
+                (Symbol::new(&env, "TempLogged"), shipment_id),
+                temperature,
+            );
+        }
+    }
+
+    pub fn complete_shipment(env: Env, shipper: Address, shipment_id: u64) {
+        let key = DataKey::Shipment(shipment_id);
+        let mut shipment: ShipmentSla = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Shipment not found"));
+
+        shipper.require_auth();
+        if shipment.shipper != shipper {
+            panic!("Unauthorized: only the shipper can complete shipment");
+        }
+
+        if shipment.is_slashed {
+            panic!("Cannot complete: shipment deposit has been slashed");
+        }
+
+        shipment.is_completed = true;
+        env.storage().persistent().set(&key, &shipment);
+
+        env.events().publish(
+            (Symbol::new(&env, "ShipmentCompleted"), shipment_id),
+            shipment.carrier,
+        );
+    }
+}
 #![no_std]
 
 mod storage;
