@@ -6,6 +6,7 @@
 //! Collateral-backed multi-lender term loans with senior and junior tranches.
 //! Senior lenders are paid first from repayments and recoveries; junior lenders
 //! receive the residual and therefore provide first-loss default protection.
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol};
 
 #![no_std]
 
@@ -590,4 +591,79 @@ fn gcd(mut left: i128, mut right: i128) -> i128 {
         right = remainder;
     }
     left
+}
+
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TrancheType {
+    Senior,
+    Junior,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LoanPool {
+    pub borrower: Address,
+    pub total_senior: i128,
+    pub total_junior: i128,
+    pub default_occurred: bool,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Pool,
+    Contribution(Address, TrancheType),
+}
+
+#[contract]
+pub struct LoanSyndicationContract;
+
+#[contractimpl]
+impl LoanSyndicationContract {
+    pub fn initialize_pool(env: Env, admin: Address, borrower: Address) {
+        admin.require_auth();
+        if env.storage().instance().has(&DataKey::Pool) {
+            panic!("Loan pool already initialized");
+        }
+        let pool = LoanPool {
+            borrower,
+            total_senior: 0,
+            total_junior: 0,
+            default_occurred: false,
+        };
+        env.storage().instance().set(&DataKey::Pool, &pool);
+        env.events().publish((Symbol::new(&env, "PoolInitialized"),), admin);
+    }
+
+    pub fn contribute(env: Env, lender: Address, tranche_type: TrancheType, amount: i128) {
+        lender.require_auth();
+        if amount <= 0 {
+            panic!("Contribution amount must be positive");
+        }
+
+        let mut pool: LoanPool = env.storage().instance().get(&DataKey::Pool).unwrap();
+        if pool.default_occurred {
+            panic!("Pool has defaulted; contributions closed");
+        }
+
+        match tranche_type {
+            TrancheType::Senior => pool.total_senior += amount,
+            TrancheType::Junior => pool.total_junior += amount,
+        }
+
+        env.storage().instance().set(&DataKey::Pool, &pool);
+        env.storage().persistent().set(&DataKey::Contribution(lender.clone(), tranche_type.clone()), &amount);
+
+        env.events().publish((Symbol::new(&env, "Contributed"), lender), (tranche_type, amount));
+    }
+
+    pub fn report_default(env: Env, admin: Address) {
+        admin.require_auth();
+        let mut pool: LoanPool = env.storage().instance().get(&DataKey::Pool).unwrap();
+        pool.default_occurred = true;
+        env.storage().instance().set(&DataKey::Pool, &pool);
+
+        env.events().publish((Symbol::new(&env, "DefaultReported"),), admin);
+    }
 }
