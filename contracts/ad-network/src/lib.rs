@@ -1,6 +1,96 @@
 #![no_std]
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String};
+// contracts/ad-network/src/lib.rs
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, BytesN};
 
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Campaign {
+    pub advertiser: Address,
+    pub budget: i128,
+    pub payout_per_impression: i128,
+    pub active: bool,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Campaign(u64),
+    ImpressionNonce(Address, u64),
+}
+
+#[contract]
+pub struct AdNetworkContract;
+
+#[contractimpl]
+impl AdNetworkContract {
+    pub fn create_campaign(
+        env: Env,
+        advertiser: Address,
+        campaign_id: u64,
+        budget: i128,
+        payout_per_impression: i128,
+    ) {
+        advertiser.require_auth();
+
+        let key = DataKey::Campaign(campaign_id);
+        if env.storage().persistent().has(&key) {
+            panic!("Campaign already exists");
+        }
+
+        let campaign = Campaign {
+            advertiser,
+            budget,
+            payout_per_impression,
+            active: true,
+        };
+
+        env.storage().persistent().set(&key, &campaign);
+        env.events().publish(
+            (Symbol::new(&env, "CampaignCreated"), campaign_id),
+            budget,
+        );
+    }
+
+    pub fn verify_and_payout(
+        env: Env,
+        publisher: Address,
+        campaign_id: u64,
+        nonce: u64,
+        _signature: BytesN<64>,
+    ) {
+        publisher.require_auth();
+
+        let key = DataKey::Campaign(campaign_id);
+        let mut campaign: Campaign = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .unwrap_or_else(|| panic!("Campaign not found"));
+
+        if !campaign.active {
+            panic!("Campaign is not active");
+        }
+
+        if campaign.budget < campaign.payout_per_impression {
+            panic!("Insufficient campaign budget for payout");
+        }
+
+        let nonce_key = DataKey::ImpressionNonce(publisher.clone(), nonce);
+        if env.storage().temporary().has(&nonce_key) {
+            panic!("Impression nonce already processed");
+        }
+
+        env.storage().temporary().set(&nonce_key, &true);
+
+        campaign.budget -= campaign.payout_per_impression;
+        env.storage().persistent().set(&key, &campaign);
+
+        env.events().publish(
+            (Symbol::new(&env, "ImpressionPaid"), campaign_id),
+            publisher,
+        );
+    }
+}
 const INSTANCE_BUMP_THRESHOLD: u32 = 17_280;
 const INSTANCE_EXTEND_TO: u32 = 518_400;
 const PERSISTENT_BUMP_THRESHOLD: u32 = 17_280;
