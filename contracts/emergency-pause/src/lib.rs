@@ -13,6 +13,100 @@
 //! - Comprehensive event emissions
 //! - Guarded action example via `do_action`
 
+// contracts/emergency-pause/src/lib.rs
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, Vec};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GuardianConfig {
+    pub guardians: Vec<Address>,
+    pub threshold: u32,
+    pub is_paused: bool,
+    pub time_lock_duration: u64,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Config,
+    PendingUnpause(u64), // timestamp for time-locked resume
+}
+
+#[contract]
+pub struct EmergencyPauseContract;
+
+#[contractimpl]
+impl EmergencyPauseContract {
+    pub fn initialize(env: Env, admin: Address, guardians: Vec<Address>, threshold: u32, time_lock_duration: u64) {
+        admin.require_auth();
+        if env.storage().instance().has(&DataKey::Config) {
+            panic!("Emergency pause contract already initialized");
+        }
+        if threshold == 0 || threshold > guardians.len() {
+            panic!("Invalid guardian signature threshold");
+        }
+
+        let config = GuardianConfig {
+            guardians,
+            threshold,
+            is_paused: false,
+            time_lock_duration,
+        };
+
+        env.storage().instance().set(&DataKey::Config, &config);
+        env.events().publish((Symbol::new(&env, "Initialized"),), admin);
+    }
+
+    pub fn emergency_pause(env: Env, guardian: Address) {
+        guardian.require_auth();
+
+        let mut config: GuardianConfig = env.storage().instance().get(&DataKey::Config).unwrap();
+        if !config.guardians.contains(&guardian) {
+            panic!("Unauthorized: caller is not a registered guardian");
+        }
+
+        config.is_paused = true;
+        env.storage().instance().set(&DataKey::Config, &config);
+
+        env.events().publish((Symbol::new(&env, "EmergencyPaused"), guardian), ());
+    }
+
+    pub fn schedule_unpause(env: Env, admin: Address) {
+        admin.require_auth();
+
+        let config: GuardianConfig = env.storage().instance().get(&DataKey::Config).unwrap();
+        if !config.is_paused {
+            panic!("System is not currently paused");
+        }
+
+        let unpause_time = env.ledger().timestamp() + config.time_lock_duration;
+        env.storage().instance().set(&DataKey::PendingUnpause(unpause_time), &true);
+
+        env.events().publish((Symbol::new(&env, "UnpauseScheduled"), unpause_time), admin);
+    }
+
+    pub fn execute_unpause(env: Env, admin: Address, unpause_time: u64) {
+        admin.require_auth();
+
+        let pending_key = DataKey::PendingUnpause(unpause_time);
+        let is_pending: bool = env.storage().instance().get(&pending_key).unwrap_or(false);
+        if !is_pending {
+            panic!("No pending unpause found for given timestamp");
+        }
+
+        if env.ledger().timestamp() < unpause_time {
+            panic!("Time-lock duration has not yet elapsed");
+        }
+
+        let mut config: GuardianConfig = env.storage().instance().get(&DataKey::Config).unwrap();
+        config.is_paused = false;
+        
+        env.storage().instance().set(&DataKey::Config, &config);
+        env.storage().instance().remove(&pending_key);
+
+        env.events().publish((Symbol::new(&env, "EmergencyResumed"),), admin);
+    }
+}
+
 #![cfg_attr(not(test), no_std)]
 
 mod storage;
