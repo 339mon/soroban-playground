@@ -45,4 +45,6 @@ members = [
     "contracts/identity-registry",
     "contracts/reputation-system",
     "contracts/bug-bounty",
+    "contracts/nft-fractional",
+    "contracts/subscription",
 ]
