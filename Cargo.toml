@@ -21,6 +21,7 @@ tokio-util = { version = "0.7", features = ["io"] }
 
 [workspace]
 members = [
+    "contracts/crop-insurance",
     "contracts/gaming-crafting",
     "contracts/bounty-dispute",
     "contracts/supply-chain",
