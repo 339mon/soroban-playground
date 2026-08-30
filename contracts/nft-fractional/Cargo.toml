@@ -1,11 +1,11 @@
 [package]
-name = "soroban-nft-fractional"
+name = "nft-fractional"
 version = "0.1.0"
 edition = "2021"
-description = "NFT Fractionalization Vault with ERC-20 Tokenizer & Buyout Auction — locks NFTs in vault contracts and issues proportional governance tokens"
+description = "NFT fractionalization vault, SEP-41 token, and buyout auction for Soroban"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 soroban-sdk = "21.0.6"
