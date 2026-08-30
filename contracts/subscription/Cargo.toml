@@ -1,8 +1,8 @@
 [package]
-name = "nft-fractional"
+name = "subscription"
 version = "0.1.0"
 edition = "2021"
-description = "NFT fractionalization vault, SEP-41 token, and buyout auction for Soroban"
+description = "Time-bounded recurring pull-payment subscriptions for Soroban"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -1,559 +1,617 @@
 // Copyright (c) 2026 StellarDevTools
 // SPDX-License-Identifier: MIT
 
-//! # NFT Fractionalization Vault with ERC-20 Tokenizer & Buyout Auction
+//! NFT custody vault with a SEP-41-compatible fractional token and an
+//! escrowed, ascending buyout auction.
 //!
-//! Implements fractional NFT ownership via governance tokens with:
-//!
-//! ## Vault Lifecycle
-//! 1. Creator calls `create_vault` to lock an NFT and issue `total_fractions` tokens.
-//! 2. Fractions are distributed to the creator (or can be transferred).
-//! 3. Fraction holders can `transfer`, `approve`, and `transfer_from` (ERC-20 semantics).
-//! 4. Any user can initiate a buyout by calling `start_buyout` with a bid ≥ reserve price.
-//! 5. Fraction holders vote for/against the buyout during the auction period.
-//! 6. If vote_for_bps > 50% of supply at auction end, `settle_buyout` succeeds:
-//!    - Bidder receives the NFT (on-chain record).
-//!    - Fraction holders can redeem fractions for proportional payout.
-//! 7. If buyout fails, vault returns to Active status.
-//!
-//! ## ERC-20 Governance Token Interface
-//! Each vault has its own fraction token with:
-//! - `balance_of(vault_id, holder)` → i128
-//! - `transfer(vault_id, from, to, amount)`
-//! - `approve(vault_id, owner, spender, amount)`
-//! - `transfer_from(vault_id, spender, from, to, amount)`
-//! - `total_supply(vault_id)` → i128
-//!
-//! ## Buyout Auction
-//! - Bidder commits the full bid amount upfront.
-//! - 72-hour voting window for fraction holders to vote.
-//! - Majority (>50% of circulating fractions) required.
-//! - Failed auction refunds the bidder.
+//! The depositor approves this contract on the NFT contract before calling
+//! `initialize`. Fractions are minted once, to the depositor. A buyout begins
+//! with a reserve-price bid; later bids refund the previous bidder atomically.
+//! After settlement, holders burn fractions through `claim` to receive their
+//! proportional share of the winning bid.
 
 #![no_std]
 
-mod storage;
-mod test;
-mod types;
-
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
-
-use crate::storage::{
-    get_admin, get_allowance, get_buyout_bid, get_fraction_balance, get_total_fractions_global,
-    get_vault, get_vault_count, is_initialized, is_paused, set_admin, set_allowance,
-    set_buyout_bid, set_fraction_balance, set_paused, set_total_fractions_global, set_vault,
-    set_vault_count,
+use soroban_sdk::{
+    contract, contractclient, contracterror, contractimpl, contracttype, symbol_short, token,
+    Address, Env, String, U256,
 };
-use crate::types::{BuyoutBid, Error, HolderPosition, NftVault, VaultStatus};
 
-/// Price precision for reserve prices and bid amounts.
-const PRICE_PRECISION: i128 = 1_000_000;
-/// Auction duration in seconds (72 hours).
-const AUCTION_DURATION: u64 = 259_200;
-/// Required majority to approve buyout (>50% of supply).
-const BUYOUT_MAJORITY_BPS: i128 = 5_001; // 50.01% — simple majority
+const INSTANCE_TTL_THRESHOLD: u32 = 120_960;
+const INSTANCE_TTL_EXTEND_TO: u32 = 518_400;
+const MAX_BPS: u32 = 10_000;
+const MAX_METADATA_LEN: u32 = 64;
+
+#[contractclient(name = "NftClient")]
+pub trait NftInterface {
+    fn transfer_from(env: Env, caller: Address, from: Address, to: Address, token_id: u64);
+    fn owner_of(env: Env, token_id: u64) -> Address;
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialized = 1,
+    NotInitialized = 2,
+    InvalidAmount = 3,
+    InvalidConfig = 4,
+    InsufficientBalance = 5,
+    InsufficientAllowance = 6,
+    AllowanceExpired = 7,
+    AuctionActive = 8,
+    AuctionNotActive = 9,
+    AuctionEnded = 10,
+    AuctionNotEnded = 11,
+    BidTooLow = 12,
+    NotSettled = 13,
+    NothingToClaim = 14,
+    ArithmeticOverflow = 15,
+    CustodyFailed = 16,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum VaultStatus {
+    Fractionalized,
+    Auction,
+    Settled,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub struct InitConfig {
+    pub nft_contract: Address,
+    pub nft_id: u64,
+    pub payment_token: Address,
+    pub total_supply: i128,
+    pub name: String,
+    pub symbol: String,
+    pub reserve_price: i128,
+    pub auction_duration: u64,
+    pub min_increment_bps: u32,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VaultInfo {
+    pub curator: Address,
+    pub nft_contract: Address,
+    pub nft_id: u64,
+    pub payment_token: Address,
+    pub reserve_price: i128,
+    pub auction_duration: u64,
+    pub min_increment_bps: u32,
+    pub status: VaultStatus,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AuctionInfo {
+    pub bidder: Address,
+    pub bid: i128,
+    pub end_time: u64,
+}
+
+#[contracttype]
+#[derive(Clone)]
+struct Allowance {
+    amount: i128,
+    expiration_ledger: u32,
+}
+
+#[contracttype]
+enum InstanceKey {
+    Curator,
+    NftContract,
+    NftId,
+    PaymentToken,
+    ReservePrice,
+    AuctionDuration,
+    MinIncrementBps,
+    Status,
+    Name,
+    Symbol,
+    Supply,
+    Auction,
+    Proceeds,
+}
+
+#[contracttype]
+enum DataKey {
+    Balance(Address),
+    Allowance(Address, Address),
+}
 
 #[contract]
 pub struct NftFractionalVault;
 
+fn bump(env: &Env) {
+    env.storage()
+        .instance()
+        .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
+}
+
+fn require_initialized(env: &Env) -> Result<(), Error> {
+    if !env.storage().instance().has(&InstanceKey::Curator) {
+        return Err(Error::NotInitialized);
+    }
+    bump(env);
+    Ok(())
+}
+
+fn balance(env: &Env, owner: &Address) -> i128 {
+    let key = DataKey::Balance(owner.clone());
+    let value = env.storage().persistent().get(&key).unwrap_or(0);
+    if value != 0 {
+        env.storage()
+            .persistent()
+            .extend_ttl(&key, INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
+    }
+    value
+}
+
+fn set_balance(env: &Env, owner: &Address, value: i128) {
+    let key = DataKey::Balance(owner.clone());
+    if value == 0 {
+        env.storage().persistent().remove(&key);
+    } else {
+        env.storage().persistent().set(&key, &value);
+        env.storage()
+            .persistent()
+            .extend_ttl(&key, INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND_TO);
+    }
+}
+
+fn status(env: &Env) -> VaultStatus {
+    env.storage()
+        .instance()
+        .get(&InstanceKey::Status)
+        .unwrap_or(VaultStatus::Fractionalized)
+}
+
+fn payment_token(env: &Env) -> Address {
+    env.storage()
+        .instance()
+        .get(&InstanceKey::PaymentToken)
+        .unwrap()
+}
+
+fn transfer_payment(env: &Env, from: &Address, to: &Address, amount: i128) {
+    token::Client::new(env, &payment_token(env)).transfer(from, to, &amount);
+}
+
+/// Computes `(a * b) / denominator` without overflowing i128. All contract
+/// call sites pass positive values. `round_up` is used for minimum bids.
+fn mul_div(env: &Env, a: i128, b: i128, denominator: i128, round_up: bool) -> Result<i128, Error> {
+    let product = U256::from_u128(env, a as u128).mul(&U256::from_u128(env, b as u128));
+    let divisor = U256::from_u128(env, denominator as u128);
+    let adjusted = if round_up {
+        product.add(&U256::from_u128(env, denominator as u128 - 1))
+    } else {
+        product
+    };
+    let result = adjusted
+        .div(&divisor)
+        .to_u128()
+        .ok_or(Error::ArithmeticOverflow)?;
+    if result > i128::MAX as u128 {
+        return Err(Error::ArithmeticOverflow);
+    }
+    Ok(result as i128)
+}
+
 #[contractimpl]
 impl NftFractionalVault {
-    // ── Initialization ────────────────────────────────────────────────────────
-
-    pub fn initialize(env: Env, admin: Address) -> Result<(), Error> {
-        if is_initialized(&env) {
+    /// Locks an approved NFT and mints the fixed fraction supply to `depositor`.
+    pub fn initialize(
+        env: Env,
+        curator: Address,
+        depositor: Address,
+        config: InitConfig,
+    ) -> Result<(), Error> {
+        if env.storage().instance().has(&InstanceKey::Curator) {
             return Err(Error::AlreadyInitialized);
         }
-        admin.require_auth();
-        set_admin(&env, &admin);
-        Ok(())
-    }
-
-    // ── Vault creation ────────────────────────────────────────────────────────
-
-    /// Lock an NFT and issue `total_fractions` governance/fraction tokens to the creator.
-    ///
-    /// - `nft_contract`: Address of the NFT collection.
-    /// - `nft_token_id`: Token ID within the collection.
-    /// - `fraction_name`: Human-readable name for the fraction token (e.g. "BAYC#1234-FRAC").
-    /// - `total_fractions`: Number of fraction tokens to issue.
-    /// - `reserve_price`: Minimum buyout price (PRICE_PRECISION scaled). Set to 0 for no floor.
-    ///
-    /// Returns the vault id.
-    pub fn create_vault(
-        env: Env,
-        creator: Address,
-        nft_contract: Address,
-        nft_token_id: u32,
-        fraction_name: String,
-        total_fractions: i128,
-        reserve_price: i128,
-    ) -> Result<u32, Error> {
-        ensure_active(&env)?;
-        creator.require_auth();
-
-        if total_fractions <= 0 {
-            return Err(Error::InvalidFractions);
+        if config.total_supply <= 0
+            || config.reserve_price <= 0
+            || config.auction_duration == 0
+            || config.min_increment_bps == 0
+            || config.min_increment_bps > MAX_BPS
+            || config.name.len() == 0
+            || config.name.len() > MAX_METADATA_LEN
+            || config.symbol.len() == 0
+            || config.symbol.len() > MAX_METADATA_LEN
+        {
+            return Err(Error::InvalidConfig);
         }
-        if reserve_price < 0 {
-            return Err(Error::InvalidReservePrice);
+        depositor.require_auth();
+
+        let vault = env.current_contract_address();
+        let nft = NftClient::new(&env, &config.nft_contract);
+        nft.transfer_from(&vault, &depositor, &vault, &config.nft_id);
+        if nft.owner_of(&config.nft_id) != vault {
+            return Err(Error::CustodyFailed);
         }
 
-        let vault_id = get_vault_count(&env);
-        let vault = NftVault {
-            id: vault_id,
-            creator: creator.clone(),
-            nft_contract: nft_contract.clone(),
-            nft_token_id,
-            fraction_name,
-            total_fractions,
-            reserve_price,
-            status: VaultStatus::Active,
-            created_at: env.ledger().timestamp(),
-        };
-        set_vault(&env, &vault);
-        set_vault_count(&env, vault_id + 1);
-
-        // Issue all fractions to creator.
-        set_fraction_balance(&env, vault_id, &creator, total_fractions);
-        set_total_fractions_global(
-            &env,
-            get_total_fractions_global(&env) + total_fractions,
-        );
-
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Curator, &curator);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::NftContract, &config.nft_contract);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::NftId, &config.nft_id);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::PaymentToken, &config.payment_token);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::ReservePrice, &config.reserve_price);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::AuctionDuration, &config.auction_duration);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::MinIncrementBps, &config.min_increment_bps);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Status, &VaultStatus::Fractionalized);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Name, &config.name);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Symbol, &config.symbol);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Supply, &config.total_supply);
+        env.storage().instance().set(&InstanceKey::Proceeds, &0i128);
+        set_balance(&env, &depositor, config.total_supply);
+        bump(&env);
         env.events().publish(
-            (symbol_short!("vault_new"),),
-            (vault_id, creator, nft_contract, total_fractions),
+            (symbol_short!("fraction"), depositor),
+            (config.nft_contract, config.nft_id, config.total_supply),
         );
-        Ok(vault_id)
-    }
-
-    // ── ERC-20 fraction token interface ───────────────────────────────────────
-
-    /// Transfer `amount` fractions of vault `vault_id` from `from` to `to`.
-    pub fn transfer(
-        env: Env,
-        vault_id: u32,
-        from: Address,
-        to: Address,
-        amount: i128,
-    ) -> Result<(), Error> {
-        ensure_active(&env)?;
-        from.require_auth();
-        if amount <= 0 {
-            return Err(Error::ZeroAmount);
-        }
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        if vault.status == VaultStatus::BoughtOut || vault.status == VaultStatus::Redeemed {
-            return Err(Error::VaultNotActive);
-        }
-
-        let from_bal = get_fraction_balance(&env, vault_id, &from);
-        if from_bal < amount {
-            return Err(Error::InsufficientBalance);
-        }
-
-        set_fraction_balance(&env, vault_id, &from, from_bal - amount);
-        set_fraction_balance(
-            &env,
-            vault_id,
-            &to,
-            get_fraction_balance(&env, vault_id, &to) + amount,
-        );
-
-        env.events()
-            .publish((symbol_short!("frac_xfr"),), (vault_id, from, to, amount));
         Ok(())
     }
 
-    /// Approve `spender` to transfer up to `amount` fractions on behalf of `owner`.
+    // SEP-41 token interface. The supply is fixed except when claims burn it.
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), Error> {
+        require_initialized(&env)?;
+        from.require_auth();
+        Self::move_balance(&env, &from, &to, amount)
+    }
+
     pub fn approve(
         env: Env,
-        vault_id: u32,
-        owner: Address,
+        from: Address,
         spender: Address,
         amount: i128,
+        expiration_ledger: u32,
     ) -> Result<(), Error> {
-        ensure_active(&env)?;
-        owner.require_auth();
-        get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        set_allowance(&env, vault_id, &owner, &spender, amount);
-        env.events()
-            .publish((symbol_short!("frac_appr"),), (vault_id, owner, spender, amount));
+        require_initialized(&env)?;
+        from.require_auth();
+        if amount < 0 || (amount > 0 && expiration_ledger < env.ledger().sequence()) {
+            return Err(Error::InvalidAmount);
+        }
+        let key = DataKey::Allowance(from.clone(), spender.clone());
+        if amount == 0 {
+            env.storage().temporary().remove(&key);
+        } else {
+            env.storage().temporary().set(
+                &key,
+                &Allowance {
+                    amount,
+                    expiration_ledger,
+                },
+            );
+            let live_for = expiration_ledger - env.ledger().sequence();
+            if live_for > 0 {
+                env.storage()
+                    .temporary()
+                    .extend_ttl(&key, live_for, live_for);
+            }
+        }
+        env.events().publish(
+            (symbol_short!("approve"), from),
+            (spender, amount, expiration_ledger),
+        );
         Ok(())
     }
 
-    /// Transfer fractions using an allowance (ERC-20 transferFrom).
     pub fn transfer_from(
         env: Env,
-        vault_id: u32,
         spender: Address,
         from: Address,
         to: Address,
         amount: i128,
     ) -> Result<(), Error> {
-        ensure_active(&env)?;
+        require_initialized(&env)?;
         spender.require_auth();
         if amount <= 0 {
-            return Err(Error::ZeroAmount);
+            return Err(Error::InvalidAmount);
         }
-
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        if vault.status == VaultStatus::BoughtOut || vault.status == VaultStatus::Redeemed {
-            return Err(Error::VaultNotActive);
+        let key = DataKey::Allowance(from.clone(), spender.clone());
+        let mut approved: Allowance = env.storage().temporary().get(&key).unwrap_or(Allowance {
+            amount: 0,
+            expiration_ledger: 0,
+        });
+        if env.ledger().sequence() > approved.expiration_ledger {
+            return Err(Error::AllowanceExpired);
         }
-
-        let allowance = get_allowance(&env, vault_id, &from, &spender);
-        if allowance < amount {
+        if approved.amount < amount {
             return Err(Error::InsufficientAllowance);
         }
-
-        let from_bal = get_fraction_balance(&env, vault_id, &from);
-        if from_bal < amount {
-            return Err(Error::InsufficientBalance);
+        approved.amount -= amount;
+        if approved.amount == 0 {
+            env.storage().temporary().remove(&key);
+        } else {
+            env.storage().temporary().set(&key, &approved);
         }
+        Self::move_balance(&env, &from, &to, amount)
+    }
 
-        set_allowance(&env, vault_id, &from, &spender, allowance - amount);
-        set_fraction_balance(&env, vault_id, &from, from_bal - amount);
-        set_fraction_balance(
-            &env,
-            vault_id,
-            &to,
-            get_fraction_balance(&env, vault_id, &to) + amount,
-        );
+    pub fn allowance(env: Env, from: Address, spender: Address) -> i128 {
+        let value: Option<Allowance> = env
+            .storage()
+            .temporary()
+            .get(&DataKey::Allowance(from, spender));
+        match value {
+            Some(a) if env.ledger().sequence() <= a.expiration_ledger => a.amount,
+            _ => 0,
+        }
+    }
 
+    pub fn balance(env: Env, owner: Address) -> i128 {
+        balance(&env, &owner)
+    }
+
+    pub fn total_supply(env: Env) -> i128 {
+        env.storage()
+            .instance()
+            .get(&InstanceKey::Supply)
+            .unwrap_or(0)
+    }
+
+    pub fn decimals(_env: Env) -> u32 {
+        7
+    }
+
+    pub fn name(env: Env) -> String {
+        env.storage()
+            .instance()
+            .get(&InstanceKey::Name)
+            .unwrap_or(String::from_str(&env, ""))
+    }
+
+    pub fn symbol(env: Env) -> String {
+        env.storage()
+            .instance()
+            .get(&InstanceKey::Symbol)
+            .unwrap_or(String::from_str(&env, ""))
+    }
+
+    /// Opens the auction and escrows the reserve-price bid.
+    pub fn start_auction(env: Env, bidder: Address, bid: i128) -> Result<(), Error> {
+        require_initialized(&env)?;
+        if status(&env) != VaultStatus::Fractionalized {
+            return Err(Error::AuctionActive);
+        }
+        let reserve: i128 = env
+            .storage()
+            .instance()
+            .get(&InstanceKey::ReservePrice)
+            .unwrap();
+        if bid < reserve {
+            return Err(Error::BidTooLow);
+        }
+        bidder.require_auth();
+        transfer_payment(&env, &bidder, &env.current_contract_address(), bid);
+        let duration: u64 = env
+            .storage()
+            .instance()
+            .get(&InstanceKey::AuctionDuration)
+            .unwrap();
+        let end_time = env
+            .ledger()
+            .timestamp()
+            .checked_add(duration)
+            .ok_or(Error::ArithmeticOverflow)?;
+        let auction = AuctionInfo {
+            bidder: bidder.clone(),
+            bid,
+            end_time,
+        };
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Auction, &auction);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Status, &VaultStatus::Auction);
         env.events()
-            .publish((symbol_short!("frac_xfra"),), (vault_id, spender, from, to, amount));
+            .publish((symbol_short!("auc_start"), bidder), (bid, end_time));
         Ok(())
     }
 
-    // ── Buyout auction ────────────────────────────────────────────────────────
-
-    /// Initiate a buyout auction for a vault.
-    ///
-    /// `bid_amount` must be ≥ `reserve_price * total_fractions / PRICE_PRECISION`.
-    /// A 72-hour voting window starts immediately.
-    ///
-    /// Returns the auction end timestamp.
-    pub fn start_buyout(
-        env: Env,
-        bidder: Address,
-        vault_id: u32,
-        bid_amount: i128,
-    ) -> Result<u64, Error> {
-        ensure_active(&env)?;
+    /// Replaces the high bid and atomically refunds the previous bidder.
+    pub fn bid(env: Env, bidder: Address, amount: i128) -> Result<(), Error> {
+        require_initialized(&env)?;
+        if status(&env) != VaultStatus::Auction {
+            return Err(Error::AuctionNotActive);
+        }
+        let current: AuctionInfo = env.storage().instance().get(&InstanceKey::Auction).unwrap();
+        if env.ledger().timestamp() >= current.end_time {
+            return Err(Error::AuctionEnded);
+        }
+        let bps: u32 = env
+            .storage()
+            .instance()
+            .get(&InstanceKey::MinIncrementBps)
+            .unwrap();
+        let increment = mul_div(&env, current.bid, bps as i128, MAX_BPS as i128, true)?;
+        let minimum = current
+            .bid
+            .checked_add(increment)
+            .ok_or(Error::ArithmeticOverflow)?;
+        if amount < minimum {
+            return Err(Error::BidTooLow);
+        }
         bidder.require_auth();
-
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        if vault.status != VaultStatus::Active {
-            return Err(Error::VaultNotActive);
-        }
-
-        // Validate bid ≥ reserve price.
-        if vault.reserve_price > 0 {
-            let min_bid = vault.reserve_price
-                .checked_mul(vault.total_fractions)
-                .ok_or(Error::Overflow)?
-                / PRICE_PRECISION;
-            if bid_amount < min_bid {
-                return Err(Error::BuyoutBelowReserve);
-            }
-        }
-
-        if get_buyout_bid(&env, vault_id).is_some() {
-            return Err(Error::BuyoutAuctionActive);
-        }
-
-        let price_per_fraction = bid_amount
-            .checked_mul(PRICE_PRECISION)
-            .ok_or(Error::Overflow)?
-            / vault.total_fractions.max(1);
-
-        let auction_end = env.ledger().timestamp() + AUCTION_DURATION;
-        let bid = BuyoutBid {
-            vault_id,
-            bidder: bidder.clone(),
-            bid_amount,
-            price_per_fraction,
-            auction_end,
-            settled: false,
-            votes_for: 0,
-            votes_against: 0,
-        };
-        set_buyout_bid(&env, &bid);
-
-        // Update vault status.
-        let mut v = vault;
-        v.status = VaultStatus::BuyoutInProgress;
-        set_vault(&env, &v);
-
-        env.events().publish(
-            (symbol_short!("buyout_s"),),
-            (vault_id, bidder, bid_amount, auction_end),
+        let vault = env.current_contract_address();
+        transfer_payment(&env, &bidder, &vault, amount);
+        transfer_payment(&env, &vault, &current.bidder, current.bid);
+        env.storage().instance().set(
+            &InstanceKey::Auction,
+            &AuctionInfo {
+                bidder: bidder.clone(),
+                bid: amount,
+                end_time: current.end_time,
+            },
         );
-        Ok(auction_end)
+        env.events().publish((symbol_short!("bid"), bidder), amount);
+        Ok(())
     }
 
-    /// Vote on an active buyout auction.
-    ///
-    /// Voting power = fraction balance. Votes are cast for or against.
-    /// A holder can split their vote by calling vote multiple times (last vote wins for simplicity).
-    pub fn vote_on_buyout(
-        env: Env,
-        voter: Address,
-        vault_id: u32,
-        vote_for: bool,
-    ) -> Result<i128, Error> {
-        ensure_active(&env)?;
-        voter.require_auth();
-
-        let mut bid = get_buyout_bid(&env, vault_id).ok_or(Error::BuyoutAuctionNotActive)?;
-        if bid.settled {
-            return Err(Error::BuyoutAlreadySettled);
+    /// Finalizes after the deadline and transfers the NFT to the winner.
+    pub fn settle(env: Env) -> Result<(), Error> {
+        require_initialized(&env)?;
+        if status(&env) != VaultStatus::Auction {
+            return Err(Error::AuctionNotActive);
         }
-        if env.ledger().timestamp() > bid.auction_end {
-            return Err(Error::BuyoutAuctionNotEnded);
+        let auction: AuctionInfo = env.storage().instance().get(&InstanceKey::Auction).unwrap();
+        if env.ledger().timestamp() < auction.end_time {
+            return Err(Error::AuctionNotEnded);
         }
-
-        let voting_power = get_fraction_balance(&env, vault_id, &voter);
-        if voting_power == 0 {
-            return Err(Error::InsufficientBalance);
-        }
-
-        if vote_for {
-            bid.votes_for = bid.votes_for + voting_power;
-        } else {
-            bid.votes_against = bid.votes_against + voting_power;
-        }
-        set_buyout_bid(&env, &bid);
-
+        // State is set before the external call; Soroban rolls the invocation back
+        // atomically if the NFT transfer fails.
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Status, &VaultStatus::Settled);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Proceeds, &auction.bid);
+        let nft_address: Address = env
+            .storage()
+            .instance()
+            .get(&InstanceKey::NftContract)
+            .unwrap();
+        let nft_id: u64 = env.storage().instance().get(&InstanceKey::NftId).unwrap();
+        let vault = env.current_contract_address();
+        NftClient::new(&env, &nft_address).transfer_from(&vault, &vault, &auction.bidder, &nft_id);
         env.events()
-            .publish((symbol_short!("buyout_v"),), (vault_id, voter, vote_for, voting_power));
-        Ok(voting_power)
+            .publish((symbol_short!("settled"), auction.bidder), auction.bid);
+        Ok(())
     }
 
-    /// Settle a buyout auction after the voting period ends.
-    ///
-    /// If votes_for > BUYOUT_MAJORITY_BPS% of total fractions:
-    ///   - Vault status → BoughtOut
-    ///   - Bid is marked settled
-    ///   - NFT ownership record transferred to bidder
-    ///
-    /// If votes failed:
-    ///   - Vault status → Active (bidder refunded off-chain)
-    ///   - Bid cleared
-    ///
-    /// Returns true if buyout succeeded.
-    pub fn settle_buyout(env: Env, vault_id: u32) -> Result<bool, Error> {
-        ensure_active(&env)?;
-
-        let mut bid = get_buyout_bid(&env, vault_id).ok_or(Error::BuyoutAuctionNotActive)?;
-        if bid.settled {
-            return Err(Error::BuyoutAlreadySettled);
+    /// Burns fractions and pays their share of the unclaimed auction proceeds.
+    pub fn claim(env: Env, holder: Address, amount: i128) -> Result<i128, Error> {
+        require_initialized(&env)?;
+        if status(&env) != VaultStatus::Settled {
+            return Err(Error::NotSettled);
         }
-        if env.ledger().timestamp() < bid.auction_end {
-            return Err(Error::BuyoutAuctionNotEnded);
-        }
-
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        let total = vault.total_fractions.max(1);
-
-        // Check if majority approved.
-        let votes_for_bps = bid.votes_for
-            .checked_mul(10_000)
-            .ok_or(Error::Overflow)?
-            / total;
-        let success = votes_for_bps >= BUYOUT_MAJORITY_BPS;
-
-        let mut v = vault;
-        if success {
-            v.status = VaultStatus::BoughtOut;
-            bid.settled = true;
-            set_buyout_bid(&env, &bid);
-            env.events().publish(
-                (symbol_short!("buyout_ok"),),
-                (vault_id, bid.bidder.clone(), bid.bid_amount),
-            );
-        } else {
-            v.status = VaultStatus::Active;
-            // Remove bid to allow new auction.
-            // (Bid record stays for audit but vault is Active again)
-            bid.settled = true;
-            set_buyout_bid(&env, &bid);
-            env.events()
-                .publish((symbol_short!("buyout_no"),), (vault_id,));
-        }
-        set_vault(&env, &v);
-
-        Ok(success)
-    }
-
-    /// Redeem fractions for proportional payout from a successful buyout.
-    ///
-    /// Holder burns their fractions and receives:
-    ///   payout = (fraction_balance / total_fractions) * bid_amount
-    ///
-    /// Returns the payout amount.
-    pub fn redeem_fractions(
-        env: Env,
-        holder: Address,
-        vault_id: u32,
-    ) -> Result<i128, Error> {
-        ensure_active(&env)?;
         holder.require_auth();
-
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        if vault.status != VaultStatus::BoughtOut {
-            return Err(Error::VaultNotActive);
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
         }
-
-        let balance = get_fraction_balance(&env, vault_id, &holder);
-        if balance == 0 {
+        let holder_balance = balance(&env, &holder);
+        if holder_balance < amount {
             return Err(Error::InsufficientBalance);
         }
-
-        let bid = get_buyout_bid(&env, vault_id).ok_or(Error::BuyoutAuctionNotActive)?;
-        let payout = balance
-            .checked_mul(bid.bid_amount)
-            .ok_or(Error::Overflow)?
-            / vault.total_fractions.max(1);
-
-        // Burn fractions.
-        set_fraction_balance(&env, vault_id, &holder, 0);
-        set_total_fractions_global(
-            &env,
-            (get_total_fractions_global(&env) - balance).max(0),
-        );
-
+        let supply: i128 = env.storage().instance().get(&InstanceKey::Supply).unwrap();
+        let proceeds: i128 = env
+            .storage()
+            .instance()
+            .get(&InstanceKey::Proceeds)
+            .unwrap();
+        let payout = if amount == supply {
+            proceeds
+        } else {
+            mul_div(&env, amount, proceeds, supply, false)?
+        };
+        if payout <= 0 {
+            return Err(Error::NothingToClaim);
+        }
+        set_balance(&env, &holder, holder_balance - amount);
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Supply, &(supply - amount));
+        env.storage()
+            .instance()
+            .set(&InstanceKey::Proceeds, &(proceeds - payout));
+        transfer_payment(&env, &env.current_contract_address(), &holder, payout);
         env.events()
-            .publish((symbol_short!("frac_redm"),), (vault_id, holder, balance, payout));
+            .publish((symbol_short!("claim"), holder), (amount, payout));
         Ok(payout)
     }
 
-    // ── Admin ─────────────────────────────────────────────────────────────────
-
-    /// Update reserve price for a vault. Creator or admin only.
-    pub fn set_reserve_price(
-        env: Env,
-        caller: Address,
-        vault_id: u32,
-        new_reserve: i128,
-    ) -> Result<(), Error> {
-        ensure_active(&env)?;
-        caller.require_auth();
-        if new_reserve < 0 {
-            return Err(Error::InvalidReservePrice);
-        }
-        let mut vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        if vault.status != VaultStatus::Active {
-            return Err(Error::VaultNotActive);
-        }
-        // Only creator or admin can update reserve.
-        let admin = get_admin(&env)?;
-        if vault.creator != caller && admin != caller {
-            return Err(Error::Unauthorized);
-        }
-        vault.reserve_price = new_reserve;
-        set_vault(&env, &vault);
-        env.events()
-            .publish((symbol_short!("res_upd"),), (vault_id, new_reserve));
-        Ok(())
-    }
-
-    pub fn set_paused(env: Env, admin: Address, paused: bool) -> Result<(), Error> {
-        admin.require_auth();
-        let contract_admin = get_admin(&env)?;
-        if contract_admin != admin {
-            return Err(Error::Unauthorized);
-        }
-        set_paused(&env, paused);
-        let sym = if paused {
-            symbol_short!("paused")
-        } else {
-            symbol_short!("unpaused")
-        };
-        env.events().publish((sym,), ());
-        Ok(())
-    }
-
-    // ── Read-only ─────────────────────────────────────────────────────────────
-
-    pub fn get_vault(env: Env, vault_id: u32) -> Result<NftVault, Error> {
-        ensure_initialized(&env)?;
-        get_vault(&env, vault_id).ok_or(Error::VaultNotFound)
-    }
-
-    pub fn get_vault_count(env: Env) -> Result<u32, Error> {
-        ensure_initialized(&env)?;
-        Ok(get_vault_count(&env))
-    }
-
-    pub fn balance_of(env: Env, vault_id: u32, holder: Address) -> Result<i128, Error> {
-        ensure_initialized(&env)?;
-        Ok(get_fraction_balance(&env, vault_id, &holder))
-    }
-
-    pub fn allowance(
-        env: Env,
-        vault_id: u32,
-        owner: Address,
-        spender: Address,
-    ) -> Result<i128, Error> {
-        ensure_initialized(&env)?;
-        Ok(get_allowance(&env, vault_id, &owner, &spender))
-    }
-
-    pub fn total_supply(env: Env, vault_id: u32) -> Result<i128, Error> {
-        ensure_initialized(&env)?;
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        Ok(vault.total_fractions)
-    }
-
-    pub fn get_buyout_bid(env: Env, vault_id: u32) -> Result<BuyoutBid, Error> {
-        ensure_initialized(&env)?;
-        get_buyout_bid(&env, vault_id).ok_or(Error::BuyoutAuctionNotActive)
-    }
-
-    pub fn get_holder_position(
-        env: Env,
-        vault_id: u32,
-        holder: Address,
-    ) -> Result<HolderPosition, Error> {
-        ensure_initialized(&env)?;
-        let vault = get_vault(&env, vault_id).ok_or(Error::VaultNotFound)?;
-        let balance = get_fraction_balance(&env, vault_id, &holder);
-        let total = vault.total_fractions.max(1);
-        let ownership_bps = balance
-            .checked_mul(10_000)
-            .ok_or(Error::Overflow)?
-            / total;
-        let value_at_reserve = balance
-            .checked_mul(vault.reserve_price)
-            .ok_or(Error::Overflow)?
-            / PRICE_PRECISION.max(1);
-        Ok(HolderPosition {
-            vault_id,
-            holder,
-            fraction_balance: balance,
-            ownership_bps,
-            value_at_reserve,
+    pub fn vault_info(env: Env) -> Result<VaultInfo, Error> {
+        require_initialized(&env)?;
+        Ok(VaultInfo {
+            curator: env.storage().instance().get(&InstanceKey::Curator).unwrap(),
+            nft_contract: env
+                .storage()
+                .instance()
+                .get(&InstanceKey::NftContract)
+                .unwrap(),
+            nft_id: env.storage().instance().get(&InstanceKey::NftId).unwrap(),
+            payment_token: payment_token(&env),
+            reserve_price: env
+                .storage()
+                .instance()
+                .get(&InstanceKey::ReservePrice)
+                .unwrap(),
+            auction_duration: env
+                .storage()
+                .instance()
+                .get(&InstanceKey::AuctionDuration)
+                .unwrap(),
+            min_increment_bps: env
+                .storage()
+                .instance()
+                .get(&InstanceKey::MinIncrementBps)
+                .unwrap(),
+            status: status(&env),
         })
     }
-}
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
-
-fn ensure_initialized(env: &Env) -> Result<(), Error> {
-    if !is_initialized(env) {
-        return Err(Error::NotInitialized);
+    pub fn auction_info(env: Env) -> Result<AuctionInfo, Error> {
+        require_initialized(&env)?;
+        env.storage()
+            .instance()
+            .get(&InstanceKey::Auction)
+            .ok_or(Error::AuctionNotActive)
     }
-    Ok(())
+
+    pub fn remaining_proceeds(env: Env) -> i128 {
+        env.storage()
+            .instance()
+            .get(&InstanceKey::Proceeds)
+            .unwrap_or(0)
+    }
+
+    fn move_balance(env: &Env, from: &Address, to: &Address, amount: i128) -> Result<(), Error> {
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let from_balance = balance(env, from);
+        if from_balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+        set_balance(env, from, from_balance - amount);
+        let to_balance = balance(env, to);
+        let new_balance = to_balance
+            .checked_add(amount)
+            .ok_or(Error::ArithmeticOverflow)?;
+        set_balance(env, to, new_balance);
+        env.events().publish(
+            (symbol_short!("transfer"), from.clone()),
+            (to.clone(), amount),
+        );
+        Ok(())
+    }
 }
 
-fn ensure_active(env: &Env) -> Result<(), Error> {
-    ensure_initialized(env)?;
-    if is_paused(env) {
-        return Err(Error::Paused);
-    }
-    Ok(())
-}
+#[cfg(test)]
+mod test;
