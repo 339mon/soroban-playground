@@ -16,6 +16,8 @@ mod storage;
 mod test;
 mod types;
 
+use soroban_sdk::{contract, contractimpl, contracttype, Address, BytesN, Env, Symbol};
+
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
 
 use crate::storage::{
@@ -358,5 +360,106 @@ impl EnergyTrading {
     /// Get admin address.
     pub fn get_admin(env: Env) -> Result<Address, Error> {
         get_admin(&env)
+    }
+}
+
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SmartMeterReading {
+    pub producer: Address,
+    pub kwh_amount: u64,
+    pub timestamp: u64,
+    pub meter_signature: BytesN<64>,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EnergyTradeOrder {
+    pub seller: Address,
+    pub kwh_available: u64,
+    pub price_per_kwh: i128,
+    pub active: bool,
+}
+
+#[contracttype]
+pub enum DataKey {
+    Order(Address),
+    SettlementLedger(Address),
+}
+
+#[contract]
+pub struct EnergyTradingLedgerContract;
+
+#[contractimpl]
+impl EnergyTradingLedgerContract {
+    pub fn create_order(env: Env, seller: Address, kwh_available: u64, price_per_kwh: i128) {
+        seller.require_auth();
+        if kwh_available == 0 || price_per_kwh <= 0 {
+            panic!("Invalid order parameters");
+        }
+
+        let key = DataKey::Order(seller.clone());
+        let order = EnergyTradeOrder {
+            seller: seller.clone(),
+            kwh_available,
+            price_per_kwh,
+            active: true,
+        };
+
+        env.storage().persistent().set(&key, &order);
+        env.events().publish(
+            (Symbol::new(&env, "OrderCreated"), seller),
+            (kwh_available, price_per_kwh),
+        );
+    }
+
+    pub fn settle_energy_trade(
+        env: Env,
+        buyer: Address,
+        seller: Address,
+        kwh_purchased: u64,
+        reading: SmartMeterReading,
+    ) {
+        buyer.require_auth();
+
+        let order_key = DataKey::Order(seller.clone());
+        let mut order: EnergyTradeOrder = env
+            .storage()
+            .persistent()
+            .get(&order_key)
+            .unwrap_or_else(|| panic!("Energy order not found"));
+
+        if !order.active {
+            panic!("Energy order is not active");
+        }
+
+        if order.kwh_available < kwh_purchased {
+            panic!("Insufficient energy volume available in order");
+        }
+
+        // Verify smart meter IoT proof timestamp and producer match
+        if reading.producer != seller {
+            panic!("Smart meter producer mismatch");
+        }
+
+        let current_time = env.ledger().timestamp();
+        if current_time.saturating_sub(reading.timestamp) > 300 {
+            panic!("Smart meter reading proof has expired");
+        }
+
+        order.kwh_available -= kwh_purchased;
+        if order.kwh_available == 0 {
+            order.active = false;
+        }
+
+        env.storage().persistent().set(&order_key, &order);
+
+        let total_cost = (kwh_purchased as i128) * order.price_per_kwh;
+
+        env.events().publish(
+            (Symbol::new(&env, "EnergySettled"), buyer),
+            (seller, kwh_purchased, total_cost),
+        );
     }
 }

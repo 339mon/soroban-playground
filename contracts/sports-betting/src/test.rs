@@ -27,16 +27,16 @@ fn setup() -> Fixture {
     let token = asset.address();
     let token_admin = StellarAssetClient::new(&env, &token);
     let token_client = TokenClient::new(&env, &token);
-    let contract = env.register(SportsBetting, ());
+    let contract = env.register_contract(None, SportsBetting);
     let client = SportsBettingClient::new(&env, &contract);
-    client.initialize(&admin, &fee_recipient, &500).unwrap();
+    client.initialize(&admin, &fee_recipient, &500);
     let oracles = [
         Address::generate(&env),
         Address::generate(&env),
         Address::generate(&env),
     ];
     for oracle in &oracles {
-        client.add_oracle(oracle).unwrap();
+        client.add_oracle(oracle);
     }
     Fixture {
         env,
@@ -60,7 +60,6 @@ fn create_market(f: &Fixture, threshold: u32) -> u64 {
             &300,
             &threshold,
         )
-        .unwrap()
 }
 
 fn fund(f: &Fixture, bettor: &Address, amount: i128) {
@@ -71,11 +70,11 @@ fn fund(f: &Fixture, bettor: &Address, amount: i128) {
 fn initialization_and_market_validation() {
     let f = setup();
     assert_eq!(
-        f.client.initialize(&f.admin, &f.fee_recipient, &500),
-        Err(Error::AlreadyInitialized)
+        f.client.try_initialize(&f.admin, &f.fee_recipient, &500),
+        Err(Ok(Error::AlreadyInitialized))
     );
     assert_eq!(
-        f.client.create_market(
+        f.client.try_create_market(
             &String::from_str(&f.env, "bad"),
             &f.token,
             &3,
@@ -83,7 +82,7 @@ fn initialization_and_market_validation() {
             &300,
             &4,
         ),
-        Err(Error::InvalidThreshold)
+        Err(Ok(Error::InvalidThreshold))
     );
 }
 
@@ -96,14 +95,14 @@ fn escrow_and_dynamic_odds_are_correct() {
     fund(&f, &home, 1_000);
     fund(&f, &away, 1_000);
 
-    f.client.place_bet(&home, &id, &0, &100).unwrap();
-    f.client.place_bet(&away, &id, &2, &300).unwrap();
+    f.client.place_bet(&home, &id, &0, &100);
+    f.client.place_bet(&away, &id, &2, &300);
 
     assert_eq!(f.token_client.balance(&home), 900);
     assert_eq!(f.client.get_bet(&id, &home, &0), 100);
-    assert_eq!(f.client.get_market(&id).unwrap().total_pool, 400);
-    assert_eq!(f.client.odds(&id, &0).unwrap(), 38_000);
-    assert_eq!(f.client.odds(&id, &1).unwrap(), 0);
+    assert_eq!(f.client.get_market(&id).total_pool, 400);
+    assert_eq!(f.client.odds(&id, &0), 38_000);
+    assert_eq!(f.client.odds(&id, &1), 0);
 }
 
 #[test]
@@ -112,17 +111,17 @@ fn requires_multi_oracle_consensus_and_rejects_duplicate_vote() {
     let id = create_market(&f, 2);
     let bettor = Address::generate(&f.env);
     fund(&f, &bettor, 100);
-    f.client.place_bet(&bettor, &id, &0, &100).unwrap();
+    f.client.place_bet(&bettor, &id, &0, &100);
     f.env.ledger().set_timestamp(200);
 
-    assert!(!f.client.submit_result(&f.oracles[0], &id, &0).unwrap());
+    assert!(!f.client.submit_result(&f.oracles[0], &id, &0));
     assert_eq!(
-        f.client.submit_result(&f.oracles[0], &id, &0),
-        Err(Error::AlreadyVoted)
+        f.client.try_submit_result(&f.oracles[0], &id, &0),
+        Err(Ok(Error::AlreadyVoted))
     );
-    assert!(f.client.submit_result(&f.oracles[1], &id, &0).unwrap());
+    assert!(f.client.submit_result(&f.oracles[1], &id, &0));
     assert_eq!(
-        f.client.get_market(&id).unwrap().status,
+        f.client.get_market(&id).status,
         MarketStatus::Resolved
     );
 }
@@ -133,12 +132,12 @@ fn split_oracle_votes_do_not_settle() {
     let id = create_market(&f, 2);
     let bettor = Address::generate(&f.env);
     fund(&f, &bettor, 100);
-    f.client.place_bet(&bettor, &id, &0, &100).unwrap();
+    f.client.place_bet(&bettor, &id, &0, &100);
     f.env.ledger().set_timestamp(200);
 
-    assert!(!f.client.submit_result(&f.oracles[0], &id, &0).unwrap());
-    assert!(!f.client.submit_result(&f.oracles[1], &id, &1).unwrap());
-    assert_eq!(f.client.get_market(&id).unwrap().status, MarketStatus::Open);
+    assert!(!f.client.submit_result(&f.oracles[0], &id, &0));
+    assert!(!f.client.submit_result(&f.oracles[1], &id, &1));
+    assert_eq!(f.client.get_market(&id).status, MarketStatus::Open);
 }
 
 #[test]
@@ -149,19 +148,19 @@ fn winners_receive_parimutuel_payout_and_fee_is_separate() {
     let loser = Address::generate(&f.env);
     fund(&f, &winner, 1_000);
     fund(&f, &loser, 1_000);
-    f.client.place_bet(&winner, &id, &0, &100).unwrap();
-    f.client.place_bet(&loser, &id, &2, &300).unwrap();
+    f.client.place_bet(&winner, &id, &0, &100);
+    f.client.place_bet(&loser, &id, &2, &300);
     f.env.ledger().set_timestamp(200);
-    f.client.submit_result(&f.oracles[0], &id, &0).unwrap();
-    f.client.submit_result(&f.oracles[1], &id, &0).unwrap();
+    f.client.submit_result(&f.oracles[0], &id, &0);
+    f.client.submit_result(&f.oracles[1], &id, &0);
 
-    assert_eq!(f.client.claim(&winner, &id, &0).unwrap(), 380);
-    assert_eq!(f.client.claim(&loser, &id, &2).unwrap(), 0);
+    assert_eq!(f.client.claim(&winner, &id, &0), 380);
+    assert_eq!(f.client.claim(&loser, &id, &2), 0);
     assert_eq!(f.token_client.balance(&winner), 1_280);
-    assert_eq!(f.client.claim_fee(&id).unwrap(), 20);
+    assert_eq!(f.client.claim_fee(&id), 20);
     assert_eq!(f.token_client.balance(&f.fee_recipient), 20);
-    assert_eq!(f.client.claim(&winner, &id, &0), Err(Error::NothingToClaim));
-    assert_eq!(f.client.claim_fee(&id), Err(Error::AlreadyClaimed));
+    assert_eq!(f.client.try_claim(&winner, &id, &0), Err(Ok(Error::NothingToClaim)));
+    assert_eq!(f.client.try_claim_fee(&id), Err(Ok(Error::AlreadyClaimed)));
 }
 
 #[test]
@@ -170,11 +169,11 @@ fn expired_market_can_be_cancelled_and_refunded() {
     let id = create_market(&f, 3);
     let bettor = Address::generate(&f.env);
     fund(&f, &bettor, 500);
-    f.client.place_bet(&bettor, &id, &1, &200).unwrap();
+    f.client.place_bet(&bettor, &id, &1, &200);
     f.env.ledger().set_timestamp(301);
 
-    f.client.cancel_expired(&id).unwrap();
-    assert_eq!(f.client.claim(&bettor, &id, &1).unwrap(), 200);
+    f.client.cancel_expired(&id);
+    assert_eq!(f.client.claim(&bettor, &id, &1), 200);
     assert_eq!(f.token_client.balance(&bettor), 500);
 }
 
@@ -184,16 +183,16 @@ fn outcome_without_stake_cancels_instead_of_locking_funds() {
     let id = create_market(&f, 2);
     let bettor = Address::generate(&f.env);
     fund(&f, &bettor, 100);
-    f.client.place_bet(&bettor, &id, &0, &100).unwrap();
+    f.client.place_bet(&bettor, &id, &0, &100);
     f.env.ledger().set_timestamp(200);
-    f.client.submit_result(&f.oracles[0], &id, &2).unwrap();
-    f.client.submit_result(&f.oracles[1], &id, &2).unwrap();
+    f.client.submit_result(&f.oracles[0], &id, &2);
+    f.client.submit_result(&f.oracles[1], &id, &2);
 
     assert_eq!(
-        f.client.get_market(&id).unwrap().status,
+        f.client.get_market(&id).status,
         MarketStatus::Cancelled
     );
-    assert_eq!(f.client.claim(&bettor, &id, &0).unwrap(), 100);
+    assert_eq!(f.client.claim(&bettor, &id, &0), 100);
 }
 
 #[test]
@@ -202,10 +201,10 @@ fn pause_blocks_new_risk_but_not_refunds() {
     let id = create_market(&f, 2);
     let bettor = Address::generate(&f.env);
     fund(&f, &bettor, 100);
-    f.client.place_bet(&bettor, &id, &0, &100).unwrap();
-    f.client.set_paused(&true).unwrap();
-    assert_eq!(f.client.place_bet(&bettor, &id, &0, &1), Err(Error::Paused));
+    f.client.place_bet(&bettor, &id, &0, &100);
+    f.client.set_paused(&true);
+    assert_eq!(f.client.try_place_bet(&bettor, &id, &0, &1), Err(Ok(Error::Paused)));
     f.env.ledger().set_timestamp(301);
-    f.client.cancel_expired(&id).unwrap();
-    assert_eq!(f.client.claim(&bettor, &id, &0).unwrap(), 100);
+    f.client.cancel_expired(&id);
+    assert_eq!(f.client.claim(&bettor, &id, &0), 100);
 }

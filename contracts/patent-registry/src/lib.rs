@@ -416,7 +416,7 @@ impl PatentRegistryContract {
             return Err(Error::InsufficientDeposit);
         }
 
-        let now = env.ledger().timestamp();
+        let _now = env.ledger().timestamp();
         let milestone_id = next_milestone_id(&env);
         let milestone = Milestone {
             id: milestone_id,
