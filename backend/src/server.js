@@ -82,6 +82,7 @@ const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
 const app = express();
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal', '10.0.0.0/8']);
 let httpServer = http.createServer(app);
 applyServerTuning(httpServer); // HTTP/2: keep-alive + headers-timeout tuning
 let server;
@@ -136,6 +137,7 @@ const PORT = process.env.PORT || 5000;
 // Basic middleware
 applyDdosProtection(app);
 applySecurityHeaders(app);
+app.use(rateLimitMiddleware('global'));
 app.use(morgan('combined'));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
