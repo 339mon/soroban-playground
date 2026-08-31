@@ -33,6 +33,7 @@ const DEFAULTS = {
   WS_HEARTBEAT_INTERVAL_MS: 30000,
   WS_HEARTBEAT_TIMEOUT_MS: 30000,
   WS_MAX_CONNECTIONS_PER_IP: 10,
+  REDIS_ENABLED: false,
   REDIS_URL: undefined,
   REDIS_CHANNEL: 'soroban_websocket_events',
   TRACING_ENABLED: true,
@@ -343,7 +344,7 @@ export function createConfig(env = process.env, options = {}) {
       ),
     },
     redis: {
-      enabled: toBoolean(env.REDIS_ENABLED, hasValue(env.REDIS_URL) || hasValue(DEFAULTS.REDIS_URL), 'REDIS_ENABLED', warnings),
+      enabled: toBoolean(env.REDIS_ENABLED, hasValue(env.REDIS_URL) || DEFAULTS.REDIS_ENABLED, 'REDIS_ENABLED', warnings),
       url: cleanString(env.REDIS_URL, DEFAULTS.REDIS_URL),
       channel: cleanString(env.REDIS_CHANNEL, DEFAULTS.REDIS_CHANNEL),
     },
