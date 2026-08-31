@@ -141,6 +141,7 @@ const DEFAULTS = {
   JWT_AUDIENCE: 'soroban-playground-api',
   SEP10_CHALLENGE_TTL_MS: 5 * 60 * 1000,
   SEP10_SIGNING_SECRET: undefined,
+  SEP10_HOME_DOMAIN: undefined,
   REDIS_URL: 'redis://127.0.0.1:6379',
 };
 
@@ -283,6 +284,7 @@ export function createConfig(env = process.env, options = {}) {
         env.SEP10_SIGNING_SECRET,
         DEFAULTS.SEP10_SIGNING_SECRET
       ),
+      homeDomain: cleanString(env.SEP10_HOME_DOMAIN, DEFAULTS.SEP10_HOME_DOMAIN),
       networkPassphrase: cleanString(
         env.STELLAR_NETWORK_PASSPHRASE,
         DEFAULTS.STELLAR_NETWORK_PASSPHRASE
