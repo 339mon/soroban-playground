@@ -21,6 +21,11 @@ import {
 const STELLAR_NETWORK_PASSPHRASE = process.env.STELLAR_NETWORK_PASSPHRASE || Networks.TESTNET;
 const CHALLENGE_TTL_SEC = 5 * 60; // 5 minutes
 
+const STELLAR_SERVER_ACCOUNT = process.env.STELLAR_SERVER_ACCOUNT;
+if (!STELLAR_SERVER_ACCOUNT || !StrKey.isValidEd25519PublicKey(STELLAR_SERVER_ACCOUNT)) {
+  throw new Error('STELLAR_SERVER_ACCOUNT environment variable is required and must be a valid Stellar public key');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
@@ -29,7 +34,7 @@ const ACCESS_TOKEN_EXPIRATION_SEC = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXPIRATION_SEC = 7 * 24 * 60 * 60; // 7 days
 
 class AuthService {
-  generateTokens(user) {
+  async generateTokens(user) {
     const accessTokenJti = uuid4();
     const refreshTokenJti = uuid4();
     const familyId = uuid4();
@@ -44,6 +49,12 @@ class AuthService {
       { sub: user.id, familyId, jti: refreshTokenJti, type: 'refresh' },
       JWT_SECRET,
       { expiresIn: REFRESH_TOKEN_EXPIRATION_SEC }
+    );
+
+    await redisService.set(
+      `refresh:${refreshTokenJti}`,
+      JSON.stringify({ sub: user.id, familyId }),
+      REFRESH_TOKEN_EXPIRATION_SEC
     );
 
     return {
@@ -110,6 +121,19 @@ class AuthService {
       throw new Error('Token family is blacklisted due to previous anomaly.');
     }
 
+    // Verify the refresh token is still active in Redis
+    const storedRefresh = await redisService.get(`refresh:${decoded.jti}`);
+    if (!storedRefresh) {
+      throw new Error('Refresh token not found or revoked');
+    }
+    const storedRefreshData = JSON.parse(storedRefresh);
+    if (
+      storedRefreshData.sub !== decoded.sub ||
+      storedRefreshData.familyId !== decoded.familyId
+    ) {
+      throw new Error('Refresh token does not match stored record');
+    }
+
     // Mark current refresh token as used
     const now = Math.floor(Date.now() / 1000);
     const ttl = decoded.exp - now;
@@ -136,6 +160,13 @@ class AuthService {
       },
       JWT_SECRET,
       { expiresIn: REFRESH_TOKEN_EXPIRATION_SEC }
+    );
+
+    await redisService.del(`refresh:${decoded.jti}`);
+    await redisService.set(
+      `refresh:${newRefreshTokenJti}`,
+      JSON.stringify({ sub: decoded.sub, familyId: decoded.familyId }),
+      REFRESH_TOKEN_EXPIRATION_SEC
     );
 
     return {
@@ -187,14 +218,15 @@ class AuthService {
     const nonce = nonceBuffer.toString('base64');
     const now = Math.floor(Date.now() / 1000);
 
-    const account = new Account(publicKey, '0');
-    const tx = new TransactionBuilder(account, {
+    const serverAccount = new Account(STELLAR_SERVER_ACCOUNT, '0');
+    const tx = new TransactionBuilder(serverAccount, {
       fee: '100',
       networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
     })
       .setTimebounds(now - CHALLENGE_TTL_SEC, now + CHALLENGE_TTL_SEC)
       .addOperation(
         Operation.manageData({
+          source: publicKey,
           name: 'auth',
           value: nonceBuffer,
         })
@@ -228,8 +260,12 @@ class AuthService {
       throw new Error('Invalid transaction XDR');
     }
 
-    if (tx.source !== publicKey) {
-      throw new Error('Transaction source does not match public key');
+    if (tx.source !== STELLAR_SERVER_ACCOUNT) {
+      throw new Error('Transaction source does not match server account');
+    }
+
+    if (String(tx.sequence) !== '0') {
+      throw new Error('Transaction sequence must be 0');
     }
 
     // Check timebounds for 5-minute window
@@ -247,11 +283,15 @@ class AuthService {
     }
 
     // Extract nonce from auth operation
-    const authOp = tx.operations.find(
+    const authOps = tx.operations.filter(
       (op) => op.type === 'manageData' && op.name === 'auth'
     );
-    if (!authOp) {
-      throw new Error('Missing auth operation');
+    if (authOps.length !== 1) {
+      throw new Error('Expected exactly one auth operation');
+    }
+    const authOp = authOps[0];
+    if (authOp.source !== publicKey) {
+      throw new Error('Auth operation source does not match public key');
     }
     const nonceBuffer = authOp.value;
     if (!nonceBuffer || nonceBuffer.length !== 64) {
