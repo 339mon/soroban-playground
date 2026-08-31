@@ -18,11 +18,43 @@ const setCookies = (res, accessToken, refreshToken) => {
     httpOnly: true,
     secure: isProd,
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 1000, // 7 days
   });
 };
 
-router.post('/login', async (req, res) => {
+// Separate Routes
+
+// SEP-0010 Challenge Generation
+Router.get('/challenge', async (req, res) => {
+  const { address } = req.query;
+  if (!address) {
+    return res.status(400).json({ error: 'address query parameter required' });
+  }
+  try {
+    const challenge = await authService.generateStellarChallenge(address);
+    return res.json(challenge);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+// SEP-0010 Challenge Verification and Token Issuance
+Router.post('/verify', async (req, res) => {
+  const { address, transactionXDR } = res.body;
+  if (!address || !transactionXDR) {
+    return res.status(400).json({ error: 'address and transactionXDR required' });
+  }
+  try {
+    const tokens = await authService.verifyStellarChallengeAndIssueTokens(address, transactionXDR);
+    setCookies(res, tokens.accessToken, tokens.refreshToken);
+    return res.json({ success: true, ...tokens });
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
+  }
+});
+
+// Legacy: Existing username/password login (You may wish to remove in production)
+Router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -46,7 +78,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/refresh', async (req, res) => {
+Router.post('/refresh', async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
@@ -66,7 +98,7 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
-router.post('/logout', requireAuth, async (req, res) => {
+Router.post('/logout', requireAuth, async (req, res) => {
   try {
     const user = req.user; // populated by requireAuth middleware
     if (user && user.jti && user.exp) {
