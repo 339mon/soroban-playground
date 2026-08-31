@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 
 import { invokeProgressBus } from './services/invokeService.js';
 import { deployProgressBus } from './services/deployService.js';
@@ -21,11 +21,12 @@ let redisSubscriber = null;
 
 function safeSend(socket, message) {
   try {
-    if (socket.readyState === socket.OPEN) {
+    if (socket.readyState === WebSocket.OPEN) {
       socket.send(message);
     }
   } catch (err) {
     console.error('WS send error:', err.message);
+    socket.terminate();
     clients.delete(socket);
   }
 }
@@ -129,7 +130,7 @@ export function setupWebSocketServer(httpServer) {
 
     // Enforce per-IP connection limit.
     if (ip && (ipCounts.get(ip) || 0) >= MAX_CONNECTIONS_PER_IP) {
-      socket.close(1008, 'Toos Many Connections');
+      socket.close(1008, 'Too Many Connections');
       return;
     }
 
