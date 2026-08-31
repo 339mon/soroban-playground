@@ -27,6 +27,7 @@ function safeSend(socket, message) {
   } catch (err) {
     console.error('WS send error:', err.message);
     socket.terminate();
+    if (socket.releaseIp) socket.releaseIp();
     clients.delete(socket);
   }
 }
@@ -128,6 +129,21 @@ export function setupWebSocketServer(httpServer) {
 
     const ip = getClientIp(request);
 
+    let ipAcquired = false;
+    const releaseIp = () => {
+      if (!ipAcquired) return;
+      ipAcquired = false;
+      if (ip) {
+        const count = ipCounts.get(ip) || 0;
+        if (count <= 1) {
+          ipCounts.delete(ip);
+        } else {
+          ipCounts.set(ip, count - 1);
+        }
+      }
+    };
+    socket.releaseIp = releaseIp;
+
     // Enforce per-IP connection limit.
     if (ip) {
       const currentCount = ipCounts.get(ip) || 0;
@@ -136,6 +152,7 @@ export function setupWebSocketServer(httpServer) {
         return;
       }
       ipCounts.set(ip, currentCount + 1);
+      ipAcquired = true;
     }
 
     // Decrement the per-IP count on connection close.
@@ -148,6 +165,7 @@ export function setupWebSocketServer(httpServer) {
       : tokenFromQuery;
 
     if (process.env.WS_AUTH_TOKEN && token !== process.env.WS_AUTH_TOKEN) {
+      releaseIp();
       socket.close(1008, 'Unauthorized');
       return;
     }
@@ -203,18 +221,12 @@ export function setupWebSocketServer(httpServer) {
     socket.on('error', (err) => {
       console.error('WS client error:', err.message);
       clients.delete(socket);
+      if (socket.releaseIp) socket.releaseIp();
     });
 
     socket.on('close', () => {
       clients.delete(socket);
-      if (ip) {
-        const count = ipCounts.get(ip) || 0;
-        if (count <= 1) {
-          ipCounts.delete(ip);
-        } else {
-          ipCounts.set(ip, count - 1);
-        }
-      }
+      if (socket.releaseIp) socket.releaseIp();
     });
   });
 
@@ -240,6 +252,7 @@ export function setupWebSocketServer(httpServer) {
     for (const socket of clients) {
       if (socket.missedPongs >= MAX_MISSED_PONGS) {
         console.warn('WS heartbeat: terminating stale connection');
+        if (socket.releaseIp) socket.releaseIp();
         socket.terminate();
         clients.delete(socket);
         continue;
@@ -249,6 +262,7 @@ export function setupWebSocketServer(httpServer) {
         socket.ping();
       } catch (err) {
         console.error('WS ping error:', err.message);
+        if (socket.releaseIp) socket.releaseIp();
         socket.terminate();
         clients.delete(socket);
       }
@@ -303,6 +317,7 @@ export function setupWebSocketServer(httpServer) {
 export function closeWebSocketServer() {
   if (wssInstance) {
     for (const socket of clients) {
+      if (socket.releaseIp) socket.releaseIp();
       socket.terminate();
     }
     clients.clear();
