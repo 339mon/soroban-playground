@@ -90,6 +90,8 @@ const app = express();
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal', '10.0.0.0/8']);
 let httpServer = http.createServer(app);
 applyServerTuning(httpServer); // HTTP/2: keep-alive + headers-timeout tuning
+let server;
+let websocketRedisClient = null;
 
 // TLS/SSL Hardening configuration — HTTP/2 ALPN prefers h2, falls back to 1.1.
 const httpsOptions = {
@@ -292,6 +294,15 @@ initializeDatabase()
       maxConnectionsPerIp: 10,
       redisClient: redisService.client,
     });
+    if (redisService.client?.duplicate) {
+      websocketRedisClient = redisService.client.duplicate();
+      await websocketRedisClient.connect();
+    }
+    setupWebsocketServer(server, {
+      heartbeatInterval: 30000,
+      maxConnectionsPerIp: 10,
+      redisClient: websocketRedisClient || redisService.client,
+    });
     await initializeCompileService().catch((err) =>
       console.error('[CompileService] Initialization error:', err)
     );
@@ -363,15 +374,23 @@ async function gracefulShutdown(signal) {
       console.error('[Shutdown] Error closing BullMQ queues:', err.message);
     }
 
-    // 2. Stop accepting new HTTP requests
-    console.log('[Shutdown] Stopping HTTP server...');
-    await new Promise((resolve) => server.close(resolve));
-
-    // 3. Terminate WebSockets cleanly
+    // 2. Terminate WebSockets cleanly
     console.log('[Shutdown] Terminating WebSocket connections...');
     if (typeof closeWebsocketServer === 'function') {
       await closeWebsocketServer();
     }
+
+    if (websocketRedisClient && websocketRedisClient.status !== 'end') {
+      try {
+        await websocketRedisClient.quit();
+      } catch (_) {
+        websocketRedisClient.disconnect();
+      }
+    }
+
+    // 3. Stop accepting new HTTP requests
+    console.log('[Shutdown] Stopping HTTP server...');
+    await new Promise((resolve) => server.close(resolve));
 
     // 4. Drain database pool and close Redis connections
     console.log('[Shutdown] Closing database and Redis connections...');
