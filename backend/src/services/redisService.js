@@ -333,35 +333,19 @@ class RedisService {
         return {1, count, 0}
       `,
     });
-
-    this.client.defineCommand('acquireConnection', {
-      numberOfKeys: 1,
+    this.client.defineCommand('consumeChallenge', {
+      numberOfKeys: 2,
       lua: `
-        local key = KEYS[1]
-        local limit = tonumber(ARGV[1])
-        local ttl = tonumber(ARGV[2])
-        local current = redis.call('INCR', key)
-        if current == 1 then
-          redis.call('EXPIRE', key, ttl)
-        end
-        if current > limit then
-          redis.call('DECR', key)
-          return {0, current - 1}
-        end
-        return {1, current}
-      `,
-    });
-
-    this.client.defineCommand('releaseConnection', {
-      numberOfKeys: 1,
-      lua: `
-        local key = KEYS[1]
-        local current = redis.call('DECR', key)
-        if current <= 0 then
-          redis.call('DEL', key)
+        local challenge_key = KEYS[1]
+        local used_key = KEYS[2]
+        if not redis.call('GET', challenge_key) then
           return 0
         end
-        return current
+        if redis.call('SET', used_key, '1', 'EX', ARGV[1], 'NX') then
+          redis.call('DEL', challenge_key)
+          return 1
+        end
+        return 0
       `,
     });
   }
@@ -870,6 +854,22 @@ class RedisService {
   async consumeChallengeNonce(nonce, ttlSeconds = 300) {
     const challengeKey = `challenge:${nonce}`;
     const usedKey = `challenge:used:${nonce}`;
+    if (this.client && !this.isFallbackMode) {
+      try {
+        const result = await this.client.consumeChallenge(
+          challengeKey,
+          usedKey,
+          ttlSeconds
+        );
+        return result === 1;
+      } catch (err) {
+        console.warn(
+          'Redis consumeChallengeNonce error, using fallback:',
+          err.message
+        );
+        this.isFallbackMode = true;
+      }
+    }
     const issued = await this.get(challengeKey);
     if (!issued) return false;
     const reserved = await this.setNX(usedKey, '1', ttlSeconds);
