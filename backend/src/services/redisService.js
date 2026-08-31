@@ -590,6 +590,31 @@ class RedisService {
     ws.on('error', () => clearInterval(timer));
   }
 
+  async handleWebSocketConnection(ws, ip) {
+    if (!ws || typeof ws.ping !== 'function' || typeof ws.terminate !== 'function') {
+      return { allowed: false, current: 0, fallback: true };
+    }
+    const result = await this.tryAcquireConnection(ip);
+    if (!result.allowed) {
+      try {
+        ws.terminate();
+      } catch (err) {
+        // ignore terminate error
+      }
+      return result;
+    }
+    ws.ip = ip;
+    this.startHeartbeat(ws);
+    ws.on('close', () => {
+      const ipToRelease = ws.ip;
+      if (ipToRelease) {
+        ws.ip = null;
+        this.releaseConnection(ipToRelease).catch(() => {});
+      }
+    });
+    return result;
+  }
+
   async get(key) {
     if (this.isFallbackMode || !this.client) {
       const val = this.localCache.get(key);
