@@ -289,11 +289,6 @@ let ledgerSyncServiceInstance = null;
 // Initialize Database & Boot Services
 initializeDatabase()
   .then(async (db) => {
-    setupWebsocketServer(server, {
-      heartbeatInterval: 30000,
-      maxConnectionsPerIp: 10,
-      redisClient: redisService.client,
-    });
     if (redisService.client?.duplicate) {
       websocketRedisClient = redisService.client.duplicate();
       await websocketRedisClient.connect();
