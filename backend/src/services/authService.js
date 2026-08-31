@@ -26,6 +26,15 @@ if (!STELLAR_SERVER_ACCOUNT || !StrKey.isValidEd25519PublicKey(STELLAR_SERVER_AC
   throw new Error('STELLAR_SERVER_ACCOUNT environment variable is required and must be a valid Stellar public key');
 }
 
+const STELLAR_SERVER_SECRET = process.env.STELLAR_SERVER_SECRET;
+if (!STELLAR_SERVER_SECRET) {
+  throw new Error('STELLAR_SERVER_SECRET environment variable is required');
+}
+const serverKeypair = Keypair.fromSecret(STELLAR_SERVER_SECRET);
+if (serverKeypair.publicKey() !== STELLAR_SERVER_ACCOUNT) {
+  throw new Error('STELLAR_SERVER_SECRET does not match STELLAR_SERVER_ACCOUNT');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
@@ -233,6 +242,8 @@ class AuthService {
       )
       .build();
 
+    tx.sign(serverKeypair);
+
     // Store nonce to prevent replay
     await redisService.set(
       `challenge:${nonce}`,
@@ -275,8 +286,8 @@ class AuthService {
       throw new Error('Transaction must have timebounds');
     }
     if (
-      tb.minTime > now + CHALLENGE_TTL_SEC ||
-      tb.maxTime < now - CHALLENGE_TTL_SEC ||
+      tb.minTime > now ||
+      tb.maxTime < now ||
       tb.maxTime - tb.minTime > CHALLENGE_TTL_SEC * 2
     ) {
       throw new Error('Challenge expired or invalid timebounds');
@@ -308,12 +319,23 @@ class AuthService {
       throw new Error('Challenge was issued for a different address');
     }
 
-    // Verify the signature
+    // Verify the server signature, then the client signature
     if (tx.signatures.length === 0) {
       throw new Error('Transaction is not signed');
     }
-    const keypair = Keypair.fromPublicKey(publicKey);
     const signatureBase = tx.signatureBase();
+    const hasServerSignature = tx.signatures.some((sig) => {
+      try {
+        return serverKeypair.verify(sig.signature, signatureBase);
+      } catch {
+        return false;
+      }
+    });
+    if (!hasServerSignature) {
+      throw new Error('Invalid server signature');
+    }
+
+    const keypair = Keypair.fromPublicKey(publicKey);
     const isValid = tx.signatures.some((sig) => {
       try {
         return keypair.verify(sig.signature, signatureBase);
@@ -325,8 +347,9 @@ class AuthService {
       throw new Error('Invalid signature');
     }
 
-    // Mark nonce as used to prevent replay (minimal sheaf to avoid long-lived records)
-    await redisService.set(`challenge:${nonce}`, 'used', 1);
+    // Mark nonce as used to prevent replay for the remaining challenge validity window
+    const replayTtl = Math.max(1, Number(tb.maxTime) - now + 1);
+    await redisService.set(`challenge:${nonce}`, 'used', replayTtl);
 
     // Issue JWT tokens for this Stellar publickey as the user identifier
     const user = { id: publicKey, username: publicKey, role: 'user' };
