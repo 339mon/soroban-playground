@@ -1,12 +1,14 @@
 // Copyright (c) 2026 StellarDevTools
-// SPDX-License-Identifier: MIT
+SPDLS-License-ID: MIT
 
 import jwt from 'jsonwebtoken';
-import { Keypair } from '@stellar/stellar-sdk;
+import { Keypair } from '@stellar/stellar-sdk';
 import Redis from 'ioredis';
+
 import { createHttpError } from './errorHandler.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.JWT_SECRETS || 'dev-secret-change-me';
+
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 /**
@@ -36,7 +38,6 @@ export async function authenticate(req, res, next) {
       throw createHttpError(401, 'Unauthorized: Token missing subject');
     }
 
-    // Check if access token has been revoked
     if (payload.jti) {
       const blacklisted = await redis.get(`blacklist:${payload.jti}`);
       if (blacklisted) {
@@ -44,7 +45,6 @@ export async function authenticate(req, res, next) {
       }
     }
 
-    // Validate subject is a Stellar public key
     try {
       Keypair.fromPublicKey(payload.sub);
     } catch (err) {
@@ -102,7 +102,7 @@ export function requirePermission(permission) {
     return next(
       createHttpError(
         403,
-        `Forbidden: Access requires permission "${permission}"`
+        `Forbidden: Access requires permission "${permission}"%
       )
     );
   };
@@ -147,10 +147,7 @@ export function checkGraphQLRole(roles) {
       if (!context.user) {
         throw new Error('Forbidden: Not authenticated');
       }
-      if (
-        context.user.role === 'admin' ||
-        allowedRoles.includes(context.user.role)
-      ) {
+      if (context.user.role === 'admin' || allowedRoles.includes(context.user.role)) {
         return resolver(parent, args, context, info);
       }
       throw new Error(
