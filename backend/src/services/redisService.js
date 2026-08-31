@@ -855,6 +855,30 @@ class RedisService {
     return !this.isFallbackMode && this.client && this.client.status === 'ready';
   }
   /**
+   * Stores a SEP-0010 challenge nonce for replay protection.
+   * The nonce is the random 64-byte value included in the auth transaction.
+   * TTL defaults to 300s to match the SEP-0010 5-minute timebound window.
+   */
+  async setChallengeNonce(nonce, ttlSeconds = 300) {
+    return this.set(`challenge:${nonce}`, '1', ttlSeconds);
+  }
+
+  /**
+   * Atomically consumes a SEP-0010 challenge nonce.
+   * Returns true only if the nonce was previously issued and not already used.
+   */
+  async consumeChallengeNonce(nonce, ttlSeconds = 300) {
+    const challengeKey = `challenge:${nonce}`;
+    const usedKey = `challenge:used:${nonce}`;
+    const issued = await this.get(challengeKey);
+    if (!issued) return false;
+    const reserved = await this.setNX(usedKey, '1', ttlSeconds);
+    if (!reserved) return false;
+    await this.delete(challengeKey);
+    return true;
+  }
+
+  /**
    * Stores a refresh token binding its jti to a user and opaque token hash.
    */
   async setRefreshToken(jti, userId, tokenHash, ttlSeconds = 60 * 60 * 24 * 30) {
