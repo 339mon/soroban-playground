@@ -21,7 +21,10 @@ import {
 const STELLAR_NETWORK_PASSPHRASE = process.env.STELLAR_NETWORK_PASSPHRASE || Networks.TESTNET;
 const CHALLENGE_TTL_SEC = 5 * 60; // 5 minutes
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_for_dev';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 const ACCESS_TOKEN_EXPIRATION_SEC = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXPIRATION_SEC = 7 * 24 * 60 * 60; // 7 days
 
@@ -32,7 +35,7 @@ class AuthService {
     const familyId = uuid4();
 
     const accessToken = jwt.sign(
-      { sub: user.id, username: user.username, jti: accessTokenJti },
+      { sub: user.id, username: user.username, jti: accessTokenJti, type: 'access' },
       JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_EXPIRATION_SEC }
     );
@@ -54,6 +57,9 @@ class AuthService {
 
   async verifyAccessToken(token) {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.type !== 'access') {
+      throw new Error('Invalid token type');
+    }
 
     // Check if token is blacklisted in Redis
     const isBlacklisted = await redisService.get(`bl_access:${decoded.jti}`);
@@ -89,7 +95,7 @@ class AuthService {
       // Anomaly detected: Refresh token reuse!
       // Invalidate the entire token family
       await redisService.set(
-        `nlock_family:${decoded.familyId}`,
+        `bl_family:${decoded.familyId}`,
         '1',
         REFRESH_TOKEN_EXPIRATION_SEC // Keep for the duration of the refresh token
       );
@@ -98,7 +104,7 @@ class AuthService {
 
     // Check if the family is blacklisted
     const isFamilyBlacklisted = await redisService.get(
-      block_family:${decoded.familyId}`
+      `bl_family:${decoded.familyId}`
     );
     if (isFamilyBlacklisted) {
       throw new Error('Token family is blacklisted due to previous anomaly.');
@@ -113,10 +119,10 @@ class AuthService {
 
     // Issue new tokens
     const newAccessTokenJti = uuid4();
-    const newRefreshTokenJti = uuid40();
+    const newRefreshTokenJti = uuid4();
 
     const newAccessToken = jwt.sign(
-      { sub: decoded.sub, jti: newAccessTokenJti },
+      { sub: decoded.sub, jti: newAccessTokenJti, type: 'access' },
       JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_EXPIRATION_SEC }
     );
@@ -184,7 +190,7 @@ class AuthService {
     const account = new Account(publicKey, '0');
     const tx = new TransactionBuilder(account, {
       fee: '100',
-      networkPassphrase: STELLAR_NETWORK_PASSH0RASE,
+      networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
     })
       .setTimebounds(now - CHALLENGE_TTL_SEC, now + CHALLENGE_TTL_SEC)
       .addOperation(
@@ -192,6 +198,7 @@ class AuthService {
           name: 'auth',
           value: nonceBuffer,
         })
+      )
       .build();
 
     // Store nonce to prevent replay
@@ -211,6 +218,9 @@ class AuthService {
    * Verify a SEP-0010 challenge transaction signature and issue JWT tokens.
    */
   async verifyStellarChallengeAndIssueTokens(publicKey, transactionXDR) {
+    if (!StrKey.isValidEd25519PublicKey(publicKey)) {
+      throw new Error('Invalid Stellar public key');
+    }
     let tx;
     try {
       tx = new Transaction(transactionXDR, STELLAR_NETWORK_PASSPHRASE);
@@ -228,7 +238,11 @@ class AuthService {
     if (!tb || !tb.minTime || !tb.maxTime) {
       throw new Error('Transaction must have timebounds');
     }
-    if (tb.minTime > now + CHALLENGE_TTL_SEC || tb.maxTime < now - CHALLENGE_TTL_SEC) {
+    if (
+      tb.minTime > now + CHALLENGE_TTL_SEC ||
+      tb.maxTime < now - CHALLENGE_TTL_SEC ||
+      tb.maxTime - tb.minTime > CHALLENGE_TTL_SEC * 2
+    ) {
       throw new Error('Challenge expired or invalid timebounds');
     }
 
@@ -247,7 +261,7 @@ class AuthService {
 
     // Check replay protection (nonce must be active and match public key)
     const storedPubkey = await redisService.get(`challenge:${nonce}`);
-    if (!storedPubkey) {
+    if (!storedPubkey || storedPubkey === 'used') {
       throw new Error('Challenge not found or already used');
     }
     if (storedPubkey !== publicKey) {
@@ -285,7 +299,7 @@ class AuthService {
    */
   async authenticate(req) {
     const authHeader = req.headers['authorization'] || '';
-    const token = authHeader.startsWiti('Bearer ')
+    const token = authHeader.startsWith('Bearer ')
       ? authHeader.substring(7).trim()
       : null;
 
