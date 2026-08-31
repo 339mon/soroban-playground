@@ -900,6 +900,43 @@ class RedisService {
     return this.delete(`refresh:${jti}`);
   }
 
+  /**
+   * Rotates a refresh token by revoking the old jti and storing the replacement.
+   * Uses a Redis transaction so rotation and revocation happen atomically.
+   */
+  async rotateRefreshToken(
+    oldJti,
+    newJti,
+    userId,
+    tokenHash,
+    ttlSeconds = 60 * 60 * 24 * 30
+  ) {
+    const value = JSON.stringify({ userId, tokenHash });
+    if (this.client && !this.isFallbackMode) {
+      try {
+        const results = await this.client
+          .multi()
+          .set(`refresh:${newJti}`, value, 'EX', ttlSeconds)
+          .set(`jti:revoked:${oldJti}`, '1', 'EX', ttlSeconds)
+          .del(`refresh:${oldJti}`)
+          .exec();
+        return (
+          Array.isArray(results) &&
+          results.every((entry) => entry && !entry[0])
+        );
+      } catch (err) {
+        console.warn(
+          'Redis rotateRefreshToken error, using fallback:',
+          err.message
+        );
+        this.isFallbackMode = true;
+      }
+    }
+    await this.revokeJti(oldJti, ttlSeconds);
+    await this.deleteRefreshToken(oldJti);
+    return this.setRefreshToken(newJti, userId, tokenHash, ttlSeconds);
+  }
+
   async revokeJti(jti, ttlSeconds = 60 * 60 * 24 * 30) {
     return this.set(`jti:revoked:${jti}`, '1', ttlSeconds);
   }
