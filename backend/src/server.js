@@ -296,7 +296,8 @@ initializeDatabase()
     setupWebsocketServer(server, {
       heartbeatInterval: 30000,
       maxConnectionsPerIp: 10,
-      redisClient: websocketRedisClient || redisService.client,
+      redisClient: redisService.client,
+      redisSubClient: websocketRedisClient || redisService.client,
     });
     await initializeCompileService().catch((err) =>
       console.error('[CompileService] Initialization error:', err)
