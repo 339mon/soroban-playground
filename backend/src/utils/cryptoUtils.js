@@ -10,6 +10,8 @@ import {
   generateKeyPairSync,
 } from 'crypto';
 
+import { Keypair, TransactionBuilder, Networks, Operation, Account } from 'stellar-sdk';
+
 const AES_ALGORITHM = 'aes-256-gcm';
 const AES_IV_LENGTH = 12; // 96-bit IV recommended for GCM
 const AES_KEY_LENGTH = 32; // 256-bit key
@@ -119,6 +121,71 @@ export function verifySignature(
 }
 
 import { createHash } from 'crypto';
+
+/**
+ * Generate a SEP-0010 Stellar Web Authentication challenge transaction.
+ * The challenge is a cryptographically random transaction with a 5-minute timebound.
+ * @param {string|Keypair} serverKeypair - Stellar keypair or secret seed of the server
+ * @param {string} clientPublicKey - Stellar public key (G...) of the user to authenticate
+ * @param {object} [opts]
+ * @param {string} [opts.networkPassphrase] - Stellar network passphrase
+ * @returns {string} base64-encoded challenge transaction XDR
+ */
+export function generateSep10Challenge(serverKeypair, clientPublicKey, opts = {}) {
+  const network = opts.networkPassphrase || Networks.TESTNET;
+  const now = Math.floor(Date.now() / 1000);
+  const minTime = opts.minTime ?? now - 300;
+  const maxTime = opts.maxTime ?? now + 300;
+  const nonce = randomBytes(64);
+  const serverKp = typeof serverKeypair === 'string'
+    ? Keypair.fromSecret(serverKeypair)
+    : serverKeypair;
+  const source = new Account(serverKp.publicKey(), '0');
+  const tx = new TransactionBuilder(source, {
+    fee: '100',
+    networkPassphrase: network,
+  })
+    .addOperation(Operation.manageData({
+      source: clientPublicKey,
+      name: clientPublicKey,
+      value: nonce,
+    }))
+    .setTimebounds({ minTime, maxTime })
+    .build();
+  tx.sign(serverKp);
+  return tx.toXDR();
+}
+
+/**
+ * Verify a SEP-0010 challenge response signature.
+ * @param {string} challengeXdr - base64-encoded challenge transaction XDR
+ * @param {string} clientPublicKey - Stellar public key (G...)
+ * @param {string} signature - base64-encoded signature to verify
+ * @param {object} [opts]
+ * @param {string} [opts.networkPassphrase] - Stellar network passphrase
+ * @returns {boolean}
+ */
+export function verifySep10ChallengeSignature(challengeXdr, clientPublicKey, signature, opts = {}) {
+  const network = opts.networkPassphrase || Networks.TESTNET;
+  try {
+    const tx = TransactionBuilder.fromXDR(challengeXdr, network);
+    const { minTime, maxTime } = tx.timeBounds || {};
+    const now = Math.floor(Date.now() / 1000);
+    if (minTime && now < minTime) return false;
+    if (maxTime && now > maxTime) return false;
+    const ops = tx.operations || [];
+    if (ops.length !== 1) return false;
+    const op = ops[0];
+    if (op.type !== 'manageData') return false;
+    if (op.source !== clientPublicKey || op.name !== clientPublicKey) return false;
+    const txHash = tx.hash();
+    const sigBuffer = Buffer.from(signature, 'base64');
+    return Keypair.fromPublicKey(clientPublicKey).verify(txHash, sigBuffer);
+  } catch {
+    return false;
+  }
+}
+
 
 /**
  * Hash a buffer or string with SHA-256, returning hex.
