@@ -31,6 +31,7 @@ const DEFAULTS = {
   DEPLOY_SIMULATED_DELAY_MS: 1500,
   INVOKE_SIMULATED_DELAY_MS: 1000,
   WS_HEARTBEAT_INTERVAL_MS: 30000,
+  WS_HEARTBEAT_TIMEOUT_MS: 30000,
   WS_MAX_CONNECTIONS_PER_IP: 10,
   REDIS_URL: undefined,
   REDIS_CHANNEL: 'soroban_websocket_events',
@@ -323,6 +324,13 @@ export function createConfig(env = process.env, options = {}) {
         env.WS_HEARTBEAT_INTERVAL_MS,
         DEFAULTS.WS_HEARTBEAT_INTERVAL_MS,
         'WS_HEARTBEAT_INTERVAL_MS',
+        warnings,
+        { min: 1000 }
+      ),
+      heartbeatTimeoutMs: toInt(
+        env.WS_HEARTBEAT_TIMEOUT_MS,
+        DEFAULTS.WS_HEARTBEAT_TIMEOUT_MS,
+        'WS_HEARTBEAT_TIMEOUT_MS',
         warnings,
         { min: 1000 }
       ),
