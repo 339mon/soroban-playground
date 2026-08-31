@@ -343,6 +343,7 @@ export function createConfig(env = process.env, options = {}) {
       ),
     },
     redis: {
+      enabled: toBoolean(env.REDIS_ENABLED, hasValue(env.REDIS_URL) || hasValue(DEFAULTS.REDIS_URL), 'REDIS_ENABLED', warnings),
       url: cleanString(env.REDIS_URL, DEFAULTS.REDIS_URL),
       channel: cleanString(env.REDIS_CHANNEL, DEFAULTS.REDIS_CHANNEL),
     },
