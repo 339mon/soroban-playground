@@ -630,7 +630,7 @@ class RedisService {
 
   async set(key, value, ttl = DEFAULT_TTL_SECONDS) {
     if (this.isFallbackMode || !this.client) {
-      this.localCache.set(key, value, { ttl: ttl * 1000 });
+      this.localCache.set(key, value, ttl ? { ttl: ttl * 1000 } : undefined);
       return 'OK';
     }
     try {
@@ -853,6 +853,35 @@ class RedisService {
 
   get isConnected() {
     return !this.isFallbackMode && this.client && this.client.status === 'ready';
+  }
+  /**
+   * Stores a refresh token binding its jti to a user and opaque token hash.
+   */
+  async setRefreshToken(jti, userId, tokenHash, ttlSeconds = 60 * 60 * 24 * 30) {
+    const value = JSON.stringify({ userId, tokenHash });
+    return this.set(`refresh:${jti}`, value, ttlSeconds);
+  }
+
+  async getRefreshToken(jti) {
+    const raw = await this.get(`refresh:${jti}`);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  async deleteRefreshToken(jti) {
+    return this.delete(`refresh:${jti}`);
+  }
+
+  async revokeJti(jti, ttlSeconds = 60 * 60 * 24 * 30) {
+    return this.set(`jti:revoked:${jti}`, '1', ttlSeconds);
+  }
+
+  async isJtiRevoked(jti) {
+    return !!(await this.get(`jti:revoked:${jti}`));
   }
 
   /**
