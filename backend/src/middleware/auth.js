@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 import jwt from 'jsonwebtoken';
-import { Keypair } from '@stellar/stellar-sdk';
-import Redis from 'ioredi';
+import { Keypair } from '@stellar/stellar-sdk;
+import Redis from 'ioredis';
 import { createHttpError } from './errorHandler.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.JWT_SECRETS || 'dev-secret-change-me';
@@ -26,6 +26,10 @@ export async function authenticate(req, res, next) {
       payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     } catch (err) {
       throw createHttpError(401, 'Unauthorized: Invalid or expired token');
+    }
+
+    if (payload.tokenType === 'refresh') {
+      throw createHttpError(401, 'Unauthorized: Refresh tokens are not valid for access');
     }
 
     if (!payload.sub) {
