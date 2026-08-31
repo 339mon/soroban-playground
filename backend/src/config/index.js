@@ -234,6 +234,26 @@ function logConfigWarnings(warnings, logger = console) {
   }
 }
 
+function assertAuthConfig(config) {
+  if (config.app.env !== 'production') return;
+
+  const required = [
+    ['jwtSecret', 'JWT_SECRET'],
+    ['signingSecret', 'SEP10_SIGNING_SECRET'],
+    ['homeDomain', 'SEP10_HOME_DOMAIN'],
+  ];
+
+  const missing = required
+    .filter(([key]) => !hasValue(config.auth[key]))
+    .map(([, envName]) => envName);
+
+  if (missing.length) {
+    throw new Error(
+      `Missing required production auth configuration: ${missing.join(', ')}`
+    );
+  }
+}
+
 export function createConfig(env = process.env, options = {}) {
   const warnings = [];
   const portSource = getFirstValue(env, ['PORT', 'APP_PORT']);
@@ -606,6 +626,8 @@ export function createConfig(env = process.env, options = {}) {
       tempDir: cleanString(env.BACKUP_TEMP_DIR, undefined),
     },
   };
+
+  assertAuthConfig(config);
 
   Object.defineProperty(config, 'validation', {
     enumerable: false,
