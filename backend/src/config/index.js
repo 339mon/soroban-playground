@@ -235,7 +235,7 @@ function logConfigWarnings(warnings, logger = console) {
 }
 
 function assertAuthConfig(config) {
-  if (config.app.env !== 'production') return;
+  if (config.app.env === 'test') return;
 
   const required = [
     ['jwtSecret', 'JWT_SECRET'],
@@ -249,7 +249,7 @@ function assertAuthConfig(config) {
 
   if (missing.length) {
     throw new Error(
-      `Missing required production auth configuration: ${missing.join(', ')}`
+      `Missing required auth configuration: ${missing.join(', ')}`
     );
   }
 }
