@@ -14,6 +14,9 @@ const REQUIRED_FIELDS = [
 // In a production environment, replace with a shared Redis store.
 const nonceStore = new Map();
 
+// SEP-0010 timebound for a signed challenge (5 minutes maximum lifetime).
+const CHALLENGE_MAX_AGE_MS = 5 * 60 * 1000;
+
 function isNonceReplay(nonce, expiry) {
   const now = Date.now();
   const expiryMs = Number(expiry);
@@ -28,13 +31,18 @@ function isNonceReplay(nonce, expiry) {
   if (existing) {
     nonceStore.delete(nonce);
   }
+  // Enforce the 5-minute SEP-0010 timebound.
+  if (expiryMs - now > CHALLENGE_MAX_AGE_MS) {
+    return 'expiry_too_far';
+  }
   return null;
 }
 
 function storeNonce(nonce, expiry) {
   const expiryMs = Number(expiry);
   if (Number.isFinite(expiryMs)) {
-    nonceStore.set(nonce, expiryMs);
+    // Cap the stored expiry to the 5-minute SEP-0010 window.
+    nonceStore.set(nonce, Math.min(expiryMs, Date.now() + CHALLENGE_MAX_AGE_MS));
   }
 }
 
