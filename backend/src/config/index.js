@@ -133,6 +133,15 @@ const DEFAULTS = {
   BACKUP_S3_PREFIX: 'sqlite-backups/',
   BACKUP_S3_REGION: 'us-east-1',
   BACKUP_RETENTION_COUNT: 30,
+  STELLAR_NETWORK_PASSPHRASE: 'Test SDF Network ; September 2015',
+  JWT_SECRET: undefined,
+  JWT_ACCESS_TOKEN_TTL_MS: 15 * 60 * 1000,
+  JWT_REFRESH_TOKEN_TTL_MS: 7 * 24 * 60 * 60 * 1000,
+  JWT_ISSUER: 'soroban-playground',
+  JWT_AUDIENCE: 'soroban-playground-api',
+  SEP10_CHALLENGE_TTL_MS: 5 * 60 * 1000,
+  SEP10_SIGNING_SECRET: undefined,
+  REDIS_URL: 'redis://127.0.0.1:6379',
 };
 
 const CONFIG_WARNING_PREFIX = 'CONFIG WARNING';
@@ -245,7 +254,46 @@ export function createConfig(env = process.env, options = {}) {
         DEFAULTS.APP_ENV
       ),
     },
+    auth: {
+      jwtSecret: cleanString(env.JWT_SECRET, DEFAULTS.JWT_SECRET),
+      accessTokenTtlMs: toInt(
+        env.JWT_ACCESS_TOKEN_TTL_MS,
+        DEFAULTS.JWT_ACCESS_TOKEN_TTL_MS,
+        'JWT_ACCESS_TOKEN_TTL_MS',
+        warnings,
+        { min: 1 }
+      ),
+      refreshTokenTtlMs: toInt(
+        env.JWT_REFRESH_TOKEN_TTL_MS,
+        DEFAULTS.JWT_REFRESH_TOKEN_TTL_MS,
+        'JWT_REFRESH_TOKEN_TTL_MS',
+        warnings,
+        { min: 1 }
+      ),
+      issuer: cleanString(env.JWT_ISSUER, DEFAULTS.JWT_ISSUER),
+      audience: cleanString(env.JWT_AUDIENCE, DEFAULTS.JWT_AUDIENCE),
+      challengeTtlMs: toInt(
+        env.SEP10_CHALLENGE_TTL_MS,
+        DEFAULTS.SEP10_CHALLENGE_TTL_MS,
+        'SEP10_CHALLENGE_TTL_MS',
+        warnings,
+        { min: 1 }
+      ),
+      signingSecret: cleanString(
+        env.SEP10_SIGNING_SECRET,
+        DEFAULTS.SEP10_SIGNING_SECRET
+      ),
+      networkPassphrase: cleanString(
+        env.STELLAR_NETWORK_PASSPHRASE,
+        DEFAULTS.STELLAR_NETWORK_PASSPHRASE
+      ),
+    },
+    redis: {
+      url: cleanString(env.REDIS_URL, DEFAULTS.REDIS_URL),
+    },
     rateLimit: {
+      global: {
+        windowMs: toInt(
       global: {
         windowMs: toInt(
           env.GLOBAL_RATE_LIMIT_WINDOW_MS,
