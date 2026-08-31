@@ -129,10 +129,17 @@ export function setupWebSocketServer(httpServer) {
     const ip = getClientIp(request);
 
     // Enforce per-IP connection limit.
-    if (ip && (ipCounts.get(ip) || 0) >= MAX_CONNECTIONS_PER_IP) {
-      socket.close(1008, 'Too Many Connections');
-      return;
+    if (ip) {
+      const currentCount = ipCounts.get(ip) || 0;
+      if (currentCount >= MAX_CONNECTIONS_PER_IP) {
+        socket.close(1008, 'Too Many Connections');
+        return;
+      }
+      ipCounts.set(ip, currentCount + 1);
     }
+
+    // Decrement the per-IP count on connection close.
+
 
     const authHeader = request.headers.authorization || '';
     const tokenFromQuery = url.searchParams.get('token');
@@ -145,11 +152,7 @@ export function setupWebSocketServer(httpServer) {
       return;
     }
 
-    // Register the connection and IP count after successful authentication.
-    if (ip) {
-      ipCounts.set(ip, (ipCounts.get(ip) || 0) + 1);
-    }
-
+    // Register the connection after successful authentication.
     socket.missedPongs = 0;
     clients.add(socket);
 
