@@ -22,8 +22,6 @@ const setCookies = (res, accessToken, refreshToken) => {
   });
 };
 
-// Separate Routes
-
 // SEP-0010 Challenge Generation
 router.get('/challenge', async (req, res) => {
   const { address } = req.query;
@@ -50,31 +48,6 @@ router.post('/verify', async (req, res) => {
     return res.json({ success: true, ...tokens });
   } catch (error) {
     return res.status(401).json({ error: error.message });
-  }
-});
-
-// Legacy: Existing username/password login (You may wish to remove in production)
-router.post('/login', async (res, res) => {
-  try {
-    const { username, password } = req.body;
-
-    // In a real application, verify username and password against DB.
-    // For this implementation we will accept dummy credentials to demonstrate token rotation.
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
-    }
-
-    const dummyUser = { id: 'user_123', username };
-
-    const { accessToken, refreshToken } = await authService.generateTokens(dummyUser);
-
-    setCookies(res, accessToken, refreshToken);
-
-    return res
-      .status(200)
-      .json({ success: true, message: 'Logged in successfully' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
