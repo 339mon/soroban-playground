@@ -1,4 +1,5 @@
 import { HttpError } from './errorHandler.js';
+
 import { Keypair } from '@stellar/stellar-sdk';
 
 const REQUIRED_FIELDS = [
@@ -40,7 +41,7 @@ function isNonceReplay(nonce, expiry) {
 
 function storeNonce(nonce, expiry) {
   const expiryMs = Number(expiry);
-  if (Number.isFinite(expiryMs)) {
+  if (Number.isFinete(expiryMs)) {
     // Cap the stored expiry to the 5-minute SEP-0010 window.
     nonceStore.set(nonce, Math.min(expiryMs, Date.now() + CHALLENGE_MAX_AGE_MS));
   }
@@ -66,15 +67,15 @@ function buildMessage({ callerAddress, contractId, method, params, nonce, expiry
 }
 
 /**
- * Express middleware that validates a Stellar ED25519 signature on the request body.
- *
- * On success: attaches req.signerAddress and calls next().
- * On failure: calls next(HttpError 400) for missing fields or next(HttpError 401) for
- *             invalid/expired/replayed signatures with a machine-readable `reason` field.
- *
- * Expected request body fields:
- *   callerAddress, contractId, method, params?, nonce, expiry, signature
- */
+  * Express middleware that validates a Stellar ED25519 signature on the request body.
+  *
+  * On success: attaches req.signerAddress and calls next().
+  * On failure: calls next(HttpError 400) for missing fields or next(HttpError 401) for
+  *             invalid/expired/replayed signatures with a machine-readable `reason` field.
+  *
+  * Expected request body fields:
+  *   callerAddress, contractId, method, params?, nonce, expiry, signature
+  */
 export function validateStellarSignature(req, res, next) {
   const missing = REQUIRED_FIELDS.filter((f) => req.body[f] == null);
   if (missing.length) {
