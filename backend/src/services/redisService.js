@@ -22,6 +22,10 @@ const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_TIMEOUT_MS = 60000;
 const CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS = 3;
 
+const WS_HEARTBEAT_INTERVAL_MS = 30000;
+const WS_MAX_CONNECTIONS_PER_IP = 10;
+const WS_CONNECTION_TTL_SECONDS = 120;
+
 function padDatePart(value) {
   return String(value).padStart(2, '0');
 }
@@ -498,13 +502,14 @@ class RedisService {
     }
   }
 
-  async tryAcquireConnection(ip, limit = 10, ttlSeconds = 120) {
+  async tryAcquireConnection(ip, limit = WS_MAX_CONNECTIONS_PER_IP, ttlSeconds = WS_CONNECTION_TTL_SECONDS) {
     const key = `ws:conn:${ip}`;
     if (this.isFallbackMode || !this.client) {
-      const current = (this.localConnectionCounts.get(ip) || 0) + 1;
-      if (current > limit) {
-        return { allowed: false, current: current - 1, fallback: true };
+      const count = this.localConnectionCounts.get(ip) || 0;
+      if (count >= limit) {
+        return { allowed: false, current: limit, fallback: true };
       }
+      const current = count + 1;
       this.localConnectionCounts.set(ip, current);
       return { allowed: true, current, fallback: true };
     }
@@ -522,7 +527,8 @@ class RedisService {
   async releaseConnection(ip) {
     const key = `ws:conn:${ip}`;
     if (this.isFallbackMode || !this.client) {
-      const current = (this.localConnectionCounts.get(ip) || 1) - 1;
+      const count = this.localConnectionCounts.get(ip) || 0;
+      const current = Math.max(count - 1, 0);
       if (current <= 0) {
         this.localConnectionCounts.delete(ip);
       } else {
@@ -554,7 +560,7 @@ class RedisService {
     }
   }
 
-  startHeartbeat(ws, interval = 30000) {
+  startHeartbeat(ws, interval = WS_HEARTBEAT_INTERVAL_MS) {
     if (!ws || typeof ws.ping !== 'function' || typeof ws.terminate !== 'function') {
       console.warn('Invalid WebSocket for heartbeat');
       return;
@@ -563,7 +569,7 @@ class RedisService {
     ws.on('pong', () => {
       ws.isAlive = true;
       if (ws.ip) {
-        this.renewConnection(ws.ip).catch(() => {});
+        this.renewConnection(ws.ip, WS_CONNECTION_TTL_SECONDS).catch(() => {});
       }
     });
     const timer = setInterval(() => {
