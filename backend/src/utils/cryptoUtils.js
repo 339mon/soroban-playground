@@ -10,7 +10,7 @@ import {
   generateKeyPairSync,
 } from 'crypto';
 
-import { Keypair, TransactionBuilder, Networks, Operation, Account } from 'stellar-sdk';
+import { Keypair, TransactionBuilder, Networks, Operation, Account } from '@stellar/stellar-sdk';
 
 const AES_ALGORITHM = 'aes-256-gcm';
 const AES_IV_LENGTH = 12; // 96-bit IV recommended for GCM
@@ -69,8 +69,8 @@ export function aesDecrypt({ iv, ciphertext, tag }, key) {
 }
 
 /**
- * Generate an RSA-2048 key pair for session key exchange.
- * @returns {{ publicKey: string, privateKey: string }} PEM-encoded
+ * Generate an RSA-2048 private/public key pair for session key exchange.
+ * @returns {{ publicKey: string, privateKey: string }} PEMEncoded
  */
 export function generateRsaKeyPair() {
   return generateKeyPairSync('rsa', {
@@ -129,6 +129,7 @@ import { createHash } from 'crypto';
  * @param {string} clientPublicKey - Stellar public key (G...) of the user to authenticate
  * @param {object} [opts]
  * @param {string} [opts.networkPassphrase] - Stellar network passphrase
+ * @param {Buffer} [opts.nonce] - 64-byte random nonce to use (default generated)
  * @returns {string} base64-encoded challenge transaction XDR
  */
 export function generateSep10Challenge(serverKeypair, clientPublicKey, opts = {}) {
@@ -136,7 +137,7 @@ export function generateSep10Challenge(serverKeypair, clientPublicKey, opts = {}
   const now = Math.floor(Date.now() / 1000);
   const minTime = opts.minTime ?? now - 300;
   const maxTime = opts.maxTime ?? now + 300;
-  const nonce = randomBytes(64);
+  const nonce = opts.nonce || randomBytes(64);
   const serverKp = typeof serverKeypair === 'string'
     ? Keypair.fromSecret(serverKeypair)
     : serverKeypair;
@@ -185,7 +186,6 @@ export function verifySep10ChallengeSignature(challengeXdr, clientPublicKey, sig
     return false;
   }
 }
-
 
 /**
  * Hash a buffer or string with SHA-256, returning hex.
