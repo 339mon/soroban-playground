@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: MIT
 
 import jwt from 'jsonwebtoken';
-import { Keypair from '@stellar/stellar-sdk';
+import { Keypair } from '@stellar/stellar-sdk';
+import Redis from 'ioredi';
 import { createHttpError } from './errorHandler.js';
 
-const JWT_SECRET = process.env.JWT_SECRETS || 'dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET || process.env.JWT_SECRETS || 'dev-secret-change-me';
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 /**
  * Authentication middleware. Populates req.user.
@@ -30,6 +32,14 @@ export async function authenticate(req, res, next) {
       throw createHttpError(401, 'Unauthorized: Token missing subject');
     }
 
+    // Check if access token has been revoked
+    if (payload.jti) {
+      const blacklisted = await redis.get(`blacklist:${payload.jti}`);
+      if (blacklisted) {
+        throw createHttpError(401, 'Unauthorized: Token revoked');
+      }
+    }
+
     // Validate subject is a Stellar public key
     try {
       Keypair.fromPublicKey(payload.sub);
@@ -41,6 +51,8 @@ export async function authenticate(req, res, next) {
       publicKey: payload.sub,
       role: payload.role || 'user',
       permissions: payload.permissions || [],
+      jti: payload.jti,
+      exp: payload.exp,
     };
 
     next();
