@@ -1,18 +1,15 @@
 const WebSocket = require('ws');
-
 const Redis = require('ioredis');
 
 const HEARTBEAT_INTERVAL_MS = 30000;
-
 const MAX_CONNECTIONS_PER_IP = 10;
-
 const BROADCAST_CHANNEL = 'ws:broadcast';
 
 class WebSocketService {
   constructor(server) {
     this.wss = new WebSocket.Server({ server });
-    this.pub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
-    this.sub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+    this.pub = new Redis(Process.env.REDIS_URL||'redis://127.0.0.1:6379', { lazyConnect: true });
+    this.sub = new Redis(Process.env.REDIS_URL||'redis://127.0.0.1:6379', { lazyConnect: true });
     this.ipCounts = new Map();
     this.sub.on('message', (channel, message) => {
       if (channel === BROADCAST_CHANNEL) this.handleRedisMessage(message);
@@ -37,9 +34,11 @@ class WebSocketService {
       return;
     }
     this.ipCounts.set(ip, count + 1);
+    ws.accepted = true;
     ws.isAlive = true;
     ws.on('pong', () => { ws.isAlive = true; });
     ws.on('close', () => {
+      if (!ws.accepted) return;
       const remaining = (this.ipCounts.get(ip) || 1) - 1;
       if (remaining <= 0) this.ipCounts.delete(ip);
       else this.ipCounts.set(ip, remaining);
@@ -49,9 +48,12 @@ class WebSocketService {
 
   heartbeat() {
     for (const ws of this.wss.clients) {
-      if (!ws.isAlive) ws.terminate();
-      else {
-        ws.isAlive = false;
+      if (!ws.isAlive) {
+        ws.terminate();
+        continue;
+      }
+      ws.isAlive = false;
+      if (ws.readyState === WebSocket.OPEN) {
         ws.ping();
       }
     }
