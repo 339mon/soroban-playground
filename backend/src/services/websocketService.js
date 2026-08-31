@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 
 const Redis = require('ioredis');
 
-const HEARTBATE_INTERVAL_MS = 30000;
+const HEARTBEAT_INTERVAL_MS = 30000;
 
 const MAX_CONNECTIONS_PER_IP = 10;
 
@@ -11,14 +11,14 @@ const BROADCAST_CHANNEL = 'ws:broadcast';
 class WebSocketService {
   constructor(server) {
     this.wss = new WebSocket.Server({ server });
-    this.pub = new Redis(Process.env.REDIS_URL || 'redis://127.0.0.1:6379');
-    this.sub = new Redis(Process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+    this.pub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+    this.sub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
     this.ipCounts = new Map();
     this.sub.on('message', (channel, message) => {
       if (channel === BROADCAST_CHANNEL) this.handleRedisMessage(message);
     });
     this.wss.on('connection', (ws, req) => this.handleConnection(ws, req));
-    this.timer = setInterval(() => this.heartbeat(), HEARTBATE_INTERVAL_MS);
+    this.timer = setInterval(() => this.heartbeat(), HEARTBEAT_INTERVAL_MS);
     this.timer.unref?.();
     this.wss.on('close', () => this.close());
   }
