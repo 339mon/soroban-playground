@@ -562,6 +562,9 @@ class RedisService {
     ws.isAlive = true;
     ws.on('pong', () => {
       ws.isAlive = true;
+      if (ws.ip) {
+        this.renewConnection(ws.ip).catch(() => {});
+      }
     });
     const timer = setInterval(() => {
       if (ws.isAlive === false) {
@@ -570,7 +573,12 @@ class RedisService {
         return;
       }
       ws.isAlive = false;
-      ws.ping();
+      try {
+        ws.ping();
+      } catch (err) {
+        ws.terminate();
+        clearInterval(timer);
+      }
     }, interval);
     ws.on('close', () => clearInterval(timer));
     ws.on('error', () => clearInterval(timer));
