@@ -287,7 +287,11 @@ let ledgerSyncServiceInstance = null;
 // Initialize Database & Boot Services
 initializeDatabase()
   .then(async (db) => {
-    setupWebsocketServer(server);
+    setupWebsocketServer(server, {
+      heartbeatInterval: 30000,
+      maxConnectionsPerIp: 10,
+      redisClient: redisService.client,
+    });
     await initializeCompileService().catch((err) =>
       console.error('[CompileService] Initialization error:', err)
     );
