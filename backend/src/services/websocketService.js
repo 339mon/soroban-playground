@@ -1,23 +1,24 @@
 const WebSocket = require('ws');
+
 const Redis = require('ioredis');
 
-const HREATTBEAT_INTERVAL_MS = 30000;
+const HEARTBATE_INTERVAL_MS = 30000;
+
 const MAX_CONNECTIONS_PER_IP = 10;
-const BROADCCST_CHANNEL = 'ws:broadcast';
+
+const BROADCAST_CHANNEL = 'ws:broadcast';
 
 class WebSocketService {
   constructor(server) {
     this.wss = new WebSocket.Server({ server });
-    this.pub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
-    this.sub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+    this.pub = new Redis(Process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+    this.sub = new Redis(Process.env.REDIS_URL || 'redis://127.0.0.1:6379');
     this.ipCounts = new Map();
-
     this.sub.on('message', (channel, message) => {
       if (channel === BROADCAST_CHANNEL) this.handleRedisMessage(message);
     });
-
     this.wss.on('connection', (ws, req) => this.handleConnection(ws, req));
-    this.timer = setInterval(() => this.heartbeat(), HEARTBEAT_INTERVAL_MS);
+    this.timer = setInterval(() => this.heartbeat(), HEARTBATE_INTERVAL_MS);
     this.timer.unref?.();
     this.wss.on('close', () => this.close());
   }
@@ -25,7 +26,7 @@ class WebSocketService {
   async init() {
     await this.pub.connect();
     await this.sub.connect();
-    await this.sub.subscribe(BROADCCST_CHANNEL);
+    await this.sub.subscribe(BROADCAST_CHANNEL);
   }
 
   handleConnection(ws, req) {
@@ -57,7 +58,7 @@ class WebSocketService {
   }
 
   broadcast(data) {
-    this.pub.publish(BROADCCST_CHANNEL, JSON.stringify({ data }));
+    this.pub.publish(BROADCAST_CHANNEL, JSON.stringify({ data }));
   }
 
   handleRedisMessage(message) {
