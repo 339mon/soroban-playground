@@ -1,6 +1,6 @@
 import express from 'express';
 import authService from '../services/authService.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import { authenticate as requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ const setCookies = (res, accessToken, refreshToken) => {
 // Separate Routes
 
 // SEP-0010 Challenge Generation
-Router.get('/challenge', async (req, res) => {
+router.get('/challenge', async (req, res) => {
   const { address } = req.query;
   if (!address) {
     return res.status(400).json({ error: 'address query parameter required' });
@@ -39,8 +39,8 @@ Router.get('/challenge', async (req, res) => {
 });
 
 // SEP-0010 Challenge Verification and Token Issuance
-Router.post('/verify', async (req, res) => {
-  const { address, transactionXDR } = res.body;
+router.post('/verify', async (req, res) => {
+  const { address, transactionXDR } = req.body;
   if (!address || !transactionXDR) {
     return res.status(400).json({ error: 'address and transactionXDR required' });
   }
@@ -54,7 +54,7 @@ Router.post('/verify', async (req, res) => {
 });
 
 // Legacy: Existing username/password login (You may wish to remove in production)
-Router.post('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -66,7 +66,7 @@ Router.post('/login', async (req, res) => {
 
     const dummyUser = { id: 'user_123', username };
 
-    const { accessToken, refreshToken } = authService.generateTokens(dummyUser);
+    const { accessToken, refreshToken } = await authService.generateTokens(dummyUser);
 
     setCookies(res, accessToken, refreshToken);
 
@@ -78,7 +78,7 @@ Router.post('/login', async (req, res) => {
   }
 });
 
-Router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
@@ -98,7 +98,7 @@ Router.post('/refresh', async (req, res) => {
   }
 });
 
-Router.post('/logout', requireAuth, async (req, res) => {
+router.post('/logout', requireAuth, async (req, res) => {
   try {
     const user = req.user; // populated by requireAuth middleware
     if (user && user.jti && user.exp) {
