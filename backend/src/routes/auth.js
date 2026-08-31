@@ -54,7 +54,7 @@ router.post('/verify', async (req, res) => {
 });
 
 // Legacy: Existing username/password login (You may wish to remove in production)
-router.post('/login', async (req, res) => {
+router.post('/login', async (res, res) => {
   try {
     const { username, password } = req.body;
 
