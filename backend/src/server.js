@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 import express from 'express';
-import http from 'http';
-import https from 'https';
 import cors from 'cors';
 import morgan from 'morgan';
 import fs from 'fs';
@@ -13,7 +11,12 @@ import { fileURLToPath } from 'url';
 
 import config from './config/index.js';
 import { corsOptions } from './config/cors.js';
-import { applyServerTuning } from './config/http2Config.js';
+import {
+  applyServerTuning,
+  createAlpnServer,
+  attachAcmeHttp01,
+  watchTlsCertificates,
+} from './config/http2Config.js';
 import { http2PushMiddleware } from './middleware/http2Push.js';
 import apiRouter from './routes/api.js';
 import authRoute from './routes/auth.js';
@@ -39,6 +42,8 @@ import eventsV1Route from './routes/v1/events.js';
 import credentialsRoute from './routes/credentials.js';
 import credentialRotationService from './services/credentialRotationService.js';
 import redisService from './services/redisService.js';
+import cacheInvalidator from './services/cacheInvalidator.js';
+import kmsService from './services/kmsService.js';
 import { setupGraphQL } from './graphql/index.js';
 import {
   initializeDatabase,
@@ -87,7 +92,7 @@ let httpServer = http.createServer(app);
 applyServerTuning(httpServer); // HTTP/2: keep-alive + headers-timeout tuning
 let server;
 
-// TLS/SSL Hardening configuration
+// TLS/SSL Hardening configuration — HTTP/2 ALPN prefers h2, falls back to 1.1.
 const httpsOptions = {
   minVersion: 'TLSv1.2',
   maxVersion: 'TLSv1.3',
@@ -130,8 +135,20 @@ try {
   );
 }
 
-// Fallback to HTTP if no certs are provided, otherwise use HTTPS
-server = hasCertificates ? https.createServer(httpsOptions, app) : httpServer;
+// Let's Encrypt HTTP-01 challenges must be reachable before HSTS/rate limits.
+export const acmeChallengeStore = attachAcmeHttp01(app);
+
+// Fallback to HTTP/1.1 if no certs are provided, otherwise HTTP/2 + TLS 1.3 via ALPN.
+const server = createAlpnServer(app, hasCertificates ? httpsOptions : null);
+applyServerTuning(server);
+let stopCertificateWatch = () => {};
+if (hasCertificates) {
+  stopCertificateWatch = watchTlsCertificates(server, {
+    keyPath: process.env.SSL_KEY_PATH || path.join(_dirname, 'key.pem'),
+    certPath: process.env.SSL_CERT_PATH || path.join(_dirname, 'cert.pem'),
+    intervalMs: Number(process.env.TLS_RELOAD_INTERVAL_MS) || 60_000,
+  });
+}
 const PORT = process.env.PORT || 5000;
 
 // Basic middleware
@@ -279,6 +296,10 @@ initializeDatabase()
     startWebhookDispatcher();
     setupCredentialRotation();
     initializeQueues();
+    cacheInvalidator.start().catch((err) =>
+      console.warn('[CacheInvalidator] start failed:', err.message)
+    );
+    kmsService.start();
 
     if (process.env.LEDGER_SYNC_ENABLED === 'true') {
       ledgerSyncServiceInstance = new LedgerSyncService({ db });
@@ -322,6 +343,9 @@ async function gracefulShutdown(signal) {
     console.log('[Shutdown] Stopping background workers...');
     stopCleanupWorker();
     stopWebhookDispatcher();
+    stopCertificateWatch();
+    cacheInvalidator.stop().catch(() => {});
+    kmsService.stop();
     if (ledgerSyncServiceInstance) ledgerSyncServiceInstance.stop();
     await oracleWorkerPool.stop();
     credentialRotationService.stop();
