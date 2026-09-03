@@ -30,6 +30,12 @@ const DEFAULTS = {
   DEFAULT_NETWORK: 'testnet',
   DEPLOY_SIMULATED_DELAY_MS: 1500,
   INVOKE_SIMULATED_DELAY_MS: 1000,
+  WS_HEARTBEAT_INTERVAL_MS: 30000,
+  WS_HEARTBEAT_TIMEOUT_MS: 30000,
+  WS_MAX_CONNECTIONS_PER_IP: 10,
+  REDIS_ENABLED: false,
+  REDIS_URL: undefined,
+  REDIS_CHANNEL: 'soroban_websocket_events',
   TRACING_ENABLED: true,
   TRACING_SERVICE_NAME: 'soroban-playground-backend',
   TRACING_SERVICE_VERSION: '1.0.0',
@@ -313,6 +319,34 @@ export function createConfig(env = process.env, options = {}) {
         warnings,
         { min: 0 }
       ),
+    },
+    websocket: {
+      heartbeatIntervalMs: toInt(
+        env.WS_HEARTBEAT_INTERVAL_MS,
+        DEFAULTS.WS_HEARTBEAT_INTERVAL_MS,
+        'WS_HEARTBEAT_INTERVAL_MS',
+        warnings,
+        { min: 1000 }
+      ),
+      heartbeatTimeoutMs: toInt(
+        env.WS_HEARTBEAT_TIMEOUT_MS,
+        DEFAULTS.WS_HEARTBEAT_TIMEOUT_MS,
+        'WS_HEARTBEAT_TIMEOUT_MS',
+        warnings,
+        { min: 1000 }
+      ),
+      maxConnectionsPerIp: toInt(
+        env.WS_MAX_CONNECTIONS_PER_IP,
+        DEFAULTS.WS_MAX_CONNECTIONS_PER_IP,
+        'WS_MAX_CONNECTIONS_PER_IP',
+        warnings,
+        { min: 1 }
+      ),
+    },
+    redis: {
+      enabled: toBoolean(env.REDIS_ENABLED, hasValue(env.REDIS_URL) || DEFAULTS.REDIS_ENABLED, 'REDIS_ENABLED', warnings),
+      url: cleanString(env.REDIS_URL, DEFAULTS.REDIS_URL),
+      channel: cleanString(env.REDIS_CHANNEL, DEFAULTS.REDIS_CHANNEL),
     },
     tracing: {
       enabled: toBoolean(

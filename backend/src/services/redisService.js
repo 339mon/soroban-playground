@@ -22,6 +22,10 @@ const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_TIMEOUT_MS = 60000;
 const CIRCUIT_BREAKER_HALF_OPEN_ATTEMPTS = 3;
 
+const WS_HEARTBEAT_INTERVAL_MS = 30000;
+const WS_MAX_CONNECTIONS_PER_IP = 10;
+const WS_CONNECTION_TTL_SECONDS = 120;
+
 function padDatePart(value) {
   return String(value).padStart(2, '0');
 }
@@ -68,6 +72,9 @@ class RedisService {
       endpoints: new Map(),
       ips: new Map(),
     };
+    this.pubSubChannels = new Map(); // channel -> Set of callbacks
+    this.redisSubscriber = null;
+    this.localConnectionCounts = new Map(); // ip -> count for fallback mode
 
     if (process.env.NODE_ENV !== 'test') {
       this.init();
@@ -326,6 +333,37 @@ class RedisService {
         return {1, count, 0}
       `,
     });
+
+    this.client.defineCommand('acquireConnection', {
+      numberOfKeys: 1,
+      lua: `
+        local key = KEYS[1]
+        local limit = tonumber(ARGV[1])
+        local ttl = tonumber(ARGV[2])
+        local current = redis.call('INCR', key)
+        if current == 1 then
+          redis.call('EXPIRE', key, ttl)
+        end
+        if current > limit then
+          redis.call('DECR', key)
+          return {0, current - 1}
+        end
+        return {1, current}
+      `,
+    });
+
+    this.client.defineCommand('releaseConnection', {
+      numberOfKeys: 1,
+      lua: `
+        local key = KEYS[1]
+        local current = redis.call('DECR', key)
+        if current <= 0 then
+          redis.call('DEL', key)
+          return 0
+        end
+        return current
+      `,
+    });
   }
 
   async checkRateLimit(strategy, key, limit, windowMs) {
@@ -388,6 +426,193 @@ class RedisService {
       retryAfter,
       fallback: true,
     };
+  }
+
+  async publish(channel, message) {
+    const serialized = typeof message === 'string' ? message : JSON.stringify(message);
+    if (this.isFallbackMode || !this.client) {
+      this._emitLocal(channel, serialized);
+      return 'local';
+    }
+    try {
+      await this.client.publish(channel, serialized);
+      return 'redis';
+    } catch (err) {
+      console.error('Redis publish error:', err.message);
+      this.isFallbackMode = true;
+      this._emitLocal(channel, serialized);
+      return 'local';
+    }
+  }
+
+  async subscribe(channel, callback) {
+    if (!this.pubSubChannels.has(channel)) {
+      this.pubSubChannels.set(channel, new Set());
+      if (!this.isFallbackMode && this.client) {
+        const sub = this._getRedisSubscriber();
+        if (sub) {
+          await sub.subscribe(channel);
+        }
+      }
+    }
+    this.pubSubChannels.get(channel).add(callback);
+  }
+
+  async unsubscribe(channel, callback) {
+    const callbacks = this.pubSubChannels.get(channel);
+    if (!callbacks) return;
+    callbacks.delete(callback);
+    if (callbacks.size === 0) {
+      this.pubSubChannels.delete(channel);
+      if (!this.isFallbackMode && this.redisSubscriber) {
+        try {
+          await this.redisSubscriber.unsubscribe(channel);
+        } catch (err) {
+          console.error('Redis unsubscribe error:', err.message);
+        }
+      }
+    }
+  }
+
+  _getRedisSubscriber() {
+    if (this.redisSubscriber && this.redisSubscriber.status === 'ready') {
+      return this.redisSubscriber;
+    }
+    if (this.isFallbackMode || !this.client) {
+      return null;
+    }
+    const sub = this.client.duplicate();
+    this.redisSubscriber = sub;
+    sub.on('message', (channel, message) => this._emitLocal(channel, message));
+    sub.on('error', (err) => {
+      console.error('Redis Subscriber Error:', err.message);
+    });
+    return sub;
+  }
+
+  _emitLocal(channel, message) {
+    const callbacks = this.pubSubChannels.get(channel);
+    if (!callbacks) return;
+    for (const cb of callbacks) {
+      try {
+        cb(message, channel);
+      } catch (err) {
+        console.error('Redis PubSub callback error:', err.message);
+      }
+    }
+  }
+
+  async tryAcquireConnection(ip, limit = WS_MAX_CONNECTIONS_PER_IP, ttlSeconds = WS_CONNECTION_TTL_SECONDS) {
+    const key = `ws:conn:${ip}`;
+    if (this.isFallbackMode || !this.client) {
+      const count = this.localConnectionCounts.get(ip) || 0;
+      if (count >= limit) {
+        return { allowed: false, current: limit, fallback: true };
+      }
+      const current = count + 1;
+      this.localConnectionCounts.set(ip, current);
+      return { allowed: true, current, fallback: true };
+    }
+    try {
+      const result = await this.client.acquireConnection(key, limit, ttlSeconds);
+      const [allowed, current] = result;
+      return { allowed: allowed === 1, current, fallback: false };
+    } catch (err) {
+      console.error('Redis acquireConnection error:', err.message);
+      this.isFallbackMode = true;
+      return this.tryAcquireConnection(ip, limit, ttlSeconds);
+    }
+  }
+
+  async releaseConnection(ip) {
+    const key = `ws:conn:${ip}`;
+    if (this.isFallbackMode || !this.client) {
+      const count = this.localConnectionCounts.get(ip) || 0;
+      const current = Math.max(count - 1, 0);
+      if (current <= 0) {
+        this.localConnectionCounts.delete(ip);
+      } else {
+        this.localConnectionCounts.set(ip, current);
+      }
+      return current;
+    }
+    try {
+      return await this.client.releaseConnection(key);
+    } catch (err) {
+      console.error('Redis releaseConnection error:', err.message);
+      this.isFallbackMode = true;
+      return this.releaseConnection(ip);
+    }
+  }
+
+  async renewConnection(ip, ttlSeconds = 120) {
+    const key = `ws:conn:${ip}`;
+    if (this.isFallbackMode || !this.client) {
+      return true;
+    }
+    try {
+      await this.client.expire(key, ttlSeconds);
+      return true;
+    } catch (err) {
+      console.error('Redis renewConnection error:', err.message);
+      this.isFallbackMode = true;
+      return false;
+    }
+  }
+
+  startHeartbeat(ws, interval = WS_HEARTBEAT_INTERVAL_MS) {
+    if (!ws || typeof ws.ping !== 'function' || typeof ws.terminate !== 'function') {
+      console.warn('Invalid WebSocket for heartbeat');
+      return;
+    }
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+      if (ws.ip) {
+        this.renewConnection(ws.ip, WS_CONNECTION_TTL_SECONDS).catch(() => {});
+      }
+    });
+    const timer = setInterval(() => {
+      if (ws.isAlive === false) {
+        ws.terminate();
+        clearInterval(timer);
+        return;
+      }
+      ws.isAlive = false;
+      try {
+        ws.ping();
+      } catch (err) {
+        ws.terminate();
+        clearInterval(timer);
+      }
+    }, interval);
+    ws.on('close', () => clearInterval(timer));
+    ws.on('error', () => clearInterval(timer));
+  }
+
+  async handleWebSocketConnection(ws, ip) {
+    if (!ws || typeof ws.ping !== 'function' || typeof ws.terminate !== 'function') {
+      return { allowed: false, current: 0, fallback: true };
+    }
+    const result = await this.tryAcquireConnection(ip);
+    if (!result.allowed) {
+      try {
+        ws.terminate();
+      } catch (err) {
+        // ignore terminate error
+      }
+      return result;
+    }
+    ws.ip = ip;
+    this.startHeartbeat(ws);
+    ws.on('close', () => {
+      const ipToRelease = ws.ip;
+      if (ipToRelease) {
+        ws.ip = null;
+        this.releaseConnection(ipToRelease).catch(() => {});
+      }
+    });
+    return result;
   }
 
   async get(key) {
