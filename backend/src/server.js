@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 
 import config from './config/index.js';
+import { validateEnv } from './config/env.js';
 import { corsOptions } from './config/cors.js';
 import {
   applyServerTuning,
@@ -85,6 +86,20 @@ import { setupSwagger } from './docs/swagger.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
+
+try {
+  validateEnv();
+} catch (err) {
+  console.error('Environment validation failed:');
+  if (err && err.errors) {
+    for (const [key, validationError] of Object.entries(err.errors)) {
+      console.error(`  - ${key}: ${validationError.message || validationError}`);
+    }
+  } else {
+    console.error(err.message);
+  }
+  process.exit(1);
+}
 
 const app = express();
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal', '10.0.0.0/8']);
